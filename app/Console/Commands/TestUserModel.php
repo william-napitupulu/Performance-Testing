@@ -30,13 +30,15 @@ class TestUserModel extends Command
                 $this->info("✓ Found {$count} users in tb_user table");
                 
                 // Show sample users
-                $sampleUsers = User::take(3)->get(['id', 'nama', 'plant_id', 'kode']);
+                $sampleUsers = User::take(3)->get(['id', 'nama', 'plant_id', 'kode', 'password']);
                 if ($sampleUsers->count() > 0) {
                     $this->info('Sample users:');
                     foreach ($sampleUsers as $user) {
-                        $isHashed = str_starts_with($user->kode ?? '', '$2y$') ? 'Hashed' : 'Plain text';
-                        $passLength = strlen($user->kode ?? '');
-                        $this->info("  - ID: {$user->id}, Name: {$user->nama}, Plant: {$user->plant_id}, Password: {$isHashed} (Length: {$passLength})");
+                        $passwordStatus = str_starts_with($user->password ?? '', '$2y$') ? 'Hashed' : 'Plain';
+                        $passwordLength = strlen($user->password ?? '');
+                        
+                        $this->info("  - {$user->id} ({$user->nama}) | Plant: {$user->plant_id} | Kode: {$user->kode}");
+                        $this->info("    Password: {$passwordStatus} ({$passwordLength} chars)");
                     }
                 }
                 

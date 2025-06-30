@@ -37,6 +37,7 @@ class User extends Authenticatable
         'id',
         'nama',
         'kode',
+        'password',
         'plant_id',
         'status',
         'remember_token',
@@ -46,7 +47,7 @@ class User extends Authenticatable
      * The attributes that should be hidden for serialization.
      */
     protected $hidden = [
-        'kode',
+        'password',
         'remember_token',
     ];
 
@@ -58,6 +59,7 @@ class User extends Authenticatable
         return [
             'plant_id' => 'integer',
             'status' => 'integer',
+            'password' => 'hashed',
         ];
     }
 
@@ -82,7 +84,7 @@ class User extends Authenticatable
      */
     public function getAuthPassword()
     {
-        return $this->kode;
+        return $this->password;
     }
 
     /**
@@ -90,84 +92,44 @@ class User extends Authenticatable
      */
     public function getAuthPasswordName()
     {
-        return 'kode';
+        return 'password';
     }
 
     /**
-     * Set the password attribute (maps to kode).
+     * Set the password attribute with automatic hashing.
      */
     public function setPasswordAttribute($value)
     {
         // Only hash if the value is not already hashed
         if (!empty($value) && !str_starts_with($value, '$2y$')) {
-            $this->attributes['kode'] = Hash::make($value);
+            $this->attributes['password'] = Hash::make($value);
             Log::info('Password hashed for user', [
                 'user_id' => $this->id ?? 'new_user',
                 'original_length' => strlen($value),
-                'hashed_length' => strlen($this->attributes['kode'])
+                'hashed_length' => strlen($this->attributes['password'])
             ]);
         } else {
-            $this->attributes['kode'] = $value;
+            $this->attributes['password'] = $value;
         }
     }
 
     /**
-     * Set the kode attribute with automatic hashing.
-     */
-    public function setKodeAttribute($value)
-    {
-        // Only hash if the value is not already hashed
-        if (!empty($value) && !str_starts_with($value, '$2y$')) {
-            $this->attributes['kode'] = Hash::make($value);
-            Log::info('Kode hashed for user', [
-                'user_id' => $this->id ?? 'new_user',
-                'original_length' => strlen($value),
-                'hashed_length' => strlen($this->attributes['kode'])
-            ]);
-        } else {
-            $this->attributes['kode'] = $value;
-        }
-    }
-
-    /**
-     * Get the password attribute (maps from kode).
-     */
-    public function getPasswordAttribute()
-    {
-        return $this->kode;
-    }
-
-    /**
-     * Handle password updates by mapping to kode field.
+     * Handle password updates.
      */
     public function updatePassword($password)
     {
         // Hash the password before storing
         if (!empty($password) && !str_starts_with($password, '$2y$')) {
-            $this->kode = Hash::make($password);
+            $this->password = Hash::make($password);
             Log::info('Password updated and hashed for user', [
                 'user_id' => $this->id,
                 'original_length' => strlen($password),
-                'hashed_length' => strlen($this->kode)
+                'hashed_length' => strlen($this->password)
             ]);
         } else {
-            $this->kode = $password;
+            $this->password = $password;
         }
         return $this->save();
-    }
-
-    /**
-     * Override the save method to handle password field mapping.
-     */
-    public function save(array $options = [])
-    {
-        // If password attribute is being set, map it to kode
-        if (isset($this->attributes['password'])) {
-            $this->attributes['kode'] = $this->attributes['password'];
-            unset($this->attributes['password']);
-        }
-        
-        return parent::save($options);
     }
 
     /**
@@ -195,27 +157,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Validate the password against the stored kode.
+     * Validate the password against the stored password.
      */
     public function validatePassword($password)
     {
         Log::info('Password validation attempt', [
             'user_id' => $this->id,
             'provided_password_length' => strlen($password),
-            'stored_kode_length' => strlen($this->kode),
-            'is_bcrypt_hash' => str_starts_with($this->kode, '$2y$')
+            'stored_password_length' => strlen($this->password),
+            'is_bcrypt_hash' => str_starts_with($this->password, '$2y$')
         ]);
 
         // Check if password is already hashed (bcrypt)
-        if (str_starts_with($this->kode, '$2y$')) {
-            $isValid = Hash::check($password, $this->kode);
+        if (str_starts_with($this->password, '$2y$')) {
+            $isValid = Hash::check($password, $this->password);
             Log::info('Using bcrypt hash verification', [
                 'user_id' => $this->id,
                 'hash_check_result' => $isValid
             ]);
         } else {
             // Plain text comparison for non-hashed passwords (backward compatibility)
-            $isValid = $password === $this->kode;
+            $isValid = $password === $this->password;
             Log::warning('Using plain text comparison - password should be hashed!', [
                 'user_id' => $this->id,
                 'plain_text_match' => $isValid
@@ -225,7 +187,7 @@ class User extends Authenticatable
         Log::info('Password validation result', [
             'user_id' => $this->id,
             'valid' => $isValid,
-            'validation_method' => str_starts_with($this->kode, '$2y$') ? 'bcrypt' : 'plain_text'
+            'validation_method' => str_starts_with($this->password, '$2y$') ? 'bcrypt' : 'plain_text'
         ]);
 
         return $isValid;

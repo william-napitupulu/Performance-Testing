@@ -20,7 +20,7 @@ class CheckUsers extends Command
             $this->info("Found {$users->count()} users:");
             
             foreach ($users as $user) {
-                $this->line("ID: {$user->id} | Name: {$user->nama} | Password: {$user->kode} | Plant: {$user->plant_id}");
+                $this->line("ID: {$user->id} | Name: {$user->nama} | Kode: {$user->kode} | Password: " . (str_starts_with($user->password ?? '', '$2y$') ? 'Hashed (' . strlen($user->password) . ')' : 'Plain (' . strlen($user->password ?? '') . ')') . " | Plant: {$user->plant_id}");
             }
             
             $this->info('');

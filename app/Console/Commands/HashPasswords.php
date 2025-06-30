@@ -43,7 +43,7 @@ class HashPasswords extends Command
         // Get all users with plain text passwords (not starting with $2y$)
         $allUsers = User::all();
         $users = $allUsers->filter(function($user) {
-            return !str_starts_with($user->kode ?? '', '$2y$');
+            return !str_starts_with($user->password ?? '', '$2y$');
         });
         
         if ($users->count() === 0) {
@@ -60,7 +60,7 @@ class HashPasswords extends Command
                 return [
                     $user->id,
                     $user->nama,
-                    strlen($user->kode),
+                    strlen($user->password),
                     $user->plant_id
                 ];
             })->toArray()
@@ -79,13 +79,31 @@ class HashPasswords extends Command
 
         foreach ($users as $user) {
             try {
-                $originalPassword = $user->kode;
+                if (empty($user->password)) {
+                    $this->info("Skipping user {$user->id} - no password");
+                    continue;
+                }
+
+                $this->info("User {$user->id}:");
+                $this->info("  - Original password: " . substr($user->password, 0, 10) . '...');
+                $this->info("  - Password length: " . 
+                    strlen($user->password),
+                );
+                $this->info("  - Is hashed: " . ($this->isHashed($user) ? 'Yes' : 'No'));
+
+                if ($this->isHashed($user)) {
+                    $this->info("  - Already hashed, skipping");
+                    continue;
+                }
+
+                $originalPassword = $user->password;
                 $hashedPassword = Hash::make($originalPassword);
-                
-                // Update directly in database to avoid triggering model events
+
+                $this->info("  - Hashing password...");
+
                 DB::table('tb_user')
                     ->where('id', $user->id)
-                    ->update(['kode' => $hashedPassword]);
+                    ->update(['password' => $hashedPassword]);
 
                 Log::info('Password hashed successfully', [
                     'user_id' => $user->id,
@@ -121,5 +139,10 @@ class HashPasswords extends Command
         $this->info('All operations have been logged to storage/logs/laravel.log');
 
         return $failedCount > 0 ? 1 : 0;
+    }
+
+    private function isHashed($user)
+    {
+        return str_starts_with($user->password ?? '', '$2y$');
     }
 }

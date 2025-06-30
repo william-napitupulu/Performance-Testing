@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class TestAuth extends Command
 {
@@ -18,7 +19,7 @@ class TestAuth extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Test authentication with tb_user table using kode field';
+    protected $description = 'Test authentication with tb_user table using password field';
 
     /**
      * Execute the console command.
@@ -51,43 +52,49 @@ class TestAuth extends Command
         $this->info("  - Name: {$user->nama}");
         $this->info("  - Plant ID: {$user->plant_id}");
         $this->info("  - Status: {$user->status}");
+        $this->info("  - Kode: {$user->kode}");
         $this->info("  - Can access all units: " . ($user->canAccessAllUnits() ? 'Yes' : 'No'));
-        $this->info("  - Kode (password) length: " . strlen($user->kode));
+        $this->info("  - Password (password) length: " . strlen($user->password));
         $this->info("  - Auth password: " . strlen($user->getAuthPassword()));
 
-        // Test password validation
-        $isValid = $user->validatePassword($password);
-        if ($isValid) {
-            $this->info("✓ Password validation successful");
+        // Test password status
+        $this->info("\n🔒 Testing password status...");
+        if (str_starts_with($user->password, '$2y$')) {
+            $this->info("  - ✅ Password is properly hashed (bcrypt)");
+            
+            // Test with a known password (you might need to adjust this)
+            $testPassword = $this->ask('Enter the plain text password to test (or press enter to skip)');
+            if ($testPassword) {
+                $hashCheck = Hash::check($testPassword, $user->password);
+                $this->info("  - Hash check result: " . ($hashCheck ? 'PASS' : 'FAIL'));
+                
+                if ($hashCheck) {
+                    $this->info("  - ✅ Password verification successful");
+                } else {
+                    $this->error("  - ❌ Password verification failed");
+                }
+            }
         } else {
-            $this->error("✗ Password validation failed");
-            return 1;
+            $this->warn("  - ⚠️  Password is stored as plain text (should be hashed!)");
         }
 
-        // Test password hashing
-        $this->info("Testing password hashing...");
-        if (str_starts_with($user->kode, '$2y$')) {
-            $this->info("✓ Password is already hashed with bcrypt");
-        } else {
-            $this->warn("! Password is stored as plain text");
-            $this->info("  To hash existing passwords, run: php artisan passwords:hash");
-        }
-
-        // Test Auth::attempt
+        // Test the authentication process
+        $this->info("\n🔐 Testing authentication process...");
+        $password = $this->ask('Enter password to test authentication');
+        
         $credentials = [
             'username' => $username,
             'password' => $password
         ];
 
         if (Auth::attempt($credentials)) {
-            $this->info("✓ Auth::attempt successful");
+            $this->info("✅ Authentication successful!");
             $authenticatedUser = Auth::user();
             $this->info("  - Authenticated user ID: {$authenticatedUser->id}");
             $this->info("  - Authenticated user name: {$authenticatedUser->nama}");
             
             // Test password attribute mapping
-            $this->info("  - Password attribute: " . (isset($authenticatedUser->password) ? 'Set' : 'Not set'));
-            $this->info("  - Kode attribute: " . strlen($authenticatedUser->kode));
+            $this->info("  - Password attribute: " . strlen($authenticatedUser->password));
             
             // Test unit access
             $units = $authenticatedUser->getAvailableUnits();
@@ -96,8 +103,9 @@ class TestAuth extends Command
                 $this->info("    - {$unit->unit_name} (ID: {$unit->unit_id}, Plant: {$unit->plant_id})");
             }
             
+            Auth::logout();
         } else {
-            $this->error("✗ Auth::attempt failed");
+            $this->error("❌ Authentication failed!");
             return 1;
         }
 

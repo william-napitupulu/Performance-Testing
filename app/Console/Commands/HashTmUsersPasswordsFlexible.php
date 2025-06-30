@@ -65,8 +65,8 @@ class HashTmUsersPasswordsFlexible extends Command
                 }
             }
 
-            // Common password field names
-            $possiblePasswordFields = ['f_password', 'password', 'user_password', 'kode'];
+            // Common password field names - prioritize 'password' over 'kode'
+            $possiblePasswordFields = ['password', 'f_password', 'user_password', 'kode'];
             foreach ($possiblePasswordFields as $field) {
                 if (in_array($field, $columns)) {
                     $passwordField = $field;
@@ -156,7 +156,7 @@ class HashTmUsersPasswordsFlexible extends Command
                 $this->info("\nRun without --dry-run to actually hash the passwords.");
             } else {
                 $this->info("✅ COMPLETED:");
-                $this->info("- Successfully processed {$count} passwords in tb_um_users table");
+                $this->info("- Successfully processed {$count} passwords in tb_user table");
                 $this->info("- {$alreadyHashed} passwords were already hashed");
                 $this->info("- Total users: {$users->count()}");
             }
