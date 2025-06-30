@@ -1,0 +1,278 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'tb_user';
+
+    /**
+     * The primary key for the model.
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the model should be timestamped.
+     */
+    public $timestamps = false;
+
+    /**
+     * The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'id',
+        'nama',
+        'kode',
+        'plant_id',
+        'status',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     */
+    protected $hidden = [
+        'kode',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'plant_id' => 'integer',
+            'status' => 'integer',
+        ];
+    }
+
+    /**
+     * Get the name of the unique identifier for the user.
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'id';
+    }
+
+    /**
+     * Get the unique identifier for the user.
+     */
+    public function getAuthIdentifier()
+    {
+        return $this->getAttribute($this->getAuthIdentifierName());
+    }
+
+    /**
+     * Get the password for the user.
+     */
+    public function getAuthPassword()
+    {
+        return $this->kode;
+    }
+
+    /**
+     * Get the name of the password column.
+     */
+    public function getAuthPasswordName()
+    {
+        return 'kode';
+    }
+
+    /**
+     * Set the password attribute (maps to kode).
+     */
+    public function setPasswordAttribute($value)
+    {
+        // Only hash if the value is not already hashed
+        if (!empty($value) && !str_starts_with($value, '$2y$')) {
+            $this->attributes['kode'] = Hash::make($value);
+            Log::info('Password hashed for user', [
+                'user_id' => $this->id ?? 'new_user',
+                'original_length' => strlen($value),
+                'hashed_length' => strlen($this->attributes['kode'])
+            ]);
+        } else {
+            $this->attributes['kode'] = $value;
+        }
+    }
+
+    /**
+     * Set the kode attribute with automatic hashing.
+     */
+    public function setKodeAttribute($value)
+    {
+        // Only hash if the value is not already hashed
+        if (!empty($value) && !str_starts_with($value, '$2y$')) {
+            $this->attributes['kode'] = Hash::make($value);
+            Log::info('Kode hashed for user', [
+                'user_id' => $this->id ?? 'new_user',
+                'original_length' => strlen($value),
+                'hashed_length' => strlen($this->attributes['kode'])
+            ]);
+        } else {
+            $this->attributes['kode'] = $value;
+        }
+    }
+
+    /**
+     * Get the password attribute (maps from kode).
+     */
+    public function getPasswordAttribute()
+    {
+        return $this->kode;
+    }
+
+    /**
+     * Handle password updates by mapping to kode field.
+     */
+    public function updatePassword($password)
+    {
+        // Hash the password before storing
+        if (!empty($password) && !str_starts_with($password, '$2y$')) {
+            $this->kode = Hash::make($password);
+            Log::info('Password updated and hashed for user', [
+                'user_id' => $this->id,
+                'original_length' => strlen($password),
+                'hashed_length' => strlen($this->kode)
+            ]);
+        } else {
+            $this->kode = $password;
+        }
+        return $this->save();
+    }
+
+    /**
+     * Override the save method to handle password field mapping.
+     */
+    public function save(array $options = [])
+    {
+        // If password attribute is being set, map it to kode
+        if (isset($this->attributes['password'])) {
+            $this->attributes['kode'] = $this->attributes['password'];
+            unset($this->attributes['password']);
+        }
+        
+        return parent::save($options);
+    }
+
+    /**
+     * Get the token value for the "remember me" session.
+     */
+    public function getRememberToken()
+    {
+        return $this->remember_token;
+    }
+
+    /**
+     * Set the token value for the "remember me" session.
+     */
+    public function setRememberToken($value)
+    {
+        $this->remember_token = $value;
+    }
+
+    /**
+     * Get the column name for the "remember me" token.
+     */
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
+    }
+
+    /**
+     * Validate the password against the stored kode.
+     */
+    public function validatePassword($password)
+    {
+        Log::info('Password validation attempt', [
+            'user_id' => $this->id,
+            'provided_password_length' => strlen($password),
+            'stored_kode_length' => strlen($this->kode),
+            'is_bcrypt_hash' => str_starts_with($this->kode, '$2y$')
+        ]);
+
+        // Check if password is already hashed (bcrypt)
+        if (str_starts_with($this->kode, '$2y$')) {
+            $isValid = Hash::check($password, $this->kode);
+            Log::info('Using bcrypt hash verification', [
+                'user_id' => $this->id,
+                'hash_check_result' => $isValid
+            ]);
+        } else {
+            // Plain text comparison for non-hashed passwords (backward compatibility)
+            $isValid = $password === $this->kode;
+            Log::warning('Using plain text comparison - password should be hashed!', [
+                'user_id' => $this->id,
+                'plain_text_match' => $isValid
+            ]);
+        }
+
+        Log::info('Password validation result', [
+            'user_id' => $this->id,
+            'valid' => $isValid,
+            'validation_method' => str_starts_with($this->kode, '$2y$') ? 'bcrypt' : 'plain_text'
+        ]);
+
+        return $isValid;
+    }
+
+    /**
+     * Get the user's display name.
+     */
+    public function getDisplayName()
+    {
+        return $this->nama;
+    }
+
+    /**
+     * Check if user can access all units (plant_id = 1).
+     */
+    public function canAccessAllUnits()
+    {
+        return $this->plant_id == 1;
+    }
+
+    /**
+     * Get available units for this user.
+     */
+    public function getAvailableUnits()
+    {
+        if ($this->canAccessAllUnits()) {
+            // If plant_id is 1, user can choose any unit
+            return Unit::all();
+        } else {
+            // Otherwise, only units with status = 1 for their plant
+            return Unit::where('plant_id', $this->plant_id)
+                      ->where('status', 1)
+                      ->get();
+        }
+    }
+
+    /**
+     * Relationship with Unit model.
+     */
+    public function units()
+    {
+        if ($this->canAccessAllUnits()) {
+            return Unit::all();
+        } else {
+            return $this->hasMany(Unit::class, 'plant_id', 'plant_id')
+                        ->where('status', 1);
+        }
+    }
+}
