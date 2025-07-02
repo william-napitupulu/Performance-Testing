@@ -25,6 +25,16 @@ class Performance extends Model
     protected $primaryKey = 'perf_id';
 
     /**
+     * The "type" of the auto-incrementing ID.
+     */
+    protected $keyType = 'integer';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public $incrementing = true;
+
+    /**
      * Indicates if the model should be timestamped.
      */
     public $timestamps = false;
@@ -44,7 +54,7 @@ class Performance extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
-        'date_perfomance' => 'date',
+        'date_perfomance' => 'datetime',
         'date_created' => 'datetime',
         'perf_id' => 'integer',
         'unit_id' => 'integer',

@@ -29,7 +29,7 @@ const mainNavItems: NavItem[] = [
         icon: AlertTriangle,
     },
     {
-        title: 'Data Analysis',
+        title: 'Get Data',
         href: '/data-analysis',
         icon: BarChart3,
     },

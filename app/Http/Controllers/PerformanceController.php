@@ -15,6 +15,7 @@ class PerformanceController extends Controller
      */
     public function index()
     {
+       
         try {
             // Get the current unit from session
             $selectedUnit = session('selected_unit');

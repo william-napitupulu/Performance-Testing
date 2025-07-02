@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tb_user', function (Blueprint $table) {
-            $table->string('remember_token', 100)->nullable()->after('status');
+            // Only add remember_token if it doesn't already exist
+            if (!Schema::hasColumn('tb_user', 'remember_token')) {
+                $table->string('remember_token', 100)->nullable()->after('status');
+            }
         });
     }
 
@@ -22,7 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tb_user', function (Blueprint $table) {
-            $table->dropColumn('remember_token');
+            if (Schema::hasColumn('tb_user', 'remember_token')) {
+                $table->dropColumn('remember_token');
+            }
         });
     }
 };

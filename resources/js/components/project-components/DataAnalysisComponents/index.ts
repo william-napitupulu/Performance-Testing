@@ -1,5 +1,14 @@
-export { DataAnalysisHeader } from './DataAnalysisHeader';
+export { DataAnalysisContainer } from './DataAnalysisContainer';
 export { DataAnalysisForm } from './DataAnalysisForm';
 export { DataAnalysisStats } from './DataAnalysisStats';
 export { DataAnalysisTable } from './DataAnalysisTable';
-export type { AnalysisData, AnalysisFormData, ApiResponse } from './types'; 
+export { DataAnalysisTableHeader } from './DataAnalysisTableHeader';
+export { DataAnalysisSearchFilters } from './DataAnalysisSearchFilters';
+export { DataAnalysisPagination } from './DataAnalysisPagination';
+export { NewPerformanceTestTab } from './NewPerformanceTestTab';
+export { GetDataTab } from './GetDataTab';
+export { RunTab } from './RunTab';
+export { Tab1 } from './Tab1';
+export { Tab2 } from './Tab2';
+export { Tab3 } from './Tab3';
+export type { AnalysisData, ApiResponse, SearchFilters } from './types'; 

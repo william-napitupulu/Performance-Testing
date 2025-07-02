@@ -23,9 +23,11 @@ use Illuminate\Support\Facades\Log;
 */
 
 // Public Routes
-Route::get('/', function () {
-    return redirect('/login');
-})->name('home');
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return redirect('/login');
+    })->name('home');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/performance', function () {
@@ -44,6 +46,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Data Analysis Routes - Protected
     Route::get('/data-analysis', [DataAnalysisController::class, 'index'])->name('data-analysis.index');
     Route::post('/data-analysis/get-data', [DataAnalysisController::class, 'getData'])->name('data-analysis.get-data');
+    
+    // Debug route to test authentication and CSRF
+    Route::post('/debug/test-auth', function (Request $request) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Authentication and CSRF working',
+            'user_id' => auth()->user()->id ?? 'No user',
+            'csrf_token' => csrf_token(),
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+    })->name('debug.test-auth');
     
     // Unit Selection Routes - Protected
     Route::get('/select-unit', [AuthenticatedSessionController::class, 'selectUnit'])->name('unit.select');
@@ -175,6 +189,16 @@ Route::get('/api/dcs-data', function (Request $request) {
     }
     */
 })->middleware('auth');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/api/input-tags', [DataAnalysisController::class, 'getInputTags'])->middleware('web');
+    Route::get('/api/performance-records', [DataAnalysisController::class, 'getPerformanceRecords'])->middleware('web');
+    
+    // API Routes for Data Analysis
+    Route::post('/api/data-analysis/get-data', [DataAnalysisController::class, 'getData'])->name('api.data-analysis.get-data');
+    Route::get('/api/data-analysis/data', [DataAnalysisController::class, 'getAnalysisData'])->name('api.data-analysis.data');
+    Route::post('/api/data-analysis/save-manual-input', [DataAnalysisController::class, 'saveManualInput'])->name('api.data-analysis.save-manual-input');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
