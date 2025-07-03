@@ -30,6 +30,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        // Ensure CSRF token is present in the payload (handles very first request after logout)
+        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+        setData('_token' as any, csrfToken);
+
         post(route('login'), {
             onFinish: () => reset('password'),
         });

@@ -14,6 +14,10 @@ const token = document.head.querySelector('meta[name="csrf-token"]');
 
 if (token) {
     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+    // Also set X-XSRF-TOKEN header for compatibility with VerifyCsrfToken middleware
+    window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token.content;
+    // Ensure cookies (including XSRF-TOKEN when present) are sent with every request
+    window.axios.defaults.withCredentials = true;
 } else {
     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 }

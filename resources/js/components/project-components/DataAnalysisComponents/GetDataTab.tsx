@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { DataAnalysisStats } from './DataAnalysisStats';
 import { DataAnalysisTable } from './DataAnalysisTable';
 import type { AnalysisData, ApiResponse } from './types';
+import { SaveButton } from './Tab1Components/SaveButton';
+import { useManualInput } from './ManualInputContext';
 
 interface SharedPerformanceData {
   description: string;
@@ -23,6 +25,7 @@ interface GetDataTabProps {
     filter_tag_no?: string;
     filter_value?: string;
     filter_date?: string;
+    perf_id?: number;
   }) => Promise<void>;
   sharedData: SharedPerformanceData;
 }
@@ -37,6 +40,8 @@ export function GetDataTab({
   onDataUpdate,
   sharedData
 }: GetDataTabProps) {
+  const { dataHook, actionsHook } = useManualInput();
+
   const handleSort = async (field: string) => {
     const newDirection = sort.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
     await onDataUpdate({
@@ -52,9 +57,31 @@ export function GetDataTab({
     });
   };
 
+  const handleSaveManualInput = async () => {
+    const success = await actionsHook.handleSaveData(dataHook.selectedPerformance, sharedData);
+    if (success) {
+      await onDataUpdate({
+        page: pagination.current_page,
+        sort_field: sort.field,
+        sort_direction: sort.direction,
+        filter_tag_no: filters.tag_no || undefined,
+        filter_value: filters.value || undefined,
+        filter_date: filters.date || undefined,
+        perf_id: sharedData.perfId
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Performance Test Info */}
+      {!sharedData.dateTime ? (
+        <div className="p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700/50">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            ⚠️ No performance test selected. Please choose a performance from the Performance List or create a new one in the "New Performance Test" tab.
+          </p>
+        </div>
+      ) : (
       <div className="bg-blue-50/70 dark:bg-blue-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/50">
         <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-2">
           Performance Test Results
@@ -88,10 +115,18 @@ export function GetDataTab({
             <p className="text-gray-700 dark:text-gray-300">{pagination?.total || 0}</p>
           </div>
         </div>
+        {/* Save Manual Input Data Button moved from Tab1 */}
+        <SaveButton
+          saving={actionsHook.saving}
+          hasDataToSave={actionsHook.hasDataToSave()}
+          onSave={handleSaveManualInput}
+          showButton={dataHook.inputTags.length > 0}
+        />
       </div>
+      )}
 
       {/* Results */}
-      {data.length > 0 && <DataAnalysisStats data={data} />}
+      {sharedData.dateTime && data.length > 0 && <DataAnalysisStats data={data} />}
       <DataAnalysisTable
         data={data}
         loading={loading}

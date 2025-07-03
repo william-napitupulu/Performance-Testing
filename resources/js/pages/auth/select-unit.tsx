@@ -26,6 +26,7 @@ interface Props {
 export default function SelectUnit({ units, user }: Props) {
     const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLogoutSubmitting, setIsLogoutSubmitting] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,7 +37,8 @@ export default function SelectUnit({ units, user }: Props) {
 
         setIsSubmitting(true);
         router.post(route('unit.store'), {
-            unit_id: selectedUnit
+            unit_id: selectedUnit,
+            _token: (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
         }, {
             onFinish: () => setIsSubmitting(false)
         });
@@ -48,7 +50,11 @@ export default function SelectUnit({ units, user }: Props) {
     };
 
     const handleLogout = () => {
-        router.post(route('logout'));
+        if (isLogoutSubmitting) return;
+        setIsLogoutSubmitting(true);
+        router.post(route('logout'), {}, {
+            onFinish: () => setIsLogoutSubmitting(false)
+        });
     };
 
     return (
@@ -83,8 +89,9 @@ export default function SelectUnit({ units, user }: Props) {
                                 type="button"
                                 variant="outline"
                                 onClick={handleLogout}
+                                disabled={isLogoutSubmitting}
                             >
-                                Logout
+                                {isLogoutSubmitting ? 'Logging out...' : 'Logout'}
                             </Button>
                             
                             <Button

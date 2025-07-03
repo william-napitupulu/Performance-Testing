@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Unit;
+use Illuminate\Http\Response as LaravelResponse;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): LaravelResponse
     {
         Log::info('Login attempt started', [
             'username' => $request->username,
@@ -69,8 +70,8 @@ class AuthenticatedSessionController extends Controller
             ]);
 
             if ($availableUnits->count() > 1) {
-                // Multiple units available, redirect to unit selection
-                return redirect()->route('unit.select');
+                // Multiple units available, force a full page redirect so the new CSRF token is sent to the client
+                return \Inertia\Inertia::location(route('unit.select'));
             } elseif ($availableUnits->count() === 1) {
                 // Only one unit available, auto-select it
                 $unit = $availableUnits->first();
@@ -82,7 +83,8 @@ class AuthenticatedSessionController extends Controller
                     'unit_name' => $unit->unit_name
                 ]);
                 
-                return redirect()->intended(route('dashboard'));
+                // Force full reload so updated CSRF token is present in meta tag
+                return \Inertia\Inertia::location(route('dashboard'));
             } else {
                 // No units available
                 Log::warning('No units available for user', [
@@ -191,7 +193,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): LaravelResponse
     {
         $user = Auth::user();
         
@@ -205,6 +207,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Force full page reload so the new CSRF token meta tag is refreshed
+        return \Inertia\Inertia::location(route('login'));
     }
 }

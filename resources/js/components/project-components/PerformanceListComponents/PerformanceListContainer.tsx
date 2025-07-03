@@ -60,15 +60,8 @@ export function PerformanceListContainer({
 
   // CRUD Operations
   const handleEdit = (performance: Performance) => {
-    if (performance.status === 'Editable') {
-      setEditingId(performance.id);
-      setEditForm({
-        description: performance.description,
-        status: performance.status,
-        date_perfomance: performance.date_perfomance,
-        unit_id: performance.unit_id
-      });
-    }
+    // Navigate to data-analysis with perf_id query param
+    router.visit(`/data-analysis?perf_id=${performance.id}`);
   };
 
   const handleSaveEdit = async () => {

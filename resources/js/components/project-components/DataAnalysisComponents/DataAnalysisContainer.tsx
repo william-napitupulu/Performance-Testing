@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Database, Settings, BarChart3, Cog, Plus } from 'lucide-react';
 import { NewPerformanceTestTab } from './NewPerformanceTestTab';
 import { GetDataTab } from './GetDataTab';
@@ -8,12 +8,13 @@ import { Tab2 } from './Tab2';
 import { Tab3 } from './Tab3';
 import type { AnalysisData, ApiResponse } from './types';
 import axios from 'axios';
+import { ManualInputProvider } from './ManualInputContext';
 
-type TabType = 'new-performance' | 'get-data' | 'tab1' | 'tab2' | 'tab3' | 'run';
+type TabType = 'new-performance' | 'save-data' | 'tab1' | 'tab2' | 'tab3' | 'run';
 
 const TABS = [
   { id: 'new-performance', label: 'New Performance Test', icon: Plus, color: 'blue' },
-  { id: 'get-data', label: 'Get Data', icon: Database, color: 'green' },
+  { id: 'save-data', label: 'Save Data', icon: Database, color: 'green' },
   { id: 'tab1', label: 'Tab 1', icon: Settings, color: 'green' },
   { id: 'tab2', label: 'Tab 2', icon: BarChart3, color: 'green' },
   { id: 'tab3', label: 'Tab 3', icon: Cog, color: 'green' },
@@ -55,6 +56,38 @@ export function DataAnalysisContainer() {
       direction: 'asc'
     }
   });
+  const [initializedFromPerfId, setInitializedFromPerfId] = useState(false);
+
+  useEffect(() => {
+    if (initializedFromPerfId) return;
+    const params = new URLSearchParams(window.location.search);
+    const perfIdParam = params.get('perf_id');
+    if (perfIdParam) {
+      const perfIdNum = parseInt(perfIdParam, 10);
+      if (!isNaN(perfIdNum)) {
+        (async () => {
+          setLoading(true);
+          try {
+            const resp = await axios.get('/api/data-analysis/data', { params: { perf_id: perfIdNum } });
+            const perf = resp.data.performance;
+            setSharedData({
+              description: perf.description,
+              dateTime: perf.date_perfomance,
+              perfId: perf.id,
+            });
+            setData(resp.data.data);
+            setApiResponse(resp.data);
+            setActiveTab('save-data');
+          } catch (err) {
+            console.error('Error loading performance', err);
+          } finally {
+            setLoading(false);
+            setInitializedFromPerfId(true);
+          }
+        })();
+      }
+    }
+  }, [initializedFromPerfId]);
 
   const handleNewPerformanceSubmit = async (formData: { description: string; dateTime: string }) => {
     setLoading(true);
@@ -72,8 +105,8 @@ export function DataAnalysisContainer() {
       setData(response.data.data);
       setApiResponse(response.data);
       
-      // Automatically switch to Get Data tab to show results
-      setActiveTab('get-data');
+      // Automatically switch to Save Data tab to show results
+      setActiveTab('save-data');
     } catch (error) {
       console.error('Error creating performance test:', error);
     } finally {
@@ -88,6 +121,7 @@ export function DataAnalysisContainer() {
     filter_tag_no?: string;
     filter_value?: string;
     filter_date?: string;
+    perf_id?: number;
   }) => {
     try {
       const response = await axios.get('/api/data-analysis/data', { params });
@@ -99,21 +133,10 @@ export function DataAnalysisContainer() {
   };
 
   const handleTabChange = (tab: TabType) => {
-    // Prevent navigation to get-data tab without performance data
-    if (tab === 'get-data' && !sharedData.dateTime) {
-      alert('Please create a New Performance Test first');
-      return;
-    }
-    
     setActiveTab(tab);
   };
 
-  const canAccessTab = (tabId: string) => {
-    if (tabId === 'get-data') {
-      return !!sharedData.dateTime;
-    }
-    return true; // Tab1 is now always accessible
-  };
+  const canAccessTab = (_tabId: string) => true;
 
   return (
     <div className="p-6 bg-background">
@@ -152,6 +175,7 @@ export function DataAnalysisContainer() {
       </div>
 
       {/* Tab Content */}
+      <ManualInputProvider sharedData={sharedData}>
       <div className="tab-content">
         {activeTab === 'new-performance' && (
           <NewPerformanceTestTab
@@ -160,7 +184,7 @@ export function DataAnalysisContainer() {
             sharedData={sharedData}
           />
         )}
-        {activeTab === 'get-data' && (
+        {activeTab === 'save-data' && (
           <GetDataTab
             data={data}
             pagination={apiResponse.pagination}
@@ -179,6 +203,7 @@ export function DataAnalysisContainer() {
         {activeTab === 'tab2' && <Tab2 />}
         {activeTab === 'tab3' && <Tab3 />}
       </div>
+      </ManualInputProvider>
     </div>
   );
 } 

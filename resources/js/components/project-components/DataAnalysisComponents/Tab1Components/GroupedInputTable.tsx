@@ -141,8 +141,8 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                   />
                 </td>
                 {headers.map((_, index) => (
-                  <td key={index} className="px-4 py-2 text-center text-xs text-gray-400 dark:text-gray-500">
-                    Data Input
+                  <td className="px-4 py-2 ">
+
                   </td>
                 ))}
               </tr>

@@ -11,7 +11,15 @@ interface PerformanceInfoProps {
 }
 
 export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ sharedData }) => {
-  if (!sharedData.dateTime) return null;
+  if (!sharedData.dateTime) {
+    return (
+      <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700/50">
+        <p className="text-sm text-yellow-800 dark:text-yellow-300">
+          ⚠️ No performance test selected. Please choose a performance from the Performance List or create a new one in the "New Performance Test" tab.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-6 p-4 bg-blue-50/70 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800/50">

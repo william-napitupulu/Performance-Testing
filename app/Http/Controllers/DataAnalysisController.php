@@ -71,8 +71,8 @@ class DataAnalysisController extends Controller
             // Create performance record
             $performance = $this->createPerformanceRecord($request, $selectedUnit);
 
-            // Call external API
-            $apiResponse = $this->callExternalApi($performance->perf_id, $request->dateTime);
+            // Call to external API is temporarily disabled. Uncomment when integration is needed.
+            // $apiResponse = $this->callExternalApi($performance->perf_id, $request->dateTime);
 
             // Get filtered and paginated data
             $result = $this->getFilteredData($request, $performance->perf_id);
@@ -390,12 +390,22 @@ class DataAnalysisController extends Controller
                 return response()->json(['error' => 'No unit selected'], 400);
             }
 
-            // Get the latest performance record for this unit
-            $latestPerformance = Performance::forUnit($selectedUnit)
-                ->orderBy('date_created', 'desc')
-                ->first();
+            // Allow explicit perf_id override via query param
+            $targetPerfId = $request->input('perf_id');
 
-            if (!$latestPerformance) {
+            $performance = null;
+            if ($targetPerfId) {
+                $performance = Performance::forUnit($selectedUnit)->where('perf_id', $targetPerfId)->first();
+            }
+
+            // Fallback to latest performance record if no perf_id provided or not found
+            if (!$performance) {
+                $performance = Performance::forUnit($selectedUnit)
+                    ->orderBy('date_created', 'desc')
+                    ->first();
+            }
+
+            if (!$performance) {
                 return response()->json([
                     'success' => true,
                     'data' => [],
@@ -419,12 +429,13 @@ class DataAnalysisController extends Controller
                 ]);
             }
 
-            $result = $this->getFilteredData($request, $latestPerformance->perf_id);
+            $result = $this->getFilteredData($request, $performance->perf_id);
 
             return response()->json([
                 'success' => true,
                 'data' => $result['data'],
                 'pagination' => $result['pagination'],
+                'performance' => $this->formatPerformanceData($performance),
                 'filters' => [
                     'tag_no' => $request->filter_tag_no,
                     'value' => $request->filter_value,
