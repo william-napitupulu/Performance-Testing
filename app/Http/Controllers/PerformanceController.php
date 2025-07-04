@@ -7,6 +7,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class PerformanceController extends Controller
 {
@@ -209,6 +210,9 @@ class PerformanceController extends Controller
 
             $performance = Performance::forUnit($selectedUnit)->findOrFail($id);
 
+            // Delete related manual input data
+            DB::table('tb_input')->where('perf_id', $performance->perf_id)->delete();
+
             // Only allow deleting if status is Editable
             if ($performance->status !== Performance::STATUS_EDITABLE) {
                 return response()->json(['error' => 'Cannot delete locked performance record'], 403);
@@ -221,7 +225,7 @@ class PerformanceController extends Controller
                 'unit_id' => $selectedUnit
             ]);
 
-            return response()->json(['success' => true]);
+            return back()->with('success', 'Performance record deleted successfully');
 
         } catch (\Exception $e) {
             Log::error('Error deleting performance record', [

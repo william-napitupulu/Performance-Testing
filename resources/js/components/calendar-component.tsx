@@ -3,10 +3,19 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarComponentProps {
   onDateTimeSelect?: (dateTime: Date) => void;
+  onDateSelect?: (date: string) => void;
+  onClear?: () => void;
+  dateOnly?: boolean;
   value?: string;
 }
 
-export const CalendarComponent: React.FC<CalendarComponentProps> = ({ onDateTimeSelect, value }) => {
+export const CalendarComponent: React.FC<CalendarComponentProps> = ({ 
+  onDateTimeSelect, 
+  onDateSelect, 
+  onClear,
+  dateOnly = false, 
+  value 
+}) => {
   const today = useMemo(() => new Date(), []);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDateTime, setSelectedDateTime] = useState<{
@@ -113,15 +122,20 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({ onDateTime
       return;
     }
     
-    const finalDateTime = new Date(
-      selectedDateTime.year,
-      selectedDateTime.month,
-      selectedDateTime.day,
-      selectedDateTime.hour,
-      selectedDateTime.minute
-    );
-    
-    if (onDateTimeSelect) {
+    if (dateOnly && onDateSelect) {
+      // Format as YYYY-MM-DD for date-only mode
+      const year = selectedDateTime.year;
+      const month = String(selectedDateTime.month + 1).padStart(2, '0');
+      const day = String(selectedDateTime.day).padStart(2, '0');
+      onDateSelect(`${year}-${month}-${day}`);
+    } else if (onDateTimeSelect) {
+      const finalDateTime = new Date(
+        selectedDateTime.year,
+        selectedDateTime.month,
+        selectedDateTime.day,
+        selectedDateTime.hour,
+        selectedDateTime.minute
+      );
       onDateTimeSelect(finalDateTime);
     }
   };
@@ -201,7 +215,8 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({ onDateTime
           })}
         </div>
 
-        {/* Time Selection */}
+        {/* Time Selection - only show if not date-only mode */}
+        {!dateOnly && (
         <div className="mt-3 p-3 border-t border-border dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-1">
@@ -236,6 +251,27 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({ onDateTime
             </button>
           </div>
         </div>
+        )}
+
+        {/* Date-only selection button */}
+        {dateOnly && (
+        <div className="mt-3 p-3 border-t border-border dark:border-gray-700 flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={handleSelection}
+            className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-800 dark:bg-gray-200 dark:hover:bg-gray-300 text-white dark:text-gray-900 rounded-lg text-sm font-medium transition-colors shadow-md"
+          >
+            Select Date
+          </button>
+          {onClear && (
+            <button
+              onClick={onClear}
+              className="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors shadow-md"
+            >
+              All Dates
+            </button>
+          )}
+        </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Database, Settings, BarChart3, Cog, Plus } from 'lucide-react';
+import { Play, Database, Settings, BarChart3, Cog, Plus, ArrowLeft } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import { NewPerformanceTestTab } from './NewPerformanceTestTab';
-import { GetDataTab } from './GetDataTab';
 import { RunTab } from './RunTab';
 import { Tab1 } from './Tab1';
 import { Tab2 } from './Tab2';
 import { Tab3 } from './Tab3';
+import { SaveDataTab } from './SaveDataTab';
 import type { AnalysisData, ApiResponse } from './types';
 import axios from 'axios';
 import { ManualInputProvider } from './ManualInputContext';
@@ -140,6 +141,12 @@ export function DataAnalysisContainer() {
 
   return (
     <div className="p-6 bg-background">
+      {/* Back to Performance List */}
+      <div className="mb-4">
+        <Link href={route('performance.index')} className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Performance List
+        </Link>
+      </div>
       {/* Tab Navigation */}
       <div className="mb-0">
         <div className="flex flex-wrap gap-2 bg-gray-100 dark:bg-gray-800 p-2 rounded-t-lg">
@@ -185,7 +192,7 @@ export function DataAnalysisContainer() {
           />
         )}
         {activeTab === 'save-data' && (
-          <GetDataTab
+          <SaveDataTab
             data={data}
             pagination={apiResponse.pagination}
             filters={apiResponse.filters}

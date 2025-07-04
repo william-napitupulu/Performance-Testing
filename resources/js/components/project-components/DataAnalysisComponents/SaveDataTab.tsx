@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { DataAnalysisStats } from './DataAnalysisStats';
 import { DataAnalysisTable } from './DataAnalysisTable';
 import type { AnalysisData, ApiResponse } from './types';
@@ -11,7 +11,7 @@ interface SharedPerformanceData {
   perfId?: number;
 }
 
-interface GetDataTabProps {
+interface SaveDataTabProps {
   data: AnalysisData[];
   pagination: ApiResponse['pagination'];
   filters: ApiResponse['filters'];
@@ -30,7 +30,7 @@ interface GetDataTabProps {
   sharedData: SharedPerformanceData;
 }
 
-export function GetDataTab({
+export function SaveDataTab({
   data,
   pagination,
   filters,
@@ -39,7 +39,7 @@ export function GetDataTab({
   onSubmit,
   onDataUpdate,
   sharedData
-}: GetDataTabProps) {
+}: SaveDataTabProps) {
   const { dataHook, actionsHook } = useManualInput();
 
   const handleSort = async (field: string) => {
@@ -74,7 +74,7 @@ export function GetDataTab({
 
   return (
     <div className="space-y-6">
-      {/* Performance Test Info */}
+      {/* Warning when no performance selected */}
       {!sharedData.dateTime ? (
         <div className="p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700/50">
           <p className="text-sm text-yellow-800 dark:text-yellow-300">
@@ -84,7 +84,7 @@ export function GetDataTab({
       ) : (
       <div className="bg-blue-50/70 dark:bg-blue-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/50">
         <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-2">
-          Performance Test Results
+          Save Manual Input Data
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
@@ -115,12 +115,12 @@ export function GetDataTab({
             <p className="text-gray-700 dark:text-gray-300">{pagination?.total || 0}</p>
           </div>
         </div>
-        {/* Save Manual Input Data Button moved from Tab1 */}
+        {/* Save Button */}
         <SaveButton
           saving={actionsHook.saving}
           hasDataToSave={actionsHook.hasDataToSave()}
           onSave={handleSaveManualInput}
-          showButton={dataHook.inputTags.length > 0}
+          showButton={true}
         />
       </div>
       )}

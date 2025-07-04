@@ -39,8 +39,8 @@ export function PerformanceListTable({
   sortDirection
 }: PerformanceListTableProps) {
   return (
-    <div className="rounded-lg shadow-lg overflow-hidden bg-card dark:bg-gray-800 border border-border dark:border-gray-700">
-      <div className="overflow-x-auto">
+    <div className="rounded-lg shadow-lg overflow-visible bg-card dark:bg-gray-800 border border-border dark:border-gray-700">
+      <div className="relative overflow-x-auto" style={{ overflowY: 'visible' }}>
         <table className="min-w-full divide-y divide-border dark:divide-gray-700">
           <PerformanceTableHeader 
             onSort={onSort}

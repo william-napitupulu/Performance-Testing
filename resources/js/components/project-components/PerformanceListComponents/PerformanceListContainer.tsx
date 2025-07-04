@@ -18,7 +18,7 @@ export function PerformanceListContainer({
   selectedUnitName,
   error
 }: PerformanceListContainerProps) {
-  const [performances] = useState<Performance[]>(initialPerformances);
+  const [performances, setPerformances] = useState<Performance[]>(initialPerformances);
   const [filteredData, setFilteredData] = useState<Performance[]>(initialPerformances);
   const [sortField, setSortField] = useState<keyof Performance | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
@@ -99,8 +99,29 @@ export function PerformanceListContainer({
     if (performance && performance.status === 'Editable') {
       if (window.confirm('Are you sure you want to delete this performance record?')) {
         try {
-          await router.delete(`/performance/${id}`);
-          router.reload();
+          await router.delete(`/performance/${id}`, {
+            preserveScroll: true,
+            onSuccess: (page) => {
+              // Remove locally without full reload
+              setPerformances(prev => prev.filter(p => p.id !== id));
+              setFilteredData(prev => prev.filter(p => p.id !== id));
+              
+              // Show success message
+              if (page.props.success) {
+                // Create a temporary toast notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+                toast.textContent = page.props.success as string;
+                document.body.appendChild(toast);
+                
+                // Auto-remove after 3 seconds
+                setTimeout(() => {
+                  toast.style.opacity = '0';
+                  setTimeout(() => document.body.removeChild(toast), 300);
+                }, 3000);
+              }
+            },
+          });
         } catch (error) {
           console.error('Error deleting performance:', error);
           alert('Failed to delete performance record');

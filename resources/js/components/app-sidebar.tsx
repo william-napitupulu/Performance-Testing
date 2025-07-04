@@ -28,11 +28,7 @@ const mainNavItems: NavItem[] = [
         href: '/anomaly',
         icon: AlertTriangle,
     },
-    {
-        title: 'Get Data',
-        href: '/data-analysis',
-        icon: BarChart3,
-    },
+
     {
 
         title: 'Testing',

@@ -224,7 +224,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  Save Data
+                  Create new performance test
                 </>
               )}
             </button>

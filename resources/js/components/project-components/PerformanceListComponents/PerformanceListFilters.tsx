@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Performance } from '@/data/mockPerformanceData';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
+import { CalendarDropdown } from './CalendarDropdown';
+import { createPortal } from 'react-dom';
 
 interface SearchValues {
   id: string;
@@ -31,6 +33,13 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
   // Get unique units for the filter
   const uniqueUnits = Array.from(new Set(performances.map(p => p.unit_name || ''))).filter(Boolean) as string[];
   const [unitFilter, setUnitFilter] = useState<string>('all');
+
+  const [showPerformanceDateCalendar, setShowPerformanceDateCalendar] = useState(false);
+  const [showCreatedDateCalendar, setShowCreatedDateCalendar] = useState(false);
+  const performanceInputRef = useRef<HTMLInputElement>(null);
+  const createdInputRef = useRef<HTMLInputElement>(null);
+  const [performanceCalPos, setPerformanceCalPos] = useState<{top:number,left:number}>({top:0,left:0});
+  const [createdCalPos, setCreatedCalPos] = useState<{top:number,left:number}>({top:0,left:0});
 
   useEffect(() => {
     let filtered = [...performances];
@@ -107,7 +116,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
   const hasActiveFilters = searchValues.id || searchValues.description || searchValues.status || searchValues.date_perfomance || searchValues.date_created || searchValues.unit_name || unitFilter !== 'all';
 
   return (
-    <tr className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
+    <tr className="bg-white dark:bg-gray-900 border-b dark:border-gray-800 overflow-visible">
       <td className="px-4 py-3 w-30">
         <Input
           type="text"
@@ -141,20 +150,18 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           </SelectContent>
         </Select>
       </td>
-      <td className="px-6 py-3">
-        <Input
-          type="date"
+      <td className="px-6 py-3 overflow-visible">
+        <CalendarDropdown
           value={searchValues.date_perfomance}
-          onChange={(e) => handleChange('date_perfomance', e.target.value)}
-          className="w-full text-[11px]"
+          placeholder="Select performance date..."
+          onChange={(date) => handleChange('date_perfomance', date)}
         />
       </td>
-      <td className="px-6 py-3">
-        <Input
-          type="date"
+      <td className="px-6 py-3 overflow-visible">
+        <CalendarDropdown
           value={searchValues.date_created}
-          onChange={(e) => handleChange('date_created', e.target.value)}
-          className="w-full text-[11px]"
+          placeholder="Select created date..."
+          onChange={(date) => handleChange('date_created', date)}
         />
       </td>
       <td className="px-6 py-3">

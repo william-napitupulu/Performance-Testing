@@ -32,6 +32,13 @@ export const ManualInputProvider: React.FC<ManualInputProviderProps> = ({ shared
     fetchInputTags: dataHook.fetchInputTags,
   });
 
+  // Auto-fetch input tags when performance data is available
+  React.useEffect(() => {
+    if (sharedData.dateTime && sharedData.perfId && dataHook.inputTags.length === 0) {
+      dataHook.fetchInputTags(sharedData.dateTime, sharedData.perfId);
+    }
+  }, [sharedData.dateTime, sharedData.perfId, dataHook.inputTags.length, dataHook.fetchInputTags]);
+
   return (
     <ManualInputContext.Provider value={{ dataHook, actionsHook }}>
       {children}
