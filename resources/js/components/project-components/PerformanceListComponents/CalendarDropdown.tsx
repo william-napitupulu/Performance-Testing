@@ -51,7 +51,7 @@ export const CalendarDropdown: React.FC<CalendarDropdownProps> = ({ value, place
         placeholder={placeholder}
         readOnly
         onClick={() => setOpen(true)}
-        className="w-full text-[11px] cursor-pointer"
+        className="w-full text-[11px] cursor-pointer focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
       />
       {open && createPortal(
         <div ref={dropdownRef} style={{ position: 'absolute', top: coords.top, left: coords.left, zIndex: 1000 }}>

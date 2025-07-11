@@ -9,10 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Unit;
-use Illuminate\Http\Response as LaravelResponse;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -30,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): LaravelResponse
+    public function store(LoginRequest $request)
     {
         Log::info('Login attempt started', [
             'username' => $request->username,
@@ -38,10 +38,10 @@ class AuthenticatedSessionController extends Controller
             'user_agent' => $request->userAgent()
         ]);
 
-        // Attempt authentication
-        $credentials = $request->only('username', 'password');
-        
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        try {
+            // Use the LoginRequest's authenticate method which handles rate limiting and validation
+            $request->authenticate();
+            
             $user = Auth::user();
             
             Log::info('Authentication successful', [
@@ -97,22 +97,35 @@ class AuthenticatedSessionController extends Controller
                     'username' => 'No units are available for your account. Please contact administrator.',
                 ]);
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle authentication failures and rate limiting
+            Log::warning('Authentication failed', [
+                'username' => $request->username,
+                'ip_address' => $request->ip(),
+                'errors' => $e->errors()
+            ]);
+            
+            // Return back to login form with errors
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            // Handle any other unexpected errors
+            Log::error('Unexpected error during authentication', [
+                'username' => $request->username,
+                'ip_address' => $request->ip(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->withErrors([
+                'username' => 'An unexpected error occurred. Please try again.',
+            ]);
         }
-
-        Log::warning('Authentication failed', [
-            'username' => $request->username,
-            'ip_address' => $request->ip()
-        ]);
-
-        return back()->withErrors([
-            'username' => 'Username or password is invalid.',
-        ]);
     }
 
     /**
      * Show unit selection page.
      */
-    public function selectUnit(): Response
+    public function selectUnit()
     {
         $user = Auth::user();
         
@@ -193,7 +206,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): LaravelResponse
+    public function destroy(Request $request)
     {
         $user = Auth::user();
         

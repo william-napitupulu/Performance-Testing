@@ -1,9 +1,16 @@
 export interface AnalysisData {
-  id: number;
+  id: number | string;
   no: number;
   tag_no: string;
-  value: number | string;
-  date_rec: string | null;
+  description?: string;
+  value?: number | string; // Keep for backward compatibility
+  min?: number | string;
+  max?: number | string;
+  average?: number | string;
+  unit_name?: string;
+  group_id?: number;
+  urutan?: number;
+  date_rec?: string | null;
 }
 
 export interface AnalysisFormData {
@@ -24,7 +31,8 @@ export interface PerformanceRecord {
 export interface SearchFilters {
   tag_no: string;
   value_min: string;
-  date_from: string;
+  value_max: string;
+  date: string;
 }
 
 export interface ApiResponse {
@@ -42,7 +50,8 @@ export interface ApiResponse {
   };
   filters: {
     tag_no: string | null;
-    value: string | null;
+    value_min: string | null;
+    value_max: string | null;
     date: string | null;
   };
   sort: {
@@ -58,10 +67,61 @@ export interface ApiResponse {
     status: string;
     date_perfomance: string;
   };
+  input_tags?: {
+    tab1: {
+      input_tags: Array<{
+        tag_no: string;
+        description: string;
+        unit_name: string;
+        jm_input: number;
+        group_id: number;
+        urutan: number;
+        m_input: number;
+      }>;
+      existing_inputs: Record<string, {
+        tag_no: string;
+        value: number;
+        date_rec: string;
+      }>;
+    };
+    tab2: {
+      input_tags: Array<{
+        tag_no: string;
+        description: string;
+        unit_name: string;
+        jm_input: number;
+        group_id: number;
+        urutan: number;
+        m_input: number;
+      }>;
+      existing_inputs: Record<string, {
+        tag_no: string;
+        value: number;
+        date_rec: string;
+      }>;
+    };
+    tab3: {
+      input_tags: Array<{
+        tag_no: string;
+        description: string;
+        unit_name: string;
+        jm_input: number;
+        group_id: number;
+        urutan: number;
+        m_input: number;
+      }>;
+      existing_inputs: Record<string, {
+        tag_no: string;
+        value: number;
+        date_rec: string;
+      }>;
+    };
+  };
 }
 
 export interface ApiFilters {
   tag_no?: string;
-  value?: string;
+  value_min?: string;
+  value_max?: string;
   date?: string;
 } 

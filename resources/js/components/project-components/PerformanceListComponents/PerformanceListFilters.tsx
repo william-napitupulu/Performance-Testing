@@ -123,7 +123,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.id}
           onChange={(e) => handleChange('id', e.target.value)}
           placeholder="Search ID..."
-          className="w-full text-[11px]"
+          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </td>
       <td className="px-6 py-3">
@@ -132,7 +132,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.description}
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Search description..."
-          className="w-full text-[11px]"
+          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </td>
       <td className="px-6 py-3">
@@ -140,7 +140,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.status || 'all'} 
           onValueChange={(value) => handleChange('status', value)}
         >
-          <SelectTrigger className="w-full text-[11px]">
+          <SelectTrigger className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
@@ -170,7 +170,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.unit_name}
           onChange={(e) => handleChange('unit_name', e.target.value)}
           placeholder="Search unit name..."
-          className="w-full text-[11px]"
+          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </td>
       <td className="px-6 py-3">

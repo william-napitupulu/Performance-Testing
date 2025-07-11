@@ -29,18 +29,18 @@ const mainNavItems: NavItem[] = [
         icon: AlertTriangle,
     },
 
-    {
+    // {
 
-        title: 'Testing',
-        href: '/test-page',
-        icon: TestTube,
-    },
+    //     title: 'Testing',
+    //     href: '/test-page',
+    //     icon: TestTube,
+    // },
 ];
 
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        href: 'https://github.com/william-napitupulu/Performance-Testing',
         icon: Folder,
     },
     {

@@ -2,40 +2,56 @@ import React from 'react';
 import { PerformanceInfo } from './Tab1Components/PerformanceInfo';
 // import { PerformanceSelector } from './Tab1Components/PerformanceSelector';
 import { GroupedInputTable } from './Tab1Components/GroupedInputTable';
-// import { SaveButton } from './Tab1Components/SaveButton';
+import { SaveButton } from './Tab1Components/SaveButton';
 import { getFilteredAndSortedTags } from './Tab1Components/utils';
 import { SharedPerformanceData } from './Tab1Components/types';
-import { useManualInput } from './ManualInputContext';
+import { useTab1Context } from './Tab1Context';
 
 interface Tab1Props {
   sharedData: SharedPerformanceData;
+  inputTagsData?: {
+    input_tags: Array<{
+      tag_no: string;
+      description: string;
+      unit_name: string;
+      jm_input: number;
+      group_id: number;
+      urutan: number;
+      m_input: number;
+    }>;
+    existing_inputs: Record<string, {
+      tag_no: string;
+      value: number;
+      date_rec: string;
+    }>;
+  };
 }
 
-export function Tab1({ sharedData }: Tab1Props) {
-  // Use shared manual input context
-  const { dataHook, actionsHook } = useManualInput();
+export function Tab1({ sharedData, inputTagsData }: Tab1Props) {
+  // Use Tab1 specific context
+  const { dataHook, actionsHook } = useTab1Context();
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
+      {/* Header Section */}
+      <div className="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-lg p-6 border border-emerald-100 dark:border-emerald-800/50 mb-6">
+        <h2 className="text-xl font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
+          Tab 1 - Manual Input (m_input = 1)
+        </h2>
+
+      </div>
+
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />
 
-      {/* Performance Test Selector */}
-      {/**
-       * PerformanceSelector (dropdown) is no longer needed because we arrive at Tab1
-       * via the Performance List → Get Data flow which already locks onto a
-       * specific performance.  Keeping the component reference commented for
-       * potential future use.
-       *
-       * <PerformanceSelector
-       *   performanceRecords={dataHook.performanceRecords}
-       *   selectedPerfId={dataHook.selectedPerformance?.perf_id ?? null}
-       *   onSelect={(perfId) => {
-       *     const fakeEvent = { target: { value: String(perfId) } } as unknown as React.ChangeEvent<HTMLSelectElement>;
-       *     dataHook.handlePerformanceSelect(fakeEvent);
-       *   }}
-       * />
-       */}
+      {/* No Data Found Message */}
+      {dataHook.noDataFound && (
+        <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700/50">
+          <p className="text-sm text-orange-800 dark:text-orange-300">
+            ⚠️ No input tags found for Tab 1 (m_input = 1). There may be no data available for this configuration.
+          </p>
+        </div>
+      )}
 
       {/* Grouped Input Tables */}
       {Object.keys(dataHook.groupedTags).map(jmKey => {
@@ -63,15 +79,15 @@ export function Tab1({ sharedData }: Tab1Props) {
         );
       })}
 
-      {/**
-       * Save button moved to GetDataTab. Keeping code for reference.
-       * <SaveButton
-       *   saving={actionsHook.saving}
-       *   hasDataToSave={actionsHook.hasDataToSave()}
-       *   onSave={() => actionsHook.handleSaveData(dataHook.selectedPerformance, sharedData)}
-       *   showButton={dataHook.inputTags.length > 0}
-       * />
-       */}
+      {/* Save Button */}
+      <div className="mt-6 flex justify-end">
+        <SaveButton
+          saving={actionsHook.saving}
+          hasDataToSave={actionsHook.hasDataToSave()}
+          onSave={() => actionsHook.handleSaveData(dataHook.selectedPerformance, sharedData)}
+          showButton={dataHook.inputTags.length > 0}
+        />
+      </div>
     </div>
   );
 } 

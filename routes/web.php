@@ -22,18 +22,42 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
-// Public Routes
-Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
+// Root route - handle both guest and authenticated users
+Route::get('/', function () {
+    \Log::info('Root route accessed', [
+        'is_authenticated' => auth()->check(),
+        'user_id' => auth()->id(),
+        'selected_unit' => session('selected_unit'),
+        'url' => request()->fullUrl(),
+        'user_agent' => request()->userAgent()
+    ]);
+    
+    if (auth()->guest()) {
+        \Log::info('Redirecting guest to login');
         return redirect('/login');
-    })->name('home');
+    }
+    
+    // User is authenticated, check if unit is selected
+    $selectedUnit = session('selected_unit');
+    if (!$selectedUnit) {
+        \Log::info('Authenticated user has no unit selected, redirecting to unit selection');
+        return redirect()->route('unit.select');
+    }
+    
+    // User is authenticated and has selected a unit, go to performance
+    \Log::info('Authenticated user with unit selected, redirecting to performance', [
+        'selected_unit' => $selectedUnit
+    ]);
+    return redirect()->route('performance.index');
+})->name('dashboard');
+
+// Guest-only routes
+Route::middleware('guest')->group(function () {
+    // Login page is handled by auth.php
 });
 
+// Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/performance', function () {
-        return Inertia::render('performance');
-    })->name('performance.index');
-    
     // Main Performance List Route - Protected
     Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index');
     Route::post('/performance', [PerformanceController::class, 'store'])->name('performance.store');

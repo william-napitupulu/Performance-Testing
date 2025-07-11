@@ -128,10 +128,7 @@ class LoginRequest extends FormRequest
         ]);
 
         throw ValidationException::withMessages([
-            'username' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'username' => "Too many login attempts. Please wait {$seconds} seconds before trying again.",
         ]);
     }
 

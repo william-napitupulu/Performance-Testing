@@ -1,6 +1,7 @@
 import React from 'react';
-import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import type { AnalysisData, ApiResponse } from './types';
+import { DataAnalysisFilters } from './DataAnalysisFilters';
 
 interface DataAnalysisTableProps {
   data: AnalysisData[];
@@ -9,6 +10,7 @@ interface DataAnalysisTableProps {
   pagination: ApiResponse['pagination'];
   onSort: (field: string) => void;
   onPageChange: (page: number) => void;
+  onFilterChange: (filters: any) => void;
 }
 
 export function DataAnalysisTable({ 
@@ -17,7 +19,8 @@ export function DataAnalysisTable({
   sort, 
   pagination, 
   onSort, 
-  onPageChange 
+  onPageChange,
+  onFilterChange
 }: DataAnalysisTableProps) {
   const handleSort = (field: string) => {
     onSort(field);
@@ -45,8 +48,16 @@ export function DataAnalysisTable({
         return 'text-indigo-700 dark:text-indigo-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       case 'tag_no':
         return 'text-blue-700 dark:text-blue-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'description':
+        return 'text-blue-700 dark:text-blue-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       case 'value':
         return 'text-emerald-700 dark:text-emerald-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'min':
+        return 'text-emerald-700 dark:text-emerald-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'max':
+        return 'text-orange-700 dark:text-orange-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'average':
+        return 'text-purple-700 dark:text-purple-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       case 'date_rec':
         return 'text-violet-700 dark:text-violet-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       default:
@@ -73,69 +84,107 @@ export function DataAnalysisTable({
 
   const headerBaseClasses = "group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors";
 
+  const getPageNumbers = () => {
+    if (!pagination) return [];
+    
+    const { current_page, last_page } = pagination;
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(last_page, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
+
   const renderPagination = () => {
     if (!pagination || pagination.total === 0) return null;
 
     const { current_page, last_page, from, to, total } = pagination;
     
     return (
-      <div className="bg-blue-50/70 dark:bg-gray-800/70 px-6 py-3 border-t border-blue-100 dark:border-gray-700">
+      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-border dark:border-gray-600">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-blue-600 dark:text-blue-400">
-            Showing {from} to {to} of {total} results
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            Showing <span className="font-medium">{from}</span> to <span className="font-medium">{to}</span> of{' '}
+            <span className="font-medium">{total}</span> results
           </div>
+          
           <div className="flex items-center space-x-2">
+            {/* First page */}
             <button
-              onClick={() => onPageChange(current_page - 1)}
-              disabled={current_page <= 1}
-              className={`
-                inline-flex items-center px-2 py-1 text-sm font-medium rounded
-                ${current_page <= 1 
-                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' 
-                  : 'text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20'
-                }
-              `}
+              onClick={() => onPageChange(1)}
+              disabled={Number(current_page) === 1}
+              title="Go to first page"
+              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
+              <ChevronsLeft className="h-4 w-4" />
             </button>
             
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: Math.min(5, last_page) }, (_, i) => {
-                const page = i + 1;
-                const isActive = page === current_page;
-                
-                return (
-                  <button
-                    key={page}
-                    onClick={() => onPageChange(page)}
-                    className={`
-                      px-3 py-1 text-sm font-medium rounded
-                      ${isActive 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20'
-                      }
-                    `}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-            </div>
-            
+            {/* Previous page */}
             <button
-              onClick={() => onPageChange(current_page + 1)}
-              disabled={current_page >= last_page}
-              className={`
-                inline-flex items-center px-2 py-1 text-sm font-medium rounded
-                ${current_page >= last_page 
-                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' 
-                  : 'text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20'
-                }
-              `}
+              onClick={() => {
+                const prevPage = Math.max(1, Number(current_page) - 1);
+                onPageChange(prevPage);
+              }}
+              disabled={Number(current_page) === 1}
+              title="Go to previous page"
+              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            
+            {/* Page numbers */}
+            {getPageNumbers().map((page) => {
+              const isActive = Number(page) === Number(current_page);
+              return (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  title={`Go to page ${page}`}
+                  className={`px-3 py-2 rounded-md border text-sm font-medium ${
+                    isActive
+                      ? 'bg-green-600 border-green-600 text-white'
+                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            
+            {/* Next page */}
+            <button
+              onClick={() => {
+                const currentPageNum = Number(current_page);
+                const lastPageNum = Number(last_page);
+                const nextPage = Math.min(lastPageNum, currentPageNum + 1);
+                onPageChange(nextPage);
+              }}
+              disabled={Number(current_page) === Number(last_page)}
+              title="Go to next page"
+              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            
+            {/* Last page */}
+            <button
+              onClick={() => onPageChange(Number(last_page))}
+              disabled={Number(current_page) === Number(last_page)}
+              title="Go to last page"
+              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -156,9 +205,9 @@ export function DataAnalysisTable({
         <table className="min-w-full divide-y divide-blue-100 dark:divide-gray-700">
           <thead className="bg-blue-50/70 dark:bg-gray-800/70 border-y border-blue-100 dark:border-gray-700">
             <tr>
-              <th className={`${headerBaseClasses} px-4 text-center ${getHeaderColor('no')}`} onClick={() => handleSort('no')}>
+              <th className={`${headerBaseClasses} px-4 text-center text-indigo-700 dark:text-indigo-300`}>
                 <div className="flex items-center justify-center">
-                  No {renderSortIcon('no')}
+                  No
                 </div>
               </th>
               <th className={`${headerBaseClasses} px-6 ${getHeaderColor('tag_no')}`} onClick={() => handleSort('tag_no')}>
@@ -166,22 +215,33 @@ export function DataAnalysisTable({
                   Tag No {renderSortIcon('tag_no')}
                 </div>
               </th>
-              <th className={`${headerBaseClasses} px-6 text-center ${getHeaderColor('value')}`} onClick={() => handleSort('value')}>
-                <div className="flex items-center justify-center">
-                  Value {renderSortIcon('value')}
+              <th className={`${headerBaseClasses} px-6 ${getHeaderColor('description')}`} onClick={() => handleSort('description')}>
+                <div className="flex items-center">
+                  Description {renderSortIcon('description')}
                 </div>
               </th>
-              <th className={`${headerBaseClasses} px-6 text-center ${getHeaderColor('date_rec')}`} onClick={() => handleSort('date_rec')}>
+              <th className={`${headerBaseClasses} px-6 text-center ${getHeaderColor('min')}`} onClick={() => handleSort('min')}>
                 <div className="flex items-center justify-center">
-                  Date Recorded {renderSortIcon('date_rec')}
+                  Min {renderSortIcon('min')}
+                </div>
+              </th>
+              <th className={`${headerBaseClasses} px-6 text-center ${getHeaderColor('max')}`} onClick={() => handleSort('max')}>
+                <div className="flex items-center justify-center">
+                  Max {renderSortIcon('max')}
+                </div>
+              </th>
+              <th className={`${headerBaseClasses} px-6 text-center ${getHeaderColor('average')}`} onClick={() => handleSort('average')}>
+                <div className="flex items-center justify-center">
+                  Average {renderSortIcon('average')}
                 </div>
               </th>
             </tr>
+            <DataAnalysisFilters onFilterChange={onFilterChange} />
           </thead>
           <tbody className="divide-y divide-blue-100 dark:divide-gray-700">
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center">
+                <td colSpan={6} className="px-6 py-8 text-center">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mr-2"></div>
                     <span className="text-blue-600 dark:text-blue-400">Loading...</span>
@@ -190,31 +250,37 @@ export function DataAnalysisTable({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                   No data found
                 </td>
               </tr>
             ) : (
-              data.map((item) => (
+              data.map((item, index) => (
                 <tr 
-                  key={item.id} 
+                  key={item.id || `data-row-${index}`} 
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                 >
                   <td className="px-4 py-4 text-center">
                     <span className="inline-flex items-center justify-center w-8 h-8 text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
                       {item.no}
                     </span>
-                </td>
+                  </td>
                   <td className="px-6 py-4 text-blue-700 dark:text-blue-300 font-medium">
                     {item.tag_no}
-                </td>
+                  </td>
+                  <td className="px-6 py-4 text-blue-700 dark:text-blue-300 font-medium">
+                    {item.description}
+                  </td>
                   <td className="px-6 py-4 text-center font-mono text-emerald-700 dark:text-emerald-300">
-                    {typeof item.value === 'number' ? item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) : item.value}
-                </td>
-                  <td className="px-6 py-4 text-center text-violet-700 dark:text-violet-300">
-                    {formatDateTime(item.date_rec)}
-                </td>
-              </tr>
+                    {typeof item.min === 'number' ? item.min.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) : (item.min || 'N/A')}
+                  </td>
+                  <td className="px-6 py-4 text-center font-mono text-orange-700 dark:text-orange-300">
+                    {typeof item.max === 'number' ? item.max.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) : (item.max || 'N/A')}
+                  </td>
+                  <td className="px-6 py-4 text-center font-mono text-purple-700 dark:text-purple-300">
+                    {typeof item.average === 'number' ? item.average.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) : (item.average || 'N/A')}
+                  </td>
+                </tr>
               ))
             )}
           </tbody>

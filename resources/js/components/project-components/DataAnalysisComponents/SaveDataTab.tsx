@@ -1,9 +1,6 @@
 import React from 'react';
-import { DataAnalysisStats } from './DataAnalysisStats';
 import { DataAnalysisTable } from './DataAnalysisTable';
 import type { AnalysisData, ApiResponse } from './types';
-import { SaveButton } from './Tab1Components/SaveButton';
-import { useManualInput } from './ManualInputContext';
 
 interface SharedPerformanceData {
   description: string;
@@ -17,13 +14,13 @@ interface SaveDataTabProps {
   filters: ApiResponse['filters'];
   sort: ApiResponse['sort'];
   loading: boolean;
-  onSubmit: (data: { description: string; dateTime: string }) => void;
   onDataUpdate: (params: {
     page?: number;
     sort_field?: string;
     sort_direction?: string;
     filter_tag_no?: string;
-    filter_value?: string;
+    filter_value_min?: string;
+    filter_value_max?: string;
     filter_date?: string;
     perf_id?: number;
   }) => Promise<void>;
@@ -36,40 +33,32 @@ export function SaveDataTab({
   filters,
   sort,
   loading,
-  onSubmit,
   onDataUpdate,
   sharedData
 }: SaveDataTabProps) {
-  const { dataHook, actionsHook } = useManualInput();
-
   const handleSort = async (field: string) => {
     const newDirection = sort.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
     await onDataUpdate({
       sort_field: field,
       sort_direction: newDirection,
-      page: 1
+      page: 1,
+      perf_id: sharedData.perfId
     });
   };
 
   const handlePageChange = async (page: number) => {
     await onDataUpdate({
-      page: page
+      page: page,
+      perf_id: sharedData.perfId
     });
   };
 
-  const handleSaveManualInput = async () => {
-    const success = await actionsHook.handleSaveData(dataHook.selectedPerformance, sharedData);
-    if (success) {
-      await onDataUpdate({
-        page: pagination.current_page,
-        sort_field: sort.field,
-        sort_direction: sort.direction,
-        filter_tag_no: filters.tag_no || undefined,
-        filter_value: filters.value || undefined,
-        filter_date: filters.date || undefined,
-        perf_id: sharedData.perfId
-      });
-    }
+  const handleFilterChange = async (filterParams: any) => {
+    await onDataUpdate({
+      page: 1, // Reset to first page when filtering
+      perf_id: sharedData.perfId,
+      ...filterParams
+    });
   };
 
   return (
@@ -84,7 +73,7 @@ export function SaveDataTab({
       ) : (
       <div className="bg-blue-50/70 dark:bg-blue-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/50">
         <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-2">
-          Save Manual Input Data
+          Performance Test Details & Results
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
@@ -115,18 +104,10 @@ export function SaveDataTab({
             <p className="text-gray-700 dark:text-gray-300">{pagination?.total || 0}</p>
           </div>
         </div>
-        {/* Save Button */}
-        <SaveButton
-          saving={actionsHook.saving}
-          hasDataToSave={actionsHook.hasDataToSave()}
-          onSave={handleSaveManualInput}
-          showButton={true}
-        />
       </div>
       )}
 
       {/* Results */}
-      {sharedData.dateTime && data.length > 0 && <DataAnalysisStats data={data} />}
       <DataAnalysisTable
         data={data}
         loading={loading}
@@ -134,6 +115,7 @@ export function SaveDataTab({
         pagination={pagination}
         onSort={handleSort}
         onPageChange={handlePageChange}
+        onFilterChange={handleFilterChange}
       />
     </div>
   );

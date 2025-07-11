@@ -145,8 +145,11 @@ export const useTab1Actions = ({
       } else {
         throw new Error(response.data.message || 'Failed to save data');
       }
-    } catch (error) {
-      console.error('Error saving data:', error);
+    } catch (error: any) {
+      // Only log actual errors (not aborts/cancellations) to console
+      if (error.name !== 'AbortError' && error.code !== 'ERR_CANCELED') {
+        console.error('Error saving data:', error);
+      }
       alert('Failed to save data. Please try again.');
     } finally {
       setSaving(false);

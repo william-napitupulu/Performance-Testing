@@ -2,8 +2,8 @@ import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSep
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
-import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { LogOut, Settings, Building2 } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface UserMenuContentProps {
@@ -13,6 +13,9 @@ interface UserMenuContentProps {
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { props } = usePage();
+    const session = (props as any).session || {};
+    const currentUnitName = session.current_unit_name || 'No Unit Selected';
 
     const handleLogout = () => {
         if (isLoggingOut) return;
@@ -36,6 +39,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
                         <Settings className="mr-2" />
                         Settings
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link className="block w-full" href={route('unit.select')} as="button" prefetch onClick={cleanup}>
+                        <Building2 className="mr-2" />
+                        <div className="flex flex-col items-start">
+                            <span>Change Units</span>
+                        </div>
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>

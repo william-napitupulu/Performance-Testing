@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 interface InputTag {
   tag_no: string;
@@ -44,6 +44,43 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
   filters,
   onFilterChange
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Paginate the tags
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return tags.slice(startIndex, endIndex);
+  }, [tags, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(tags.length / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, tags.length);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
+
   const headerBaseClasses = 'group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors';
 
   const getHeaderColor = (field: string) => {
@@ -141,14 +178,14 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                   />
                 </td>
                 {headers.map((_, index) => (
-                  <td className="px-4 py-2 ">
+                  <td key={`filter-header-${index}`} className="px-4 py-2 ">
 
                   </td>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-blue-100 dark:divide-gray-700">
-              {tags.length === 0 ? (
+              {paginatedData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={3 + headers.length}
@@ -158,7 +195,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                   </td>
                 </tr>
               ) : (
-                tags.map((tag, idx) => {
+                paginatedData.map((tag, idx) => {
                   const safeTagNo = tag?.tag_no || `empty-tag-${idx}`;
                   const uniqueKey = `${jm}-tag-${idx}-${safeTagNo}`;
                   return (
@@ -194,6 +231,70 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-border dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
+                <span className="font-medium">{tags.length}</span> records
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {/* First page */}
+                <button
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </button>
+                
+                {/* Previous page */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                
+                {/* Page numbers */}
+                {getPageNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 rounded-md border text-sm font-medium ${
+                      page === currentPage
+                        ? 'bg-green-600 border-green-600 text-white'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                {/* Next page */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                
+                {/* Last page */}
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

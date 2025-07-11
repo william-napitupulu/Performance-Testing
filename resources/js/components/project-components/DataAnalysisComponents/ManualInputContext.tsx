@@ -7,6 +7,7 @@ export interface ManualInputContextType {
   // Spread of dataHook and actionsHook
   dataHook: ReturnType<typeof useTab1Data>;
   actionsHook: ReturnType<typeof useTab1Actions>;
+  mInput?: number;
 }
 
 const ManualInputContext = createContext<ManualInputContextType | undefined>(undefined);
@@ -14,10 +15,15 @@ const ManualInputContext = createContext<ManualInputContextType | undefined>(und
 interface ManualInputProviderProps {
   sharedData: SharedPerformanceData;
   children: React.ReactNode;
+  mInput?: number; // Add mInput prop to specify which m_input value to use
 }
 
-export const ManualInputProvider: React.FC<ManualInputProviderProps> = ({ sharedData, children }) => {
-  const dataHook = useTab1Data(sharedData);
+export const ManualInputProvider: React.FC<ManualInputProviderProps> = ({ 
+  sharedData, 
+  children, 
+  mInput // No default value
+}) => {
+  const dataHook = useTab1Data(sharedData, mInput);
   const actionsHook = useTab1Actions({
     inputValuesByJm: dataHook.inputValuesByJm,
     setInputValuesByJm: dataHook.setInputValuesByJm,
@@ -40,7 +46,7 @@ export const ManualInputProvider: React.FC<ManualInputProviderProps> = ({ shared
   }, [sharedData.dateTime, sharedData.perfId, dataHook.inputTags.length, dataHook.fetchInputTags]);
 
   return (
-    <ManualInputContext.Provider value={{ dataHook, actionsHook }}>
+    <ManualInputContext.Provider value={{ dataHook, actionsHook, mInput }}>
       {children}
     </ManualInputContext.Provider>
   );

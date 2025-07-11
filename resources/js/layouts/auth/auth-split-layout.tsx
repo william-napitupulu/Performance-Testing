@@ -13,7 +13,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
         <div className="flex min-h-svh flex-col lg:flex-row">
             <div className="flex min-h-60 items-center justify-center bg-gray-900 p-6 lg:min-h-svh lg:w-1/2">
                 <div className="flex flex-col items-center gap-4 text-center">
-                    <Link href={route('home')} className="flex items-center gap-2 font-semibold text-white">
+                    <Link href={route('dashboard')} className="flex items-center gap-2 font-semibold text-white">
                         <AppLogoIcon className="mr-2 size-10" />
                         <span className="text-xl">React Starter Kit</span>
                     </Link>
@@ -26,7 +26,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
                 <div className="w-full max-w-sm">
                     <div className="flex flex-col gap-8">
                         <div className="flex flex-col items-center gap-4">
-                            <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
+                            <Link href={route('dashboard')} className="flex flex-col items-center gap-2 font-medium">
                                 <AppLogoIcon className="h-14 sm:h-16" />
                                 <span className="sr-only">{title}</span>
                             </Link>

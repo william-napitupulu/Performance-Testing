@@ -27,12 +27,16 @@ export function PerformanceTableRow({
   onEditFormChange
 }: PerformanceTableRowProps) {
   const cellClasses = "px-6 py-4 text-sm whitespace-nowrap";
-  const inputClasses = "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:ring-primary dark:focus:border-primary transition-colors";
+  const inputClasses = "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 transition-colors";
 
   if (isEditing) {
     return (
       <tr className="bg-blue-50/50 dark:bg-blue-900/20 transition-colors">
-        <td className={`${cellClasses} px-4 w-20 font-medium text-gray-900 dark:text-gray-200`}>{performance.id}</td>
+        <td className={`${cellClasses} px-4 w-20 text-center`}>
+          <span className="inline-flex items-center justify-center w-8 h-8 text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
+            {performance.id}
+          </span>
+        </td>
         <td className={cellClasses}>
           <div className="relative">
             <input
@@ -67,8 +71,8 @@ export function PerformanceTableRow({
             className={inputClasses}
           />
         </td>
-        <td className={`${cellClasses} text-gray-500 dark:text-gray-400`}>{performance.date_created}</td>
-        <td className={`${cellClasses} text-center text-gray-500 dark:text-gray-400`}>{performance.unit_name}</td>
+        <td className={`${cellClasses} text-fuchsia-600 dark:text-fuchsia-400 font-medium`}>{performance.date_created}</td>
+        <td className={`${cellClasses} text-center text-cyan-600 dark:text-cyan-400 font-medium`}>{performance.unit_name}</td>
         <td className={`${cellClasses} text-right space-x-3`}>
           <button
             onClick={onSaveEdit}
@@ -88,9 +92,13 @@ export function PerformanceTableRow({
   }
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-      <td className={`${cellClasses} px-4 w-20 font-medium text-gray-900 dark:text-gray-200`}>{performance.id}</td>
-      <td className={`${cellClasses} text-gray-700 dark:text-gray-300`}>{performance.description}</td>
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+      <td className={`${cellClasses} px-4 w-20 text-center`}>
+        <span className="inline-flex items-center justify-center w-8 h-8 text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
+          {performance.id}
+        </span>
+      </td>
+      <td className={`${cellClasses} text-blue-700 dark:text-blue-300 font-medium`}>{performance.description}</td>
       <td className={cellClasses}>
         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
           performance.status === 'Editable'
@@ -100,9 +108,9 @@ export function PerformanceTableRow({
           {performance.status}
         </span>
       </td>
-      <td className={`${cellClasses} text-gray-700 dark:text-gray-300`}>{performance.date_perfomance}</td>
-      <td className={`${cellClasses} text-gray-700 dark:text-gray-300`}>{performance.date_created}</td>
-      <td className={`${cellClasses} text-center text-gray-700 dark:text-gray-300`}>{performance.unit_name}</td>
+      <td className={`${cellClasses} text-violet-700 dark:text-violet-300 font-medium`}>{performance.date_perfomance}</td>
+      <td className={`${cellClasses} text-fuchsia-700 dark:text-fuchsia-300 font-medium`}>{performance.date_created}</td>
+      <td className={`${cellClasses} text-center text-cyan-700 dark:text-cyan-300 font-medium`}>{performance.unit_name}</td>
       <td className={`${cellClasses} text-right space-x-2`}>
         <button
           onClick={() => onEdit(performance)}

@@ -21,13 +21,21 @@ class DataAnalysisController extends Controller
         'dateTime' => 'required|date',
         'page' => 'integer|min:1',
         'per_page' => 'integer|min:1|max:100',
-        'sort_field' => 'string|in:tag_no,value,date_rec,perf_id',
+        'sort_field' => 'string|in:tag_no,value,min,max,average,description,group_id,urutan',
         'sort_direction' => 'string|in:asc,desc',
         'filter_tag_no' => 'string|max:100',
+        'filter_description' => 'string|max:255',
         'filter_value_min' => 'numeric',
         'filter_value_max' => 'numeric',
+        'filter_min_from' => 'numeric',
+        'filter_min_to' => 'numeric',
+        'filter_max_from' => 'numeric',
+        'filter_max_to' => 'numeric',
+        'filter_average_from' => 'numeric',
+        'filter_average_to' => 'numeric',
         'filter_date_from' => 'date',
         'filter_date_to' => 'date',
+        'filter_date' => 'date',
     ];
 
     /**
@@ -71,8 +79,20 @@ class DataAnalysisController extends Controller
             // Create performance record
             $performance = $this->createPerformanceRecord($request, $selectedUnit);
 
-            // Call to external API is temporarily disabled. Uncomment when integration is needed.
-            // $apiResponse = $this->callExternalApi($performance->perf_id, $request->dateTime);
+            // Call to external API - with error handling
+            try {
+                $apiResponse = $this->callExternalApi($performance->perf_id, $request->dateTime);
+                Log::info('External API call successful', [
+                    'perf_id' => $performance->perf_id,
+                    'response_length' => count($apiResponse)
+                ]);
+            } catch (\Exception $apiError) {
+                Log::warning('External API call failed, continuing with database data only', [
+                    'perf_id' => $performance->perf_id,
+                    'api_error' => $apiError->getMessage()
+                ]);
+                // Continue execution - we'll still return the database data
+            }
 
             // Get filtered and paginated data
             $result = $this->getFilteredData($request, $performance->perf_id);
@@ -86,13 +106,22 @@ class DataAnalysisController extends Controller
                 'pagination' => $result['pagination'],
                 'filters' => [
                     'tag_no' => $request->filter_tag_no,
-                    'value' => $request->filter_value,
+                    'description' => $request->filter_description,
+                    'value_min' => $request->filter_value_min,
+                    'value_max' => $request->filter_value_max,
+                    'min_from' => $request->filter_min_from,
+                    'min_to' => $request->filter_min_to,
+                    'max_from' => $request->filter_max_from,
+                    'max_to' => $request->filter_max_to,
+                    'average_from' => $request->filter_average_from,
+                    'average_to' => $request->filter_average_to,
                     'date' => $request->filter_date
                 ],
                 'sort' => [
                     'field' => $result['sort_field'],
                     'direction' => $result['sort_direction']
-                ]
+                ],
+                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id)
             ]);
 
         } catch (ValidationException $e) {
@@ -167,48 +196,195 @@ class DataAnalysisController extends Controller
      */
     private function getFilteredData(Request $request, int $perfId): array
     {
-        $query = TbInput::where('perf_id', $perfId);
+        // Use raw SQL query to get min, max, average with proper joins
+        $baseQuery = "
+            SELECT 
+                a.tag_no,
+                a.description, 
+                MIN(b.value) as min_value,
+                MAX(b.value) as max_value,
+                ROUND(AVG(b.value), 2) as avg_value,
+                a.satuan as unit_name,
+                a.group_id,
+                a.urutan
+            FROM tb_input_tag a 
+            INNER JOIN tb_input b ON b.tag_no = a.tag_no 
+            WHERE b.perf_id = ?
+        ";
+
+        $params = [$perfId];
+        $whereConditions = [];
 
         // Apply filters
         if ($request->filled('filter_tag_no')) {
-            $query->where('tag_no', 'like', '%' . $request->filter_tag_no . '%');
+            $whereConditions[] = "a.tag_no LIKE ?";
+            $params[] = '%' . $request->filter_tag_no . '%';
         }
-        if ($request->filled('filter_value')) {
-            $query->where('value', 'like', '%' . $request->filter_value . '%');
+        
+        if ($request->filled('filter_description')) {
+            $whereConditions[] = "a.description LIKE ?";
+            $params[] = '%' . $request->filter_description . '%';
         }
+        
+        if ($request->filled('filter_value_min')) {
+            $whereConditions[] = "b.value >= ?";
+            $params[] = $request->filter_value_min;
+        }
+        
+        if ($request->filled('filter_value_max')) {
+            $whereConditions[] = "b.value <= ?";
+            $params[] = $request->filter_value_max;
+        }
+        
         if ($request->filled('filter_date')) {
-            $query->whereDate('date_rec', $request->filter_date);
+            $whereConditions[] = "DATE(b.date_rec) = ?";
+            $params[] = $request->filter_date;
+        }
+
+        // Add WHERE conditions if any
+        if (!empty($whereConditions)) {
+            $baseQuery .= " AND " . implode(" AND ", $whereConditions);
+        }
+
+        // Add GROUP BY
+        $baseQuery .= " GROUP BY a.tag_no, a.description, a.satuan, a.group_id, a.urutan";
+
+        // Apply HAVING conditions for aggregated values
+        $havingConditions = [];
+        
+        if ($request->filled('filter_min_from')) {
+            $havingConditions[] = "MIN(b.value) >= ?";
+            $params[] = $request->filter_min_from;
+        }
+        
+        if ($request->filled('filter_min_to')) {
+            $havingConditions[] = "MIN(b.value) <= ?";
+            $params[] = $request->filter_min_to;
+        }
+        
+        if ($request->filled('filter_max_from')) {
+            $havingConditions[] = "MAX(b.value) >= ?";
+            $params[] = $request->filter_max_from;
+        }
+        
+        if ($request->filled('filter_max_to')) {
+            $havingConditions[] = "MAX(b.value) <= ?";
+            $params[] = $request->filter_max_to;
+        }
+        
+        if ($request->filled('filter_average_from')) {
+            $havingConditions[] = "AVG(b.value) >= ?";
+            $params[] = $request->filter_average_from;
+        }
+        
+        if ($request->filled('filter_average_to')) {
+            $havingConditions[] = "AVG(b.value) <= ?";
+            $params[] = $request->filter_average_to;
+        }
+
+        // Add HAVING clause if needed
+        if (!empty($havingConditions)) {
+            $baseQuery .= " HAVING " . implode(" AND ", $havingConditions);
         }
 
         // Apply sorting
-        $sortField = $request->sort_field ?: 'date_rec';
-        $sortDirection = $request->sort_direction ?: 'desc';
+        $sortField = $request->sort_field ?: 'group_id';
+        $sortDirection = $request->sort_direction ?: 'asc';
         
-        // Map 'no' field to a calculated field or use date_rec as fallback
-        if ($sortField === 'no') {
-            $sortField = 'date_rec';
+        // Map sort fields to the correct column names
+        $sortMapping = [
+            'tag_no' => 'a.tag_no',
+            'value' => 'avg_value', // Sort by average value
+            'min' => 'min_value',
+            'max' => 'max_value',
+            'average' => 'avg_value',
+            'description' => 'a.description',
+            'group_id' => 'a.group_id',
+            'urutan' => 'a.urutan'
+        ];
+        
+        $actualSortField = $sortMapping[$sortField] ?? 'a.group_id';
+        $baseQuery .= " ORDER BY {$actualSortField} {$sortDirection}";
+        
+        // Add secondary sort for consistency
+        if ($actualSortField !== 'a.urutan') {
+            $baseQuery .= ", a.urutan ASC";
+        }
+
+        // Get total count for pagination - need to use subquery for HAVING
+        $countQuery = "
+            SELECT COUNT(*) as total FROM (
+                SELECT a.tag_no
+                FROM tb_input_tag a 
+                INNER JOIN tb_input b ON b.tag_no = a.tag_no 
+                WHERE b.perf_id = ?
+        ";
+        
+        $countParams = [$perfId];
+        if (!empty($whereConditions)) {
+            $countQuery .= " AND " . implode(" AND ", $whereConditions);
+            // Add the WHERE condition parameters
+            $whereParamsCount = count($whereConditions);
+            $countParams = array_merge($countParams, array_slice($params, 1, $whereParamsCount));
         }
         
-        $query->orderBy($sortField, $sortDirection);
-        if ($sortField !== 'tag_no') {
-            $query->orderBy('tag_no', 'asc');
+        $countQuery .= " GROUP BY a.tag_no, a.description, a.satuan, a.group_id, a.urutan";
+        
+        if (!empty($havingConditions)) {
+            $countQuery .= " HAVING " . implode(" AND ", $havingConditions);
+            // Add the HAVING condition parameters
+            $havingParamsStart = 1 + count($whereConditions);
+            $havingParamsCount = count($havingConditions);
+            $countParams = array_merge($countParams, array_slice($params, $havingParamsStart, $havingParamsCount));
         }
+        
+        $countQuery .= ") as subquery";
+        
+        $totalCount = DB::select($countQuery, $countParams)[0]->total ?? 0;
 
         // Paginate - fixed to 10 records per page
-        $totalCount = $query->count();
-        $perPage = 10; // Fixed to 10 records per page
+        $perPage = 10;
         $page = $request->page ?: 1;
-        $inputData = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $offset = ($page - 1) * $perPage;
+        
+        $baseQuery .= " LIMIT {$perPage} OFFSET {$offset}";
+
+        // Log the query for debugging
+        Log::info('Pagination query debug', [
+            'perf_id' => $perfId,
+            'page' => $page,
+            'per_page' => $perPage,
+            'offset' => $offset,
+            'total_count' => $totalCount,
+            'query' => $baseQuery,
+            'params' => $params
+        ]);
+
+        // Execute the main query
+        $results = DB::select($baseQuery, $params);
+
+        Log::info('Query results debug', [
+            'results_count' => count($results),
+            'expected_per_page' => $perPage,
+            'page' => $page,
+            'total_count' => $totalCount
+        ]);
 
         return [
-            'data' => $inputData->map(fn($item, $index) => [
-                'id' => $item->id,
-                'no' => (($page - 1) * $perPage) + $index + 1,
-                'tag_no' => $item->tag_no,
-                'value' => (float) $item->value,
-                'date_rec' => $item->date_rec?->format('Y-m-d H:i:s'),
-                'perf_id' => $item->perf_id
-            ]),
+            'data' => collect($results)->map(function($item, $index) use ($page, $perPage) {
+                return [
+                    'id' => $item->tag_no, // Use tag_no as unique identifier
+                    'no' => (($page - 1) * $perPage) + $index + 1,
+                    'tag_no' => $item->tag_no,
+                    'description' => $item->description,
+                    'min' => (float) $item->min_value,
+                    'max' => (float) $item->max_value,
+                    'average' => (float) $item->avg_value,
+                    'unit_name' => $item->unit_name,
+                    'group_id' => $item->group_id,
+                    'urutan' => $item->urutan
+                ];
+            })->toArray(),
             'pagination' => [
                 'current_page' => $page,
                 'per_page' => $perPage,
@@ -217,7 +393,7 @@ class DataAnalysisController extends Controller
                 'from' => $totalCount > 0 ? (($page - 1) * $perPage) + 1 : 0,
                 'to' => min($page * $perPage, $totalCount)
             ],
-            'sort_field' => $request->sort_field ?: 'no',
+            'sort_field' => $request->sort_field ?: 'group_id',
             'sort_direction' => $sortDirection
         ];
     }
@@ -239,6 +415,99 @@ class DataAnalysisController extends Controller
         ];
     }
 
+    /**
+     * Get input tags for all tabs (Tab1, Tab2, Tab3)
+     */
+    private function getInputTagsForTabs(int $unitId, int $perfId): array
+    {
+        try {
+            // Get input tags for different m_input values
+            $inputTagsTab1 = InputTag::where('unit_id', $unitId)
+                ->where('m_input', 1)
+                ->orderBy('urutan', 'asc')
+                ->orderBy('tag_no', 'asc')
+                ->get();
+
+            $inputTagsTab2 = InputTag::where('unit_id', $unitId)
+                ->where('m_input', 2)
+                ->orderBy('urutan', 'asc')
+                ->orderBy('tag_no', 'asc')
+                ->get();
+
+            $inputTagsTab3 = InputTag::where('unit_id', $unitId)
+                ->where('m_input', 3)
+                ->orderBy('urutan', 'asc')
+                ->orderBy('tag_no', 'asc')
+                ->get();
+
+            // Get existing manual input data for all tabs
+            $allTagNos = collect()
+                ->merge($inputTagsTab1->pluck('tag_no'))
+                ->merge($inputTagsTab2->pluck('tag_no'))
+                ->merge($inputTagsTab3->pluck('tag_no'))
+                ->unique()
+                ->values();
+
+            $existingInputs = [];
+            if ($allTagNos->count() > 0) {
+                $existingRecords = TbInput::where('perf_id', $perfId)
+                    ->whereIn('tag_no', $allTagNos)
+                    ->get();
+                
+                // Organize existing data by tag_no and date_rec for easy lookup
+                foreach ($existingRecords as $record) {
+                    $key = $record->tag_no . '_' . $record->date_rec;
+                    $existingInputs[$key] = [
+                        'tag_no' => $record->tag_no,
+                        'value' => $record->value,
+                        'date_rec' => $record->date_rec,
+                    ];
+                }
+            }
+
+            // Transform tags for each tab
+            $transformTags = function($tags) {
+                return $tags->map(function($tag) {
+                    return [
+                        'tag_no' => $tag->tag_no,
+                        'description' => $tag->description,
+                        'unit_name' => $tag->satuan,
+                        'jm_input' => $tag->jm_input,
+                        'group_id' => $tag->group_id,
+                        'urutan' => $tag->urutan,
+                        'm_input' => $tag->m_input
+                    ];
+                });
+            };
+
+            return [
+                'tab1' => [
+                    'input_tags' => $transformTags($inputTagsTab1),
+                    'existing_inputs' => $existingInputs
+                ],
+                'tab2' => [
+                    'input_tags' => $transformTags($inputTagsTab2),
+                    'existing_inputs' => $existingInputs
+                ],
+                'tab3' => [
+                    'input_tags' => $transformTags($inputTagsTab3),
+                    'existing_inputs' => $existingInputs
+                ]
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching input tags for tabs:', [
+                'unit_id' => $unitId,
+                'perf_id' => $perfId,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'tab1' => ['input_tags' => [], 'existing_inputs' => []],
+                'tab2' => ['input_tags' => [], 'existing_inputs' => []],
+                'tab3' => ['input_tags' => [], 'existing_inputs' => []]
+            ];
+        }
+    }
+
     public function getInputTags(Request $request)
     {
         try {
@@ -257,25 +526,32 @@ class DataAnalysisController extends Controller
             // Datetime is optional - only used for frontend time calculations
             $datetime = $request->input('datetime');
             $perfId = $request->input('perf_id'); // Get perf_id to fetch existing manual inputs
+            $mInput = $request->input('m_input'); // No default value
 
             \Log::info('Fetching input tags', [
                 'unit_id' => $unitId,
                 'datetime' => $datetime,
-                'perf_id' => $perfId
+                'perf_id' => $perfId,
+                'm_input' => $mInput
             ]);
 
-            // Get input tags for the unit with m_input = 1
-            $inputTags = InputTag::where('unit_id', $unitId)
-                ->where('m_input', 1)
-                ->orderBy('urutan', 'asc')  // Order by urutan for consistent display
+            // Get input tags for the unit with specified m_input value
+            $query = InputTag::where('unit_id', $unitId);
+            
+            if ($mInput !== null) {
+                $query->where('m_input', $mInput);
+            }
+            
+            $inputTags = $query->orderBy('urutan', 'asc')  // Order by urutan for consistent display
                 ->orderBy('tag_no', 'asc')   // Then by tag_no as secondary sort
                 ->get();
 
             \Log::info('Query completed', [
                 'found_records' => $inputTags->count(),
                 'first_record' => $inputTags->first(),
+                'm_input' => $mInput,
                 'sql' => InputTag::where('unit_id', $unitId)
-                    ->where('m_input', 1)
+                    ->where('m_input', $mInput)
                     ->orderBy('urutan', 'asc')
                     ->orderBy('tag_no', 'asc')
                     ->toSql()
@@ -419,11 +695,12 @@ class DataAnalysisController extends Controller
                     ],
                     'filters' => [
                         'tag_no' => null,
-                        'value' => null,
+                        'value_min' => null,
+                        'value_max' => null,
                         'date' => null
                     ],
                     'sort' => [
-                        'field' => 'no',
+                        'field' => 'group_id',
                         'direction' => 'asc'
                     ]
                 ]);
@@ -438,13 +715,22 @@ class DataAnalysisController extends Controller
                 'performance' => $this->formatPerformanceData($performance),
                 'filters' => [
                     'tag_no' => $request->filter_tag_no,
-                    'value' => $request->filter_value,
+                    'description' => $request->filter_description,
+                    'value_min' => $request->filter_value_min,
+                    'value_max' => $request->filter_value_max,
+                    'min_from' => $request->filter_min_from,
+                    'min_to' => $request->filter_min_to,
+                    'max_from' => $request->filter_max_from,
+                    'max_to' => $request->filter_max_to,
+                    'average_from' => $request->filter_average_from,
+                    'average_to' => $request->filter_average_to,
                     'date' => $request->filter_date
                 ],
                 'sort' => [
                     'field' => $result['sort_field'],
                     'direction' => $result['sort_direction']
-                ]
+                ],
+                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id)
             ]);
 
         } catch (\Exception $e) {
