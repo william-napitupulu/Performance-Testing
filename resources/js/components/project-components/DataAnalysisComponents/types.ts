@@ -66,9 +66,10 @@ export interface ApiResponse {
     unit_name: string;
     status: string;
     date_perfomance: string;
+    jumlah_tab_aktif?: number;
   };
   input_tags?: {
-    tab1: {
+    [key: string]: {
       input_tags: Array<{
         tag_no: string;
         description: string;
@@ -84,38 +85,9 @@ export interface ApiResponse {
         date_rec: string;
       }>;
     };
-    tab2: {
-      input_tags: Array<{
-        tag_no: string;
-        description: string;
-        unit_name: string;
-        jm_input: number;
-        group_id: number;
-        urutan: number;
-        m_input: number;
-      }>;
-      existing_inputs: Record<string, {
-        tag_no: string;
-        value: number;
-        date_rec: string;
-      }>;
-    };
-    tab3: {
-      input_tags: Array<{
-        tag_no: string;
-        description: string;
-        unit_name: string;
-        jm_input: number;
-        group_id: number;
-        urutan: number;
-        m_input: number;
-      }>;
-      existing_inputs: Record<string, {
-        tag_no: string;
-        value: number;
-        date_rec: string;
-      }>;
-    };
+  };
+  tab_names?: {
+    [key: number]: string;
   };
 }
 

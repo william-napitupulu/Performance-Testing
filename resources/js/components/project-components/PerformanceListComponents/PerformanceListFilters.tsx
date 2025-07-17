@@ -13,6 +13,8 @@ interface SearchValues {
   date_perfomance: string;
   date_created: string;
   unit_name: string;
+  type: string;
+  weight: string;
 }
 
 interface PerformanceListFiltersProps {
@@ -27,7 +29,9 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
     status: '',
     date_perfomance: '',
     date_created: '',
-    unit_name: ''
+    unit_name: '',
+    type: '',
+    weight: ''
   });
 
   // Get unique units for the filter
@@ -86,6 +90,20 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
       );
     }
 
+    // Apply type filter
+    if (searchValues.type && searchValues.type !== 'all') {
+      filtered = filtered.filter(performance => 
+        performance.type === searchValues.type
+      );
+    }
+
+    // Apply weight filter
+    if (searchValues.weight && searchValues.weight !== 'all') {
+      filtered = filtered.filter(performance => 
+        performance.weight === searchValues.weight
+      );
+    }
+
     // Apply unit filter
     if (unitFilter !== 'all') {
       filtered = filtered.filter(performance => performance.unit_name === unitFilter);
@@ -108,22 +126,24 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
       status: '',
       date_perfomance: '',
       date_created: '',
-      unit_name: ''
+      unit_name: '',
+      type: '',
+      weight: ''
     });
     setUnitFilter('all');
   };
 
-  const hasActiveFilters = searchValues.id || searchValues.description || searchValues.status || searchValues.date_perfomance || searchValues.date_created || searchValues.unit_name || unitFilter !== 'all';
+  const hasActiveFilters = searchValues.id || searchValues.description || searchValues.status || searchValues.date_perfomance || searchValues.date_created || searchValues.unit_name || searchValues.type || searchValues.weight || unitFilter !== 'all';
 
   return (
-    <tr className="bg-white dark:bg-gray-900 border-b dark:border-gray-800 overflow-visible">
+    <tr className="bg-blue-50/30 dark:bg-blue-900/10 border-b dark:border-gray-800 overflow-visible">
       <td className="px-4 py-3 w-30">
         <Input
           type="text"
           value={searchValues.id}
           onChange={(e) => handleChange('id', e.target.value)}
           placeholder="Search ID..."
-          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </td>
       <td className="px-6 py-3">
@@ -132,7 +152,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.description}
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Search description..."
-          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </td>
       <td className="px-6 py-3">
@@ -140,7 +160,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.status || 'all'} 
           onValueChange={(value) => handleChange('status', value)}
         >
-          <SelectTrigger className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+          <SelectTrigger className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
@@ -162,6 +182,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.date_created}
           placeholder="Select created date..."
           onChange={(date) => handleChange('date_created', date)}
+          
         />
       </td>
       <td className="px-6 py-3">
@@ -170,8 +191,41 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
           value={searchValues.unit_name}
           onChange={(e) => handleChange('unit_name', e.target.value)}
           placeholder="Search unit name..."
-          className="w-full text-[11px] focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
+      </td>
+      <td className="px-6 py-3">
+        <Select 
+          value={searchValues.type || 'all'} 
+          onValueChange={(value) => handleChange('type', value)}
+        >
+          <SelectTrigger className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="Rutin">Rutin</SelectItem>
+            <SelectItem value="Sebelum OH">Sebelum OH</SelectItem>
+            <SelectItem value="Paska OH">Paska OH</SelectItem>
+            <SelectItem value="Puslitbang">Puslitbang</SelectItem>
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="px-6 py-3">
+        <Select 
+          value={searchValues.weight || 'all'} 
+          onValueChange={(value) => handleChange('weight', value)}
+        >
+          <SelectTrigger className="w-full text-[11px] bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+            <SelectValue placeholder="All Weights" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Weights</SelectItem>
+            <SelectItem value="Beban 1">Beban 1</SelectItem>
+            <SelectItem value="Beban 2">Beban 2</SelectItem>
+            <SelectItem value="Beban 3">Beban 3</SelectItem>
+          </SelectContent>
+        </Select>
       </td>
       <td className="px-6 py-3">
         {/* Actions column - empty for search row */}

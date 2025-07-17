@@ -28,7 +28,7 @@ interface DataAnalysisFiltersProps {
   }) => void;
 }
 
-export function DataAnalysisFilters({ onFilterChange }: DataAnalysisFiltersProps) {
+export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onFilterChange }: DataAnalysisFiltersProps) {
   const [filterValues, setFilterValues] = useState<FilterValues>({
     tag_no: '',
     description: '',
@@ -58,7 +58,7 @@ export function DataAnalysisFilters({ onFilterChange }: DataAnalysisFiltersProps
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [filterValues, onFilterChange]);
+  }, [filterValues]);
 
   const handleChange = (field: keyof FilterValues, value: string) => {
     setFilterValues(prev => ({
@@ -186,4 +186,4 @@ export function DataAnalysisFilters({ onFilterChange }: DataAnalysisFiltersProps
       </td>
     </tr>
   );
-} 
+}); 

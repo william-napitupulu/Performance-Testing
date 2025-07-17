@@ -42,6 +42,10 @@ export function PerformanceTableHeader({
         return 'text-fuchsia-700 dark:text-fuchsia-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       case 'unit_name':
         return 'text-cyan-700 dark:text-cyan-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'type':
+        return 'text-orange-700 dark:text-orange-300 group-hover:text-green-700 dark:group-hover:text-green-300';
+      case 'weight':
+        return 'text-purple-700 dark:text-purple-300 group-hover:text-green-700 dark:group-hover:text-green-300';
       default:
         return 'text-gray-600 dark:text-gray-300 group-hover:text-green-700 dark:group-hover:text-green-300';
     }
@@ -50,7 +54,7 @@ export function PerformanceTableHeader({
   const headerBaseClasses = "group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors";
 
   return (
-    <thead className="bg-blue-50/70 dark:bg-gray-800/70 border-y border-blue-100 dark:border-gray-700">
+    <thead className="bg-blue-50/30 dark:bg-blue-900/10 border-y border-blue-100 dark:border-gray-700">
       <tr>
         <th className={`${headerBaseClasses} px-4 w-30 ${getHeaderColor('id')}`} onClick={() => onSort('id')}>
           <div className="flex items-center">
@@ -80,6 +84,16 @@ export function PerformanceTableHeader({
         <th className={`${headerBaseClasses} px-6 ${getHeaderColor('unit_name')}`} onClick={() => onSort('unit_name')}>
           <div className="flex items-center">
             Unit Name {renderSortIcon('unit_name')}
+          </div>
+        </th>
+        <th className={`${headerBaseClasses} px-6 ${getHeaderColor('type')}`} onClick={() => onSort('type')}>
+          <div className="flex items-center">
+            Type {renderSortIcon('type')}
+          </div>
+        </th>
+        <th className={`${headerBaseClasses} px-6 ${getHeaderColor('weight')}`} onClick={() => onSort('weight')}>
+          <div className="flex items-center">
+            Weight {renderSortIcon('weight')}
           </div>
         </th>
         <th className={`${headerBaseClasses} px-6 text-center text-amber-700 dark:text-amber-300 group-hover:text-green-700 dark:group-hover:text-green-300`}>

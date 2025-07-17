@@ -3,15 +3,15 @@ import { SharedPerformanceData } from './Tab1Components/types';
 import { useTab1Data } from './Tab1Components/hooks/useTab1Data';
 import { useTab1Actions } from './Tab1Components/hooks/useTab1Actions';
 
-export interface Tab1ContextType {
+export interface Tab9ContextType {
   dataHook: ReturnType<typeof useTab1Data>;
   actionsHook: ReturnType<typeof useTab1Actions>;
   mInput: number;
 }
 
-const Tab1Context = createContext<Tab1ContextType | undefined>(undefined);
+const Tab9Context = createContext<Tab9ContextType | undefined>(undefined);
 
-interface Tab1ProviderProps {
+interface Tab9ProviderProps {
   sharedData: SharedPerformanceData;
   children: React.ReactNode;
   onDataSaved?: () => Promise<void>;
@@ -33,8 +33,8 @@ interface Tab1ProviderProps {
   };
 }
 
-export const Tab1Provider: React.FC<Tab1ProviderProps> = ({ sharedData, children, inputTagsData, onDataSaved }) => {
-  const mInput = 1;
+export const Tab9Provider: React.FC<Tab9ProviderProps> = ({ sharedData, children, inputTagsData, onDataSaved }) => {
+  const mInput = 9;
   const dataHook = useTab1Data(sharedData, mInput, inputTagsData);
   const actionsHook = useTab1Actions({
     inputValuesByJm: dataHook.inputValuesByJm,
@@ -54,16 +54,16 @@ export const Tab1Provider: React.FC<Tab1ProviderProps> = ({ sharedData, children
   // No more auto-fetch - data is passed from parent
   
   return (
-    <Tab1Context.Provider value={{ dataHook, actionsHook, mInput }}>
+    <Tab9Context.Provider value={{ dataHook, actionsHook, mInput }}>
       {children}
-    </Tab1Context.Provider>
+    </Tab9Context.Provider>
   );
 };
 
-export const useTab1Context = (): Tab1ContextType => {
-  const ctx = useContext(Tab1Context);
+export const useTab9Context = (): Tab9ContextType => {
+  const ctx = useContext(Tab9Context);
   if (!ctx) {
-    throw new Error('useTab1Context must be used within a Tab1Provider');
+    throw new Error('useTab9Context must be used within a Tab9Provider');
   }
   return ctx;
 }; 

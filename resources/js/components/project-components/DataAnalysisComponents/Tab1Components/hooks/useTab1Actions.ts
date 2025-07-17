@@ -15,6 +15,7 @@ interface UseTab1ActionsProps {
   groupedSlots: { [jm: number]: Date[] };
   dateTime: string;
   fetchInputTags: (selectedDateTime: string, performanceId?: number) => Promise<void>;
+  onDataSaved?: () => Promise<void>;
 }
 
 export const useTab1Actions = ({
@@ -29,6 +30,7 @@ export const useTab1Actions = ({
   groupedSlots,
   dateTime,
   fetchInputTags,
+  onDataSaved,
 }: UseTab1ActionsProps) => {
   const [saving, setSaving] = useState(false);
 
@@ -141,6 +143,10 @@ export const useTab1Actions = ({
         // Re-fetch the latest values to update the table instead of clearing inputs
         if (dateTime) {
           await fetchInputTags(dateTime, activePerf.perf_id);
+        }
+        // Trigger refetch of main data table
+        if (onDataSaved) {
+          await onDataSaved();
         }
       } else {
         throw new Error(response.data.message || 'Failed to save data');

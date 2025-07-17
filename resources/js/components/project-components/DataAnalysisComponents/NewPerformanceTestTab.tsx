@@ -8,7 +8,7 @@ interface SharedPerformanceData {
 }
 
 interface NewPerformanceTestTabProps {
-  onSubmit: (data: { description: string; dateTime: string }) => void;
+  onSubmit: (data: { description: string; dateTime: string; type: string; weight: string }) => void;
   loading: boolean;
   sharedData: SharedPerformanceData;
 }

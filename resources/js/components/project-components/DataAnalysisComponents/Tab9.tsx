@@ -1,13 +1,12 @@
 import React from 'react';
 import { PerformanceInfo } from './Tab1Components/PerformanceInfo';
-// import { PerformanceSelector } from './Tab1Components/PerformanceSelector';
 import { GroupedInputTable } from './Tab1Components/GroupedInputTable';
 import { SaveButton } from './Tab1Components/SaveButton';
 import { getFilteredAndSortedTags } from './Tab1Components/utils';
 import { SharedPerformanceData } from './Tab1Components/types';
-import { useTab1Context } from './Tab1Context';
+import { useTab9Context } from './Tab9Context';
 
-interface Tab1Props {
+interface Tab9Props {
   sharedData: SharedPerformanceData;
   inputTagsData?: {
     input_tags: Array<{
@@ -27,18 +26,17 @@ interface Tab1Props {
   };
 }
 
-export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1Props) {
-  // Use Tab1 specific context
-  const { dataHook, actionsHook } = useTab1Context();
+export function Tab9({ sharedData, inputTagsData }: Tab9Props) {
+  // Use Tab9 specific context
+  const { dataHook, actionsHook } = useTab9Context();
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
       {/* Header Section */}
-      <div className="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-lg p-6 border border-emerald-100 dark:border-emerald-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
-          Tab 1 - Manual Input (m_input = 1)
+      <div className="bg-lime-50/70 dark:bg-lime-900/10 rounded-lg p-6 border border-lime-100 dark:border-lime-800/50 mb-6">
+        <h2 className="text-xl font-semibold text-lime-700 dark:text-lime-300 mb-2">
+          Tab 9 - Manual Input (m_input = 9)
         </h2>
-
       </div>
 
       {/* Performance Test Info */}
@@ -48,7 +46,7 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
       {dataHook.noDataFound && (
         <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700/50">
           <p className="text-sm text-orange-800 dark:text-orange-300">
-            ⚠️ No input tags found for Tab 1 (m_input = 1). There may be no data available for this configuration.
+            ⚠️ No input tags found for Tab 9 (m_input = 9). There may be no data available for this configuration.
           </p>
         </div>
       )}
@@ -90,4 +88,4 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
       </div>
     </div>
   );
-}); 
+} 

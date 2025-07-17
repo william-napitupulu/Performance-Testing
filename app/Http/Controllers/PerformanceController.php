@@ -44,6 +44,8 @@ class PerformanceController extends Controller
                         'status' => $performance->status_text,
                         'unit_id' => $performance->unit_id,
                         'unit_name' => $performance->unit ? $performance->unit->unit_name : 'Unknown Unit',
+                        'type' => $performance->type,
+                        'weight' => $performance->weight,
                     ];
                 });
 
@@ -81,6 +83,8 @@ class PerformanceController extends Controller
             'description' => 'required|string|max:255',
             'date_perfomance' => 'required|date',
             'status' => 'required|in:Editable,Locked',
+            'type' => 'nullable|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
+            'weight' => 'nullable|string|in:Beban 1,Beban 2,Beban 3',
         ]);
 
         try {
@@ -96,6 +100,8 @@ class PerformanceController extends Controller
                 'date_created' => now(),
                 'status' => $request->status === 'Editable' ? Performance::STATUS_EDITABLE : Performance::STATUS_LOCKED,
                 'unit_id' => $selectedUnit,
+                'type' => $request->type,
+                'weight' => $request->weight,
             ]);
 
             Log::info('Performance record created', [
@@ -118,6 +124,8 @@ class PerformanceController extends Controller
                     'status' => $performance->status_text,
                     'unit_id' => $performance->unit_id,
                     'unit_name' => $performance->unit ? $performance->unit->unit_name : 'Unknown Unit',
+                    'type' => $performance->type,
+                    'weight' => $performance->weight,
                 ]
             ]);
 
@@ -140,6 +148,8 @@ class PerformanceController extends Controller
             'description' => 'required|string|max:255',
             'date_perfomance' => 'required|date',
             'status' => 'required|in:Editable,Locked',
+            'type' => 'nullable|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
+            'weight' => 'nullable|string|in:Beban 1,Beban 2,Beban 3',
         ]);
 
         try {
@@ -160,6 +170,8 @@ class PerformanceController extends Controller
                 'description' => $request->description,
                 'date_perfomance' => $request->date_perfomance,
                 'status' => $request->status === 'Editable' ? Performance::STATUS_EDITABLE : Performance::STATUS_LOCKED,
+                'type' => $request->type,
+                'weight' => $request->weight,
             ]);
 
             Log::info('Performance record updated', [
@@ -182,6 +194,8 @@ class PerformanceController extends Controller
                     'status' => $performance->status_text,
                     'unit_id' => $performance->unit_id,
                     'unit_name' => $performance->unit ? $performance->unit->unit_name : 'Unknown Unit',
+                    'type' => $performance->type,
+                    'weight' => $performance->weight,
                 ]
             ]);
 

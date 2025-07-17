@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { DataAnalysisTable } from './DataAnalysisTable';
 import type { AnalysisData, ApiResponse } from './types';
 
@@ -19,15 +19,37 @@ interface SaveDataTabProps {
     sort_field?: string;
     sort_direction?: string;
     filter_tag_no?: string;
+    filter_description?: string;
     filter_value_min?: string;
     filter_value_max?: string;
+    filter_min_from?: string;
+    filter_min_to?: string;
+    filter_max_from?: string;
+    filter_max_to?: string;
+    filter_average_from?: string;
+    filter_average_to?: string;
     filter_date?: string;
     perf_id?: number;
   }) => Promise<void>;
   sharedData: SharedPerformanceData;
 }
 
-export function SaveDataTab({
+/**
+ * Prepares filter parameters by prefixing keys with "filter_"
+ * and removing null/undefined/empty values.
+ */
+const prepareFilterParams = (filters: ApiResponse['filters']) => {
+  const params: Record<string, any> = {};
+  for (const key in filters) {
+    const filterKey = key as keyof ApiResponse['filters'];
+    if (filters[filterKey] !== null && filters[filterKey] !== undefined && filters[filterKey] !== '') {
+      params[`filter_${filterKey}`] = filters[filterKey];
+    }
+  }
+  return params;
+};
+
+export const SaveDataTab = React.memo(function SaveDataTab({
   data,
   pagination,
   filters,
@@ -36,30 +58,36 @@ export function SaveDataTab({
   onDataUpdate,
   sharedData
 }: SaveDataTabProps) {
-  const handleSort = async (field: string) => {
+  const handleSort = useCallback(async (field: string) => {
     const newDirection = sort.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
     await onDataUpdate({
+      ...prepareFilterParams(filters),
       sort_field: field,
       sort_direction: newDirection,
-      page: 1,
+      page: 1, // Reset to first page when sorting
       perf_id: sharedData.perfId
     });
-  };
+  }, [sort, filters, sharedData.perfId]);
 
-  const handlePageChange = async (page: number) => {
+  const handlePageChange = useCallback(async (page: number) => {
     await onDataUpdate({
+      ...prepareFilterParams(filters),
+      sort_field: sort.field,
+      sort_direction: sort.direction,
       page: page,
       perf_id: sharedData.perfId
     });
-  };
+  }, [sort, filters, sharedData.perfId]);
 
-  const handleFilterChange = async (filterParams: any) => {
+  const handleFilterChange = useCallback(async (filterParams: any) => {
     await onDataUpdate({
+      ...filterParams,
+      sort_field: sort.field,
+      sort_direction: sort.direction,
       page: 1, // Reset to first page when filtering
-      perf_id: sharedData.perfId,
-      ...filterParams
+      perf_id: sharedData.perfId
     });
-  };
+  }, [sort, sharedData.perfId]);
 
   return (
     <div className="space-y-6">
@@ -107,16 +135,18 @@ export function SaveDataTab({
       </div>
       )}
 
-      {/* Results */}
-      <DataAnalysisTable
-        data={data}
-        loading={loading}
-        sort={sort}
-        pagination={pagination}
-        onSort={handleSort}
-        onPageChange={handlePageChange}
-        onFilterChange={handleFilterChange}
-      />
+      {/* Results - Only show when performance test is selected */}
+      {sharedData.dateTime && (
+        <DataAnalysisTable
+          data={data}
+          loading={loading}
+          sort={sort}
+          pagination={pagination}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onFilterChange={handleFilterChange}
+        />
+      )}
     </div>
   );
-} 
+}); 

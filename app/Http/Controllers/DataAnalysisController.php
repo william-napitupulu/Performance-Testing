@@ -9,9 +9,15 @@ use Inertia\Inertia;
 use App\Models\TbInput;
 use App\Models\Performance;
 use App\Models\InputTag;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class DataAnalysisController extends Controller
 {
@@ -19,6 +25,8 @@ class DataAnalysisController extends Controller
     private array $getDataRules = [
         'description' => 'required|string|max:255',
         'dateTime' => 'required|date',
+        'type' => 'required|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
+        'weight' => 'required|string|in:Beban 1,Beban 2,Beban 3',
         'page' => 'integer|min:1',
         'per_page' => 'integer|min:1|max:100',
         'sort_field' => 'string|in:tag_no,value,min,max,average,description,group_id,urutan',
@@ -37,6 +45,62 @@ class DataAnalysisController extends Controller
         'filter_date_to' => 'date',
         'filter_date' => 'date',
     ];
+
+    /**
+     * Get the current unit and its tab count
+     */
+    private function getCurrentUnit(): ?Unit
+    {
+        try {
+            $selectedUnit = session('selected_unit');
+            \Log::info('Getting current unit', ['selected_unit' => $selectedUnit]);
+            
+            if (!$selectedUnit) {
+                \Log::warning('No unit selected in session');
+                return null;
+            }
+
+            $unit = Unit::find($selectedUnit);
+            \Log::info('Unit lookup result', [
+                'unit_id' => $selectedUnit,
+                'unit_found' => $unit ? true : false,
+                'unit_name' => $unit ? $unit->unit_name : 'N/A',
+                'tab_manual_aktif' => $unit ? $unit->getActiveTabCount() : 'N/A'
+            ]);
+            
+            return $unit;
+        } catch (\Exception $e) {
+            \Log::error('Error in getCurrentUnit', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Get the active tab count for the current unit
+     */
+    private function getActiveTabCount(): int
+    {
+        try {
+            $unit = $this->getCurrentUnit();
+            $tabCount = $unit ? $unit->getActiveTabCount() : 3;
+            
+            \Log::info('Active tab count determined', [
+                'unit_found' => $unit ? true : false,
+                'tab_count' => $tabCount
+            ]);
+            
+            return $tabCount; // Default to 3 if unit not found
+        } catch (\Exception $e) {
+            \Log::error('Error in getActiveTabCount', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return 3; // Default fallback
+        }
+    }
 
     /**
      * Display the data analysis page
@@ -68,6 +132,11 @@ class DataAnalysisController extends Controller
 
             // Get selected unit
             $selectedUnit = session('selected_unit');
+            \Log::info('Selected unit from session', [
+                'selected_unit' => $selectedUnit,
+                'session_data' => session()->all()
+            ]);
+            
             if (!$selectedUnit) {
                 return response()->json([
                     'success' => false,
@@ -95,7 +164,17 @@ class DataAnalysisController extends Controller
             }
 
             // Get filtered and paginated data
+            \Log::info('About to get filtered data', [
+                'perf_id' => $performance->perf_id,
+                'performance' => $performance->toArray()
+            ]);
+            
             $result = $this->getFilteredData($request, $performance->perf_id);
+            
+            \Log::info('Filtered data result', [
+                'data_count' => count($result['data']),
+                'total' => $result['pagination']['total'] ?? 0
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -121,7 +200,8 @@ class DataAnalysisController extends Controller
                     'field' => $result['sort_field'],
                     'direction' => $result['sort_direction']
                 ],
-                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id)
+                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id, $this->getActiveTabCount()),
+                'tab_names' => $this->getTabNames($selectedUnit, $this->getActiveTabCount())
             ]);
 
         } catch (ValidationException $e) {
@@ -159,6 +239,8 @@ class DataAnalysisController extends Controller
             'date_created' => now(),
             'status' => Performance::STATUS_EDITABLE,
             'unit_id' => $selectedUnit,
+            'type' => $request->type,
+            'weight' => $request->weight,
         ]);
 
         $performance->refresh();
@@ -214,6 +296,11 @@ class DataAnalysisController extends Controller
 
         $params = [$perfId];
         $whereConditions = [];
+
+        \Log::info('Getting filtered data for perf_id', [
+            'perf_id' => $perfId,
+            'base_query' => $baseQuery
+        ]);
 
         // Apply filters
         if ($request->filled('filter_tag_no')) {
@@ -412,43 +499,107 @@ class DataAnalysisController extends Controller
             'status' => $performance->status_text,
             'unit_id' => $performance->unit_id,
             'unit_name' => $performance->unit?->unit_name ?? 'Unknown Unit',
+            'jumlah_tab_aktif' => $this->getActiveTabCount(), // Get from unit instead of performance
         ];
     }
 
     /**
-     * Get input tags for all tabs (Tab1, Tab2, Tab3)
+     * Get tab names from tb_manual_input table
      */
-    private function getInputTagsForTabs(int $unitId, int $perfId): array
+    private function getTabNames(int $unitId, int $tabCount = 3): array
     {
         try {
-            // Get input tags for different m_input values
-            $inputTagsTab1 = InputTag::where('unit_id', $unitId)
-                ->where('m_input', 1)
-                ->orderBy('urutan', 'asc')
-                ->orderBy('tag_no', 'asc')
+            $tabNames = [];
+            
+            // Get manual input entries for this unit, ordered by tab_num
+            $manualInputs = DB::table('tb_manual_input')
+                ->where('unit_id', $unitId)
+                ->where('tab_num', '<=', $tabCount)
+                ->orderBy('tab_num', 'asc')
                 ->get();
+            
+            // Create tab names array
+            foreach ($manualInputs as $input) {
+                $tabNames[$input->tab_num] = $input->Nama;
+            }
+            
+            // Fill in missing tabs with default names
+            for ($i = 1; $i <= $tabCount; $i++) {
+                if (!isset($tabNames[$i])) {
+                    $tabNames[$i] = "Tab {$i}";
+                }
+            }
+            
+            return $tabNames;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in getTabNames:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return default names if error occurs
+            $tabNames = [];
+            for ($i = 1; $i <= $tabCount; $i++) {
+                $tabNames[$i] = "Tab {$i}";
+            }
+            return $tabNames;
+        }
+    }
 
-            $inputTagsTab2 = InputTag::where('unit_id', $unitId)
-                ->where('m_input', 2)
-                ->orderBy('urutan', 'asc')
-                ->orderBy('tag_no', 'asc')
-                ->get();
-
-            $inputTagsTab3 = InputTag::where('unit_id', $unitId)
-                ->where('m_input', 3)
-                ->orderBy('urutan', 'asc')
-                ->orderBy('tag_no', 'asc')
-                ->get();
-
+    /**
+     * Get input tags for all tabs (dynamic based on unit's tab_manual_aktif)
+     */
+    private function getInputTagsForTabs(int $unitId, int $perfId, int $tabCount = 3): array
+    {
+        try {
+            \Log::info('Getting input tags for tabs', [
+                'unit_id' => $unitId,
+                'perf_id' => $perfId,
+                'tab_count' => $tabCount
+            ]);
+            
+            $result = [];
+            $allTagNos = collect();
+            
+            // Get input tags for each tab based on tab count
+            for ($i = 1; $i <= $tabCount; $i++) {
+                $inputTags = InputTag::where('unit_id', $unitId)
+                    ->where('m_input', $i)
+                    ->orderBy('urutan', 'asc')
+                    ->orderBy('tag_no', 'asc')
+                    ->get();
+                
+                \Log::info("Input tags for tab {$i}", [
+                    'count' => $inputTags->count(),
+                    'first_tag' => $inputTags->first()?->tag_no
+                ]);
+                
+                $allTagNos = $allTagNos->merge($inputTags->pluck('tag_no'));
+                
+                // Transform tags for this tab
+                $transformedTags = $inputTags->map(function($tag) {
+                    return [
+                        'tag_no' => $tag->tag_no,
+                        'description' => $tag->description,
+                        'unit_name' => $tag->satuan,
+                        'jm_input' => $tag->jm_input,
+                        'group_id' => $tag->group_id,
+                        'urutan' => $tag->urutan,
+                        'm_input' => $tag->m_input
+                    ];
+                });
+                
+                $result["tab{$i}"] = [
+                    'input_tags' => $transformedTags,
+                    'existing_inputs' => [] // Will be populated below
+                ];
+            }
+            
             // Get existing manual input data for all tabs
-            $allTagNos = collect()
-                ->merge($inputTagsTab1->pluck('tag_no'))
-                ->merge($inputTagsTab2->pluck('tag_no'))
-                ->merge($inputTagsTab3->pluck('tag_no'))
-                ->unique()
-                ->values();
-
+            $allTagNos = $allTagNos->unique()->values();
             $existingInputs = [];
+            
             if ($allTagNos->count() > 0) {
                 $existingRecords = TbInput::where('perf_id', $perfId)
                     ->whereIn('tag_no', $allTagNos)
@@ -464,47 +615,29 @@ class DataAnalysisController extends Controller
                     ];
                 }
             }
+            
+            // Add existing inputs to all tabs
+            foreach ($result as $tabKey => $tabData) {
+                $result[$tabKey]['existing_inputs'] = $existingInputs;
+            }
 
-            // Transform tags for each tab
-            $transformTags = function($tags) {
-                return $tags->map(function($tag) {
-                    return [
-                        'tag_no' => $tag->tag_no,
-                        'description' => $tag->description,
-                        'unit_name' => $tag->satuan,
-                        'jm_input' => $tag->jm_input,
-                        'group_id' => $tag->group_id,
-                        'urutan' => $tag->urutan,
-                        'm_input' => $tag->m_input
-                    ];
-                });
-            };
-
-            return [
-                'tab1' => [
-                    'input_tags' => $transformTags($inputTagsTab1),
-                    'existing_inputs' => $existingInputs
-                ],
-                'tab2' => [
-                    'input_tags' => $transformTags($inputTagsTab2),
-                    'existing_inputs' => $existingInputs
-                ],
-                'tab3' => [
-                    'input_tags' => $transformTags($inputTagsTab3),
-                    'existing_inputs' => $existingInputs
-                ]
-            ];
+            return $result;
+            
         } catch (\Exception $e) {
-            Log::error('Error fetching input tags for tabs:', [
-                'unit_id' => $unitId,
-                'perf_id' => $perfId,
-                'error' => $e->getMessage()
+            \Log::error('Error in getInputTagsForTabs:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            return [
-                'tab1' => ['input_tags' => [], 'existing_inputs' => []],
-                'tab2' => ['input_tags' => [], 'existing_inputs' => []],
-                'tab3' => ['input_tags' => [], 'existing_inputs' => []]
-            ];
+            
+            // Return empty structure for the requested number of tabs
+            $result = [];
+            for ($i = 1; $i <= $tabCount; $i++) {
+                $result["tab{$i}"] = [
+                    'input_tags' => [],
+                    'existing_inputs' => []
+                ];
+            }
+            return $result;
         }
     }
 
@@ -730,7 +863,8 @@ class DataAnalysisController extends Controller
                     'field' => $result['sort_field'],
                     'direction' => $result['sort_direction']
                 ],
-                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id)
+                'input_tags' => $this->getInputTagsForTabs($selectedUnit, $performance->perf_id, $this->getActiveTabCount()),
+                'tab_names' => $this->getTabNames($selectedUnit, $this->getActiveTabCount())
             ]);
 
         } catch (\Exception $e) {
@@ -901,6 +1035,173 @@ class DataAnalysisController extends Controller
                 'success' => false,
                 'message' => 'Failed to save manual input data'
             ], 500);
+        }
+    }
+
+    /**
+     * Export analysis data to Excel
+     */
+    public function exportAnalysisData(Request $request)
+    {
+        try {
+            $selectedUnit = session('selected_unit');
+            
+            if (!$selectedUnit) {
+                return response()->json(['error' => 'No unit selected'], 400);
+            }
+
+            // Get performance record
+            $targetPerfId = $request->input('perf_id');
+            $performance = null;
+            
+            if ($targetPerfId) {
+                $performance = Performance::forUnit($selectedUnit)->where('perf_id', $targetPerfId)->first();
+            }
+
+            if (!$performance) {
+                $performance = Performance::forUnit($selectedUnit)
+                    ->orderBy('date_created', 'desc')
+                    ->first();
+            }
+
+            if (!$performance) {
+                return response()->json(['error' => 'No performance data found'], 404);
+            }
+
+            // Get all data without pagination for export
+            $tempRequest = clone $request;
+            $tempRequest->merge(['per_page' => 999999]); // Get all records
+            
+            $result = $this->getFilteredData($tempRequest, $performance->perf_id);
+            $data = $result['data'];
+
+            // Create new PHPExcel object
+            $objPHPExcel = new Spreadsheet();
+            $objPHPExcel->setActiveSheetIndex(0);
+            $activeSheet = $objPHPExcel->getActiveSheet();
+
+            // Set document properties
+            $objPHPExcel->getProperties()
+                ->setCreator('Performance Testing System')
+                ->setLastModifiedBy('Performance Testing System')
+                ->setTitle('Analysis Data Export')
+                ->setSubject('Performance Analysis Data')
+                ->setDescription('Export of performance analysis data from DCS system');
+
+            // Set sheet title
+            $activeSheet->setTitle('Analysis Data');
+
+            // Create header with performance info
+            $activeSheet->setCellValue('A1', 'Performance Analysis Data Export');
+            $activeSheet->mergeCells('A1:F1');
+            $activeSheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+            $activeSheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // Performance details
+            $activeSheet->setCellValue('A3', 'Performance Details');
+            $activeSheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
+            
+            $activeSheet->setCellValue('A4', 'Description:');
+            $activeSheet->setCellValue('B4', $performance->description);
+            
+            $activeSheet->setCellValue('A5', 'Date/Time:');
+            $activeSheet->setCellValue('B5', date('Y-m-d H:i:s', strtotime($performance->date_perfomance)));
+            
+            $activeSheet->setCellValue('A6', 'Performance ID:');
+            $activeSheet->setCellValue('B6', $performance->perf_id);
+            
+            $activeSheet->setCellValue('A7', 'Total Records:');
+            $activeSheet->setCellValue('B7', count($data));
+
+            // Set column headers
+            $headers = ['No', 'Tag No', 'Description', 'Min Value', 'Max Value', 'Average Value'];
+            $headerRow = 9;
+            
+            foreach ($headers as $index => $header) {
+                $column = chr(65 + $index); // A, B, C, etc.
+                $activeSheet->setCellValue($column . $headerRow, $header);
+            }
+
+            // Style the headers
+            $headerStyle = array(
+                'font' => array(
+                    'bold' => true,
+                    'color' => array('rgb' => 'FFFFFF')
+                ),
+                'fill' => array(
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => array('rgb' => '4A90E2')
+                ),
+                'borders' => array(
+                    'allBorders' => array(
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => array('rgb' => '000000')
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER
+                )
+            );
+            
+            $activeSheet->getStyle('A' . $headerRow . ':F' . $headerRow)->applyFromArray($headerStyle);
+
+            // Add data rows
+            $dataStartRow = $headerRow + 1;
+            foreach ($data as $index => $item) {
+                $row = $dataStartRow + $index;
+                
+                $activeSheet->setCellValue('A' . $row, $index + 1);
+                $activeSheet->setCellValue('B' . $row, $item['tag_no']);
+                $activeSheet->setCellValue('C' . $row, $item['description']);
+                $activeSheet->setCellValue('D' . $row, $item['min']);
+                $activeSheet->setCellValue('E' . $row, $item['max']);
+                $activeSheet->setCellValue('F' . $row, $item['average']);
+            }
+
+            // Style the data rows
+            if (!empty($data)) {
+                $dataRange = 'A' . $dataStartRow . ':F' . ($dataStartRow + count($data) - 1);
+                $dataStyle = array(
+                    'borders' => array(
+                        'allBorders' => array(
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => array('rgb' => 'CCCCCC')
+                        )
+                    )
+                );
+                $activeSheet->getStyle($dataRange)->applyFromArray($dataStyle);
+            }
+
+            // Auto-size columns
+            foreach (range('A', 'F') as $column) {
+                $activeSheet->getColumnDimension($column)->setAutoSize(true);
+            }
+
+            // Set filename
+            $fileName = 'Performance_Analysis_' . date('Y-m-d_H-i-s') . '.xlsx';
+            
+            // Set headers for download
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $fileName . '"');
+            header('Cache-Control: max-age=0');
+
+            // Write file
+            $objWriter = new Xlsx($objPHPExcel);
+            $objWriter->save('php://output');
+            
+            // Clean up
+            $objPHPExcel->disconnectWorksheets();
+            unset($objPHPExcel);
+            
+            exit;
+
+        } catch (\Exception $e) {
+            \Log::error('Error in exportAnalysisData:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to export analysis data'], 500);
         }
     }
 } 

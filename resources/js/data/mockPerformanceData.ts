@@ -7,6 +7,8 @@ export interface Performance {
   status: 'Editable' | 'Locked';
   unit_id: number;
   unit_name?: string; // Optional for backward compatibility
+  type?: string; // Type field
+  weight?: string; // Weight field
 }
 
 // Mock data for development (will be replaced by actual database data)

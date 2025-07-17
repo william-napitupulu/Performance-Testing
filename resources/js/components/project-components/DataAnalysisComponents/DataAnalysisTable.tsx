@@ -13,7 +13,7 @@ interface DataAnalysisTableProps {
   onFilterChange: (filters: any) => void;
 }
 
-export function DataAnalysisTable({ 
+export const DataAnalysisTable = React.memo(function DataAnalysisTable({ 
   data, 
   loading, 
   sort, 
@@ -290,4 +290,4 @@ export function DataAnalysisTable({
       {renderPagination()}
     </div>
   );
-} 
+}); 

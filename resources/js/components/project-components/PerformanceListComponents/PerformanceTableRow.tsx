@@ -73,6 +73,31 @@ export function PerformanceTableRow({
         </td>
         <td className={`${cellClasses} text-fuchsia-600 dark:text-fuchsia-400 font-medium`}>{performance.date_created}</td>
         <td className={`${cellClasses} text-center text-cyan-600 dark:text-cyan-400 font-medium`}>{performance.unit_name}</td>
+        <td className={cellClasses}>
+          <select
+            value={editForm.type || ''}
+            onChange={(e) => onEditFormChange('type', e.target.value)}
+            className={inputClasses}
+          >
+            <option value="">Select type...</option>
+            <option value="Rutin">Rutin</option>
+            <option value="Sebelum OH">Sebelum OH</option>
+            <option value="Paska OH">Paska OH</option>
+            <option value="Puslitbang">Puslitbang</option>
+          </select>
+        </td>
+        <td className={cellClasses}>
+          <select
+            value={editForm.weight || ''}
+            onChange={(e) => onEditFormChange('weight', e.target.value)}
+            className={inputClasses}
+          >
+            <option value="">Select weight...</option>
+            <option value="Beban 1">Beban 1</option>
+            <option value="Beban 2">Beban 2</option>
+            <option value="Beban 3">Beban 3</option>
+          </select>
+        </td>
         <td className={`${cellClasses} text-right space-x-3`}>
           <button
             onClick={onSaveEdit}
@@ -111,6 +136,8 @@ export function PerformanceTableRow({
       <td className={`${cellClasses} text-violet-700 dark:text-violet-300 font-medium`}>{performance.date_perfomance}</td>
       <td className={`${cellClasses} text-fuchsia-700 dark:text-fuchsia-300 font-medium`}>{performance.date_created}</td>
       <td className={`${cellClasses} text-center text-cyan-700 dark:text-cyan-300 font-medium`}>{performance.unit_name}</td>
+      <td className={`${cellClasses} text-center text-orange-700 dark:text-orange-300 font-medium`}>{performance.type || 'N/A'}</td>
+      <td className={`${cellClasses} text-center text-purple-700 dark:text-purple-300 font-medium`}>{performance.weight || 'N/A'}</td>
       <td className={`${cellClasses} text-right space-x-2`}>
         <button
           onClick={() => onEdit(performance)}

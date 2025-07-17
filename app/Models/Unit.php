@@ -32,6 +32,7 @@ class Unit extends Model
         'unit_name',
         'status',
         'plant_id',
+        'tab_manual_aktif',
     ];
 
     /**
@@ -43,6 +44,7 @@ class Unit extends Model
             'unit_id' => 'integer',
             'status' => 'integer',
             'plant_id' => 'integer',
+            'tab_manual_aktif' => 'integer',
         ];
     }
 
@@ -84,5 +86,27 @@ class Unit extends Model
     public function getDisplayText()
     {
         return $this->unit_name;
+    }
+
+    /**
+     * Get the active tab count for this unit with fallback
+     */
+    public function getActiveTabCount(): int
+    {
+        try {
+            // Check if the attribute exists and has a value
+            if (isset($this->attributes['tab_manual_aktif']) && $this->attributes['tab_manual_aktif'] !== null) {
+                return (int) $this->attributes['tab_manual_aktif'];
+            }
+            
+            // Try to get the value directly
+            return (int) ($this->tab_manual_aktif ?? 3);
+        } catch (\Exception $e) {
+            \Log::warning('Error accessing tab_manual_aktif for unit', [
+                'unit_id' => $this->unit_id,
+                'error' => $e->getMessage()
+            ]);
+            return 3; // Default fallback
+        }
     }
 } 

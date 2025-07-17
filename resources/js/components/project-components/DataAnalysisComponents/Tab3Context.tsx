@@ -14,6 +14,7 @@ const Tab3Context = createContext<Tab3ContextType | undefined>(undefined);
 interface Tab3ProviderProps {
   sharedData: SharedPerformanceData;
   children: React.ReactNode;
+  onDataSaved?: () => Promise<void>;
   inputTagsData?: {
     input_tags: Array<{
       tag_no: string;
@@ -32,7 +33,7 @@ interface Tab3ProviderProps {
   };
 }
 
-export const Tab3Provider: React.FC<Tab3ProviderProps> = ({ sharedData, children, inputTagsData }) => {
+export const Tab3Provider: React.FC<Tab3ProviderProps> = ({ sharedData, children, inputTagsData, onDataSaved }) => {
   const mInput = 3;
   const dataHook = useTab1Data(sharedData, mInput, inputTagsData);
   const actionsHook = useTab1Actions({
@@ -47,6 +48,7 @@ export const Tab3Provider: React.FC<Tab3ProviderProps> = ({ sharedData, children
     groupedSlots: dataHook.groupedSlots,
     dateTime: dataHook.dateTime,
     fetchInputTags: dataHook.fetchInputTags,
+    onDataSaved,
   });
 
   // No more auto-fetch - data is passed from parent

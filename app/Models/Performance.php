@@ -48,6 +48,8 @@ class Performance extends Model
         'date_created',
         'status',
         'unit_id',
+        'type',
+        'weight',
     ];
 
     /**

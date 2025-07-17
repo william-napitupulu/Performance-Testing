@@ -222,6 +222,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/api/data-analysis/get-data', [DataAnalysisController::class, 'getData'])->name('api.data-analysis.get-data');
     Route::get('/api/data-analysis/data', [DataAnalysisController::class, 'getAnalysisData'])->name('api.data-analysis.data');
     Route::post('/api/data-analysis/save-manual-input', [DataAnalysisController::class, 'saveManualInput'])->name('api.data-analysis.save-manual-input');
+    Route::get('/api/data-analysis/export-excel', [DataAnalysisController::class, 'exportAnalysisData'])->name('api.data-analysis.export-excel');
 });
 
 require __DIR__.'/settings.php';
