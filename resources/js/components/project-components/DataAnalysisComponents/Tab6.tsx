@@ -32,12 +32,7 @@ export function Tab6({ sharedData, inputTagsData }: Tab6Props) {
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-      {/* Header Section */}
-      <div className="bg-pink-50/70 dark:bg-pink-900/10 rounded-lg p-6 border border-pink-100 dark:border-pink-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-pink-700 dark:text-pink-300 mb-2">
-          Tab 6 - Manual Input (m_input = 6)
-        </h2>
-      </div>
+
 
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />

@@ -32,12 +32,6 @@ export function Tab8({ sharedData, inputTagsData }: Tab8Props) {
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-      {/* Header Section */}
-      <div className="bg-teal-50/70 dark:bg-teal-900/10 rounded-lg p-6 border border-teal-100 dark:border-teal-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-teal-700 dark:text-teal-300 mb-2">
-          Tab 8 - Manual Input (m_input = 8)
-        </h2>
-      </div>
 
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />

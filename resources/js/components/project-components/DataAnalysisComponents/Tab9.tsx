@@ -32,12 +32,7 @@ export function Tab9({ sharedData, inputTagsData }: Tab9Props) {
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-      {/* Header Section */}
-      <div className="bg-lime-50/70 dark:bg-lime-900/10 rounded-lg p-6 border border-lime-100 dark:border-lime-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-lime-700 dark:text-lime-300 mb-2">
-          Tab 9 - Manual Input (m_input = 9)
-        </h2>
-      </div>
+
 
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />

@@ -33,14 +33,7 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-      {/* Header Section */}
-      <div className="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-lg p-6 border border-emerald-100 dark:border-emerald-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
-          Tab 1 - Manual Input (m_input = 1)
-        </h2>
-
-      </div>
-
+     
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />
 

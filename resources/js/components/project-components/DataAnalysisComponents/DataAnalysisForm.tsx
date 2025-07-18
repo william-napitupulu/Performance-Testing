@@ -328,7 +328,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
                     id="weight"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 text-foregroundvtext-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 text-foregroundv text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                       weightError 
                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
                         : 'border-input dark:border-input/30 hover:border-gray-400 dark:hover:border-gray-500'

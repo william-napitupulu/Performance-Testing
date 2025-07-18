@@ -28,7 +28,7 @@ class DataAnalysisController extends Controller
         'type' => 'required|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
         'weight' => 'required|string|in:Beban 1,Beban 2,Beban 3',
         'page' => 'integer|min:1',
-        'per_page' => 'integer|min:1|max:100',
+        'per_page' => 'integer|min:1|max:999999',
         'sort_field' => 'string|in:tag_no,value,min,max,average,description,group_id,urutan',
         'sort_direction' => 'string|in:asc,desc',
         'filter_tag_no' => 'string|max:100',
@@ -429,8 +429,8 @@ class DataAnalysisController extends Controller
         
         $totalCount = DB::select($countQuery, $countParams)[0]->total ?? 0;
 
-        // Paginate - fixed to 10 records per page
-        $perPage = 10;
+        // Paginate - use per_page from request, default to 10
+        $perPage = $request->per_page ?: 10;
         $page = $request->page ?: 1;
         $offset = ($page - 1) * $perPage;
         
@@ -1044,6 +1044,25 @@ class DataAnalysisController extends Controller
     public function exportAnalysisData(Request $request)
     {
         try {
+            // Validate request parameters
+            $request->validate([
+                'perf_id' => 'nullable|integer|min:1',
+                'per_page' => 'nullable|integer|min:1|max:999999',
+                'sort_field' => 'nullable|string|in:tag_no,value,min,max,average,description,group_id,urutan',
+                'sort_direction' => 'nullable|string|in:asc,desc',
+                'filter_tag_no' => 'nullable|string|max:100',
+                'filter_description' => 'nullable|string|max:255',
+                'filter_value_min' => 'nullable|numeric',
+                'filter_value_max' => 'nullable|numeric',
+                'filter_min_from' => 'nullable|numeric',
+                'filter_min_to' => 'nullable|numeric',
+                'filter_max_from' => 'nullable|numeric',
+                'filter_max_to' => 'nullable|numeric',
+                'filter_average_from' => 'nullable|numeric',
+                'filter_average_to' => 'nullable|numeric',
+                'filter_date' => 'nullable|date',
+            ]);
+            
             $selectedUnit = session('selected_unit');
             
             if (!$selectedUnit) {
@@ -1072,8 +1091,20 @@ class DataAnalysisController extends Controller
             $tempRequest = clone $request;
             $tempRequest->merge(['per_page' => 999999]); // Get all records
             
+            Log::info('Export: Getting filtered data', [
+                'perf_id' => $performance->perf_id,
+                'per_page' => $tempRequest->per_page,
+                'has_filters' => $request->has(['filter_tag_no', 'filter_description', 'filter_value_min', 'filter_value_max'])
+            ]);
+            
             $result = $this->getFilteredData($tempRequest, $performance->perf_id);
             $data = $result['data'];
+            
+            Log::info('Export: Data retrieved', [
+                'perf_id' => $performance->perf_id,
+                'data_count' => count($data),
+                'total_records' => $result['pagination']['total'] ?? 0
+            ]);
 
             // Create new PHPExcel object
             $objPHPExcel = new Spreadsheet();

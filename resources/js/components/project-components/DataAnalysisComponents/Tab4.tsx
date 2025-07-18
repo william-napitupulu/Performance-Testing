@@ -32,12 +32,7 @@ export function Tab4({ sharedData, inputTagsData }: Tab4Props) {
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-      {/* Header Section */}
-      <div className="bg-blue-50/70 dark:bg-blue-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/50 mb-6">
-        <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-2">
-          Tab 4 - Manual Input (m_input = 4)
-        </h2>
-      </div>
+      
 
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />

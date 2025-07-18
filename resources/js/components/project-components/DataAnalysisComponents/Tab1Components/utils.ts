@@ -11,7 +11,9 @@ export const calculateTimeHeaders = (baseTime: string, jmInput: number) => {
     return { headers: [], slots: [] };
   }
   
-  const intervalMinutes = 120 / jmInput; // 2 hours divided by jm_input
+  // For jmInput intervals, we need (jmInput - 1) divisions to include start and end times
+  // Example: jmInput = 4 means 4 time points with 3 intervals between them
+  const intervalMinutes = jmInput === 1 ? 0 : 120 / (jmInput - 1); // 2 hours divided by (jm_input - 1)
   const headers = [];
   const slots = [];
 
