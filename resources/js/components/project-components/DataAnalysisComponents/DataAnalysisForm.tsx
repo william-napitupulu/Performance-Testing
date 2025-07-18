@@ -282,7 +282,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
 
               {/* Type Field */}
               <div className="space-y-3">
-                <label htmlFor="type" className="block text-sm font-semibold text-gray-700 dark:text-white">
+                <label htmlFor="type" className="block text-sm font-semibold text-black dark:text-white">
                   Type
                 </label>
                 <div className="relative">
@@ -290,7 +290,11 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
                     id="type"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 text-foreground text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                      type 
+                        ? 'text-white dark:text-white' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    } ${
                       typeError 
                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
                         : 'border-input dark:border-input/30 hover:border-gray-400 dark:hover:border-gray-500'
@@ -328,7 +332,11 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
                     id="weight"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 text-foregroundv text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                      weight 
+                        ? 'text-white dark:text-white' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    } ${
                       weightError 
                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
                         : 'border-input dark:border-input/30 hover:border-gray-400 dark:hover:border-gray-500'

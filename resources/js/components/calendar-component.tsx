@@ -235,8 +235,8 @@ export const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 onChange={(e) => handleTimeChange('minute', parseInt(e.target.value))}
                 className="w-16 rounded-lg border border-input dark:border-gray-600 bg-background dark:bg-gray-700 dark:text-gray-200 px-2 py-1.5 text-sm"
               >
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const value = i * 5;
+                {Array.from({ length: 2 }).map((_, i) => {
+                  const value = i * 30;
                   return (
                     <option key={value} value={value} className="dark:bg-gray-700">{String(value).padStart(2, '0')}</option>
                   );

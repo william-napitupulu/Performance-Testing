@@ -1,5 +1,7 @@
 import React from 'react';
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
+// COMMENTED OUT: Pagination icons no longer needed
+// import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import type { AnalysisData, ApiResponse } from './types';
 import { DataAnalysisFilters } from './DataAnalysisFilters';
 
@@ -9,7 +11,7 @@ interface DataAnalysisTableProps {
   sort: ApiResponse['sort'];
   pagination: ApiResponse['pagination'];
   onSort: (field: string) => void;
-  onPageChange: (page: number) => void;
+  onPageChange?: (page: number) => void; // COMMENTED OUT: Made optional since pagination is disabled
   onFilterChange: (filters: any) => void;
 }
 
@@ -84,108 +86,127 @@ export const DataAnalysisTable = React.memo(function DataAnalysisTable({
 
   const headerBaseClasses = "group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors";
 
-  const getPageNumbers = () => {
-    if (!pagination) return [];
+  // COMMENTED OUT: Pagination logic - now showing all data at once
+  // const getPageNumbers = () => {
+  //   if (!pagination) return [];
     
-    const { current_page, last_page } = pagination;
-    const pages = [];
-    const maxVisiblePages = 5;
+  //   const { current_page, last_page } = pagination;
+  //   const pages = [];
+  //   const maxVisiblePages = 5;
     
-    let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(last_page, startPage + maxVisiblePages - 1);
+  //   let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
+  //   let endPage = Math.min(last_page, startPage + maxVisiblePages - 1);
     
-    // Adjust start page if we're near the end
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
+  //   // Adjust start page if we're near the end
+  //   if (endPage - startPage + 1 < maxVisiblePages) {
+  //     startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  //   }
     
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+  //   for (let i = startPage; i <= endPage; i++) {
+  //     pages.push(i);
+  //   }
     
-    return pages;
-  };
+  //   return pages;
+  // };
 
-  const renderPagination = () => {
+  // COMMENTED OUT: Pagination rendering - now showing all data at once
+  // const renderPagination = () => {
+  //   if (!pagination || pagination.total === 0) return null;
+
+  //   const { current_page, last_page, from, to, total } = pagination;
+    
+  //   return (
+  //     <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-border dark:border-gray-600">
+  //       <div className="flex items-center justify-between">
+  //         <div className="text-sm text-gray-700 dark:text-gray-300">
+  //           Showing <span className="font-medium">{from}</span> to <span className="font-medium">{to}</span> of{' '}
+  //           <span className="font-medium">{total}</span> results
+  //         </div>
+          
+  //         <div className="flex items-center space-x-2">
+  //           {/* First page */}
+  //           <button
+  //             onClick={() => onPageChange(1)}
+  //             disabled={Number(current_page) === 1}
+  //             title="Go to first page"
+  //             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             <ChevronsLeft className="h-4 w-4" />
+  //           </button>
+            
+  //           {/* Previous page */}
+  //           <button
+  //             onClick={() => {
+  //               const prevPage = Math.max(1, Number(current_page) - 1);
+  //               onPageChange(prevPage);
+  //             }}
+  //             disabled={Number(current_page) === 1}
+  //             title="Go to previous page"
+  //             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             <ChevronLeft className="h-4 w-4" />
+  //           </button>
+            
+  //           {/* Page numbers */}
+  //           {getPageNumbers().map((page) => {
+  //             const isActive = Number(page) === Number(current_page);
+  //             return (
+  //               <button
+  //                 key={page}
+  //                 onClick={() => onPageChange(page)}
+  //                 title={`Go to page ${page}`}
+  //                 className={`px-3 py-2 rounded-md border text-sm font-medium ${
+  //                   isActive
+  //                     ? 'bg-green-600 border-green-600 text-white'
+  //                     : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+  //                 }`}
+  //               >
+  //                 {page}
+  //               </button>
+  //             );
+  //           })}
+            
+  //           {/* Next page */}
+  //           <button
+  //             onClick={() => {
+  //               const currentPageNum = Number(current_page);
+  //               const lastPageNum = Number(last_page);
+  //               const nextPage = Math.min(lastPageNum, currentPageNum + 1);
+  //               onPageChange(nextPage);
+  //             }}
+  //             disabled={Number(current_page) === Number(last_page)}
+  //             title="Go to next page"
+  //             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             <ChevronRight className="h-4 w-4" />
+  //           </button>
+            
+  //           {/* Last page */}
+  //           <button
+  //             onClick={() => onPageChange(Number(last_page))}
+  //             disabled={Number(current_page) === Number(last_page)}
+  //             title="Go to last page"
+  //             className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  //           >
+  //             <ChevronsRight className="h-4 w-4" />
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
+  // NEW: Simple stats display without pagination
+  const renderStats = () => {
     if (!pagination || pagination.total === 0) return null;
 
-    const { current_page, last_page, from, to, total } = pagination;
+    const { total } = pagination;
     
     return (
       <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-border dark:border-gray-600">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center">
           <div className="text-sm text-gray-700 dark:text-gray-300">
-            Showing <span className="font-medium">{from}</span> to <span className="font-medium">{to}</span> of{' '}
-            <span className="font-medium">{total}</span> results
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {/* First page */}
-            <button
-              onClick={() => onPageChange(1)}
-              disabled={Number(current_page) === 1}
-              title="Go to first page"
-              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </button>
-            
-            {/* Previous page */}
-            <button
-              onClick={() => {
-                const prevPage = Math.max(1, Number(current_page) - 1);
-                onPageChange(prevPage);
-              }}
-              disabled={Number(current_page) === 1}
-              title="Go to previous page"
-              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            
-            {/* Page numbers */}
-            {getPageNumbers().map((page) => {
-              const isActive = Number(page) === Number(current_page);
-              return (
-                <button
-                  key={page}
-                  onClick={() => onPageChange(page)}
-                  title={`Go to page ${page}`}
-                  className={`px-3 py-2 rounded-md border text-sm font-medium ${
-                    isActive
-                      ? 'bg-green-600 border-green-600 text-white'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
-            
-            {/* Next page */}
-            <button
-              onClick={() => {
-                const currentPageNum = Number(current_page);
-                const lastPageNum = Number(last_page);
-                const nextPage = Math.min(lastPageNum, currentPageNum + 1);
-                onPageChange(nextPage);
-              }}
-              disabled={Number(current_page) === Number(last_page)}
-              title="Go to next page"
-              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            
-            {/* Last page */}
-            <button
-              onClick={() => onPageChange(Number(last_page))}
-              disabled={Number(current_page) === Number(last_page)}
-              title="Go to last page"
-              className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </button>
+            Showing all <span className="font-medium">{total}</span> results
           </div>
         </div>
       </div>
@@ -287,7 +308,11 @@ export const DataAnalysisTable = React.memo(function DataAnalysisTable({
         </table>
       </div>
       
-      {renderPagination()}
+      {/* COMMENTED OUT: Pagination controls */}
+      {/* {renderPagination()} */}
+      
+      {/* NEW: Simple stats display */}
+      {renderStats()}
     </div>
   );
 }); 

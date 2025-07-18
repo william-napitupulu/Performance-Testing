@@ -1,13 +1,14 @@
 import React from 'react';
 import { PerformanceInfo } from './Tab1Components/PerformanceInfo';
-// import { PerformanceSelector } from './Tab1Components/PerformanceSelector';
 import { GroupedInputTable } from './Tab1Components/GroupedInputTable';
 import { SaveButton } from './Tab1Components/SaveButton';
 import { getFilteredAndSortedTags } from './Tab1Components/utils';
-import { SharedPerformanceData } from './Tab1Components/types';
-import { useTab1Context } from './Tab1Context';
+import { NoDataWarning } from './shared/NoDataWarning';
+import { useUniversalTabContext } from './shared/UniversalTabContext';
+import type { SharedPerformanceData } from './Tab1Components/types';
 
-interface Tab1Props {
+interface UnifiedTabTemplateProps {
+  tabNumber: number;
   sharedData: SharedPerformanceData;
   inputTagsData?: {
     input_tags: Array<{
@@ -25,26 +26,34 @@ interface Tab1Props {
       date_rec: string;
     }>;
   };
+  onDataSaved?: () => void;
 }
 
-export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1Props) {
-  // Use Tab1 specific context
-  const { dataHook, actionsHook } = useTab1Context();
+export const UnifiedTabTemplate: React.FC<UnifiedTabTemplateProps> = ({
+  tabNumber,
+  sharedData,
+  inputTagsData,
+  onDataSaved
+}) => {
+  // Use the universal tab context
+  const { dataHook, actionsHook } = useUniversalTabContext();
+
+  // Generate unique tab identifier including performance ID
+  const tabId = `unified-tab-${tabNumber}-perf-${sharedData.perfId || 'no-perf'}`;
 
   return (
     <div className="p-6 bg-background rounded-b-lg border border-border dark:border-border/50">
-     
+      
+
       {/* Performance Test Info */}
       <PerformanceInfo sharedData={sharedData} />
 
       {/* No Data Found Message */}
-      {dataHook.noDataFound && (
-        <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700/50">
-          <p className="text-sm text-orange-800 dark:text-orange-300">
-            ⚠️ No input tags found for Tab 1 (m_input = 1). There may be no data available for this configuration.
-          </p>
-        </div>
-      )}
+      <NoDataWarning 
+        mInput={tabNumber}
+        isVisible={dataHook.noDataFound}
+        customMessage={`No input tags found for Tab ${tabNumber} (m_input = ${tabNumber}). There may be no data available for this configuration.`}
+      />
 
       {/* Grouped Input Tables */}
       {Object.keys(dataHook.groupedTags).map(jmKey => {
@@ -57,7 +66,7 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
         
         return (
           <GroupedInputTable
-            key={jm}
+            key={`${tabId}-jm-${jm}`}
             jm={jm}
             headers={headers}
             tags={filteredTags}
@@ -68,6 +77,7 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
             onSort={(field) => actionsHook.handleSort(jm, field)}
             filters={filters}
             onFilterChange={(field, value) => actionsHook.handleFilterChange(jm, field, value)}
+            tabId={tabId}
           />
         );
       })}
@@ -83,4 +93,4 @@ export const Tab1 = React.memo(function Tab1({ sharedData, inputTagsData }: Tab1
       </div>
     </div>
   );
-}); 
+}; 

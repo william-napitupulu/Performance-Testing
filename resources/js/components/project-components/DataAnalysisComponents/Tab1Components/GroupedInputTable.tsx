@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, AlertCircle } from 'lucide-react';
 
 interface InputTag {
   tag_no: string;
@@ -30,9 +30,10 @@ interface GroupedInputTableProps {
   onSort: (field: string) => void;
   filters: FilterConfig;
   onFilterChange: (field: keyof FilterConfig, value: string) => void;
+  tabId?: string; // Add tabId prop
 }
 
-export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
+export const GroupedInputTable: React.FC<GroupedInputTableProps> = React.memo(({
   jm,
   headers,
   tags,
@@ -42,10 +43,41 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
   sortConfig,
   onSort,
   filters,
-  onFilterChange
+  onFilterChange,
+  tabId = 'default' // Default value if not provided
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 999999; // Show all items, effectively no pagination
+  const [hoveredInput, setHoveredInput] = useState<string | null>(null);
+  
+  // Debug: Check for duplicates (can be removed after testing)
+  const tagNumbers = tags.map(tag => tag.tag_no);
+  const duplicates = tagNumbers.filter((item, index) => tagNumbers.indexOf(item) !== index);
+  if (duplicates.length > 0) {
+    console.log(`🔴 DUPLICATE TAGS DETECTED in tabId: ${tabId}, jm: ${jm}`, duplicates);
+  }
+
+  // Validation function
+  const validateInput = (value: string): { isValid: boolean; error?: string } => {
+    if (!value || value.trim() === '') {
+      return { isValid: true }; // Empty is valid (optional)
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return { isValid: false, error: 'Please enter a valid number' };
+    }
+    
+    if (numValue < 0) {
+      return { isValid: false, error: 'Value cannot be negative' };
+    }
+    
+    if (numValue > 999999) {
+      return { isValid: false, error: 'Value is too large (max: 999,999)' };
+    }
+    
+    return { isValid: true };
+  };
 
   // Paginate the tags
   const paginatedData = useMemo(() => {
@@ -141,7 +173,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                 </th>
                 {headers.map((h, i) => (
                   <th
-                    key={i}
+                    key={`header-${tabId}-${jm}-${i}`}
                     className="py-3 px-6 text-center text-sm font-semibold text-gray-700 dark:text-gray-200"
                   >
                     {h}
@@ -178,7 +210,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                   />
                 </td>
                 {headers.map((_, index) => (
-                  <td key={`filter-header-${index}`} className="px-4 py-2 ">
+                  <td key={`filter-header-${tabId}-${jm}-${index}`} className="px-4 py-2 ">
 
                   </td>
                 ))}
@@ -197,7 +229,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
               ) : (
                 paginatedData.map((tag, idx) => {
                   const safeTagNo = tag?.tag_no || `empty-tag-${idx}`;
-                  const uniqueKey = `${jm}-tag-${idx}-${safeTagNo}`;
+                  const uniqueKey = `${tabId}-${jm}-row-${idx}-${safeTagNo}`;
                   return (
                     <tr
                       key={uniqueKey}
@@ -212,18 +244,50 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                       <td className="px-6 py-4 text-violet-700 dark:text-violet-300">
                         {tag.unit_name}
                       </td>
-                      {headers.map((_, timeIndex) => (
-                        <td key={`${uniqueKey}-${timeIndex}`} className="px-6 py-4 text-center">
-                          <input
-                            type="number"
-                            step="any"
-                            value={getInputValue(safeTagNo, timeIndex)}
-                            onChange={(e) => onValueChange(safeTagNo, timeIndex, e.target.value)}
-                            placeholder="0.00"
-                            className="w-28 px-3 py-2 text-sm border border-input rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-                        </td>
-                      ))}
+                      {headers.map((_, timeIndex) => {
+                        const inputValue = getInputValue(safeTagNo, timeIndex);
+                        const validation = validateInput(inputValue);
+                        const inputKey = `${safeTagNo}-${timeIndex}`;
+                        const showTooltip = hoveredInput === inputKey && !validation.isValid;
+                        
+                        return (
+                          <td key={`${uniqueKey}-${timeIndex}`} className="px-6 py-4 text-center relative">
+                            <div className="relative">
+                              <input
+                                type="number"
+                                step="any"
+                                value={inputValue}
+                                onChange={(e) => onValueChange(safeTagNo, timeIndex, e.target.value)}
+                                onMouseEnter={() => setHoveredInput(inputKey)}
+                                onMouseLeave={() => setHoveredInput(null)}
+                                placeholder="0.00"
+                                className={`w-28 px-3 py-2 text-sm border rounded bg-background text-foreground focus:outline-none focus:ring-2 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                                  validation.isValid 
+                                    ? 'border-input focus:ring-blue-500' 
+                                    : 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/20'
+                                }`}
+                              />
+                              {!validation.isValid && (
+                                <AlertCircle className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
+                              )}
+                              
+                              {/* Validation Tooltip */}
+                              {showTooltip && (
+                                <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-xs">
+                                  <div className="bg-red-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
+                                    <div className="flex items-center gap-2">
+                                      <AlertCircle className="h-3 w-3" />
+                                      {validation.error}
+                                    </div>
+                                    {/* Arrow pointing down */}
+                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })
@@ -262,7 +326,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
                 {/* Page numbers */}
                 {getPageNumbers().map((page) => (
                   <button
-                    key={page}
+                    key={`page-${tabId}-${jm}-${page}`}
                     onClick={() => handlePageChange(page)}
                     className={`px-3 py-2 rounded-md border text-sm font-medium ${
                       page === currentPage
@@ -298,4 +362,4 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = ({
       </div>
     </div>
   );
-}; 
+}); 

@@ -4,26 +4,8 @@ import { Link } from '@inertiajs/react';
 import { NewPerformanceTestTab } from './NewPerformanceTestTab';
 import { RunTab } from './RunTab';
 import { SaveDataTab } from './SaveDataTab';
-import { Tab1 } from './Tab1';
-import { Tab2 } from './Tab2';
-import { Tab3 } from './Tab3';
-import { Tab4 } from './Tab4';
-import { Tab5 } from './Tab5';
-import { Tab6 } from './Tab6';
-import { Tab7 } from './Tab7';
-import { Tab8 } from './Tab8';
-import { Tab9 } from './Tab9';
-import { Tab10 } from './Tab10';
-import { Tab1Provider } from './Tab1Context';
-import { Tab2Provider } from './Tab2Context';
-import { Tab3Provider } from './Tab3Context';
-import { Tab4Provider } from './Tab4Context';
-import { Tab5Provider } from './Tab5Context';
-import { Tab6Provider } from './Tab6Context';
-import { Tab7Provider } from './Tab7Context';
-import { Tab8Provider } from './Tab8Context';
-import { Tab9Provider } from './Tab9Context';
-import { Tab10Provider } from './Tab10Context';
+import { UniversalTabProvider } from './shared/UniversalTabContext';
+import { UnifiedTabTemplate } from './UnifiedTabTemplate';
 import type { AnalysisData, ApiResponse } from './types';
 import axios from 'axios';
 
@@ -73,7 +55,8 @@ export function DataAnalysisContainer() {
     pagination: {
       current_page: 1,
       total: 0,
-      per_page: 10,
+      // MODIFIED: Set high per_page to show all data at once
+      per_page: 999999, // Was: 10
       last_page: 1,
       from: 0,
       to: 0
@@ -85,14 +68,12 @@ export function DataAnalysisContainer() {
       date: null
     },
     sort: {
-      field: 'group_id',
+      field: 'tag_no',
       direction: 'asc'
     },
-    input_tags: {
-      tab1: { input_tags: [], existing_inputs: {} },
-      tab2: { input_tags: [], existing_inputs: {} },
-      tab3: { input_tags: [], existing_inputs: {} }
-    }
+    performance: undefined,
+    input_tags: {},
+    tab_names: {}
   });
   const [initializedFromPerfId, setInitializedFromPerfId] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
@@ -109,23 +90,24 @@ export function DataAnalysisContainer() {
 
   // Function to trigger refetch of main data table (only called explicitly)
   const refetchDataTable = useCallback(async () => {
-    const currentPerfId = stablePerfId;
-    if (!currentPerfId) return;
+    if (!stablePerfId) return;
     
-    setLoading(true);
+    console.log('Refetching data table for performance:', stablePerfId);
     try {
-      const response = await axios.get('/api/data-analysis/data', { 
-        params: { perf_id: currentPerfId } 
+      // MODIFIED: Add per_page parameter to fetch all data
+      const response = await axios.get('/api/data-analysis/data', {
+        params: { 
+          perf_id: stablePerfId,
+          per_page: 999999 // Fetch all records
+        }
       });
       setData(response.data.data || []);
       setApiResponse(response.data);
       console.log('Data table refetched successfully after manual save');
     } catch (error: any) {
-      if (error.name !== 'AbortError' && error.code !== 'ERR_CANCELED') {
+      if (axios.isCancel && !axios.isCancel(error)) {
         console.error('Error refetching data table:', error.message || error);
       }
-    } finally {
-      setLoading(false);
     }
   }, [stablePerfId]);
 
@@ -167,7 +149,13 @@ export function DataAnalysisContainer() {
         (async () => {
           setLoading(true);
           try {
-            const resp = await axios.get('/api/data-analysis/data', { params: { perf_id: perfIdNum } });
+            // MODIFIED: Add per_page parameter to fetch all data
+            const resp = await axios.get('/api/data-analysis/data', { 
+              params: { 
+                perf_id: perfIdNum,
+                per_page: 999999 // Fetch all records
+              } 
+            });
             const perf = resp.data.performance;
             const tabCount = perf.jumlah_tab_aktif || 3; // Get tab count from performance record
             setSharedData({
@@ -247,7 +235,8 @@ export function DataAnalysisContainer() {
   // Remove unused fetchDataForCurrentPerformance function
 
   const handleDataUpdate = useCallback(async (params: {
-    page?: number;
+    // COMMENTED OUT: No longer using page parameter
+    // page?: number;
     sort_field?: string;
     sort_direction?: string;
     filter_tag_no?: string;
@@ -262,10 +251,16 @@ export function DataAnalysisContainer() {
       return;
     }
     
-    console.log('Updating data with params:', params);
+    // MODIFIED: Add per_page parameter to fetch all data
+    const apiParams = {
+      ...params,
+      per_page: 999999 // Fetch all records
+    };
+    
+    console.log('Updating data with params:', apiParams);
     try {
       const response = await axios.get('/api/data-analysis/data', { 
-        params,
+        params: apiParams,
         timeout: 60000 // 60 second timeout
       });
       
@@ -359,78 +354,38 @@ export function DataAnalysisContainer() {
     }
     
     if (tabId === 'run') {
-      return <RunTab sharedData={sharedData} />;
+      return (
+        <RunTab 
+          sharedData={sharedData} 
+          dcsData={data}
+          tabInputData={apiResponse.input_tags}
+          totalRecords={data.length}
+        />
+      );
     }
     
-    // Handle dynamic tabs
+    // Handle dynamic tabs with unified template
     if (tabId.startsWith('tab')) {
       const tabNumber = parseInt(tabId.replace('tab', ''));
       const tabKey = `tab${tabNumber}`;
       
-      // Create individual tab components wrapped in their respective contexts
-      switch (tabNumber) {
-        case 1:
-          return (
-            <Tab1Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab1 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab1Provider>
-          );
-        case 2:
-          return (
-            <Tab2Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab2 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab2Provider>
-          );
-        case 3:
-          return (
-            <Tab3Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab3 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab3Provider>
-          );
-        case 4:
-          return (
-            <Tab4Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab4 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab4Provider>
-          );
-        case 5:
-          return (
-            <Tab5Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab5 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab5Provider>
-          );
-        case 6:
-          return (
-            <Tab6Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab6 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab6Provider>
-          );
-        case 7:
-          return (
-            <Tab7Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab7 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab7Provider>
-          );
-        case 8:
-          return (
-            <Tab8Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab8 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab8Provider>
-          );
-        case 9:
-          return (
-            <Tab9Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab9 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab9Provider>
-          );
-        case 10:
-          return (
-            <Tab10Provider sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} onDataSaved={refetchDataTable}>
-              <Tab10 sharedData={sharedData} inputTagsData={apiResponse.input_tags?.[tabKey]} />
-            </Tab10Provider>
-          );
-        default:
-          return null;
+      // Use unified tab system for all tabs 1-10
+      if (tabNumber >= 1 && tabNumber <= 10) {
+        return (
+          <UniversalTabProvider
+            sharedData={sharedData}
+            inputTagsData={apiResponse.input_tags?.[tabKey]}
+            onDataSaved={refetchDataTable}
+            mInput={tabNumber}
+          >
+            <UnifiedTabTemplate
+              tabNumber={tabNumber}
+              sharedData={sharedData}
+              inputTagsData={apiResponse.input_tags?.[tabKey]}
+              onDataSaved={refetchDataTable}
+            />
+          </UniversalTabProvider>
+        );
       }
     }
     
@@ -484,9 +439,11 @@ export function DataAnalysisContainer() {
 
       {/* Tab Content */}
       <div className="tab-content">
-        <div key={activeTab}>
-          {renderTabContent(activeTab)}
-        </div>
+        {activeTab && (
+          <React.Fragment key={`${activeTab}-${sharedData.perfId || 'no-perf'}`}>
+            {renderTabContent(activeTab)}
+          </React.Fragment>
+        )}
       </div>
     </div>
   );

@@ -278,7 +278,7 @@ class DataAnalysisController extends Controller
      */
     private function getFilteredData(Request $request, int $perfId): array
     {
-        // Use raw SQL query to get min, max, average with proper joins
+        // Use raw SQL query to get min, max, average - match your manual query structure
         $baseQuery = "
             SELECT 
                 a.tag_no,
@@ -289,9 +289,9 @@ class DataAnalysisController extends Controller
                 a.satuan as unit_name,
                 a.group_id,
                 a.urutan
-            FROM tb_input_tag a 
-            INNER JOIN tb_input b ON b.tag_no = a.tag_no 
-            WHERE b.perf_id = ?
+            FROM tb_input_tag a, tb_input b
+            WHERE b.tag_no = a.tag_no 
+            AND b.perf_id = ?
         ";
 
         $params = [$perfId];
@@ -450,28 +450,47 @@ class DataAnalysisController extends Controller
         // Execute the main query
         $results = DB::select($baseQuery, $params);
 
+        // Check for duplicate tag_no values
+        $tagNumbers = array_map(function($item) { return $item->tag_no; }, $results);
+        $duplicateTags = array_filter(array_count_values($tagNumbers), function($count) { return $count > 1; });
+        
+        if (!empty($duplicateTags)) {
+            Log::warning('🔴 DUPLICATE TAG_NO VALUES DETECTED IN API RESPONSE', [
+                'perf_id' => $perfId,
+                'duplicates' => $duplicateTags,
+                'total_results' => count($results),
+                'query' => $baseQuery,
+                'params' => $params
+            ]);
+        }
+
         Log::info('Query results debug', [
             'results_count' => count($results),
             'expected_per_page' => $perPage,
             'page' => $page,
-            'total_count' => $totalCount
+            'total_count' => $totalCount,
+            'unique_tags' => count(array_unique($tagNumbers)),
+            'has_duplicates' => !empty($duplicateTags)
         ]);
 
         return [
-            'data' => collect($results)->map(function($item, $index) use ($page, $perPage) {
-                return [
-                    'id' => $item->tag_no, // Use tag_no as unique identifier
-                    'no' => (($page - 1) * $perPage) + $index + 1,
-                    'tag_no' => $item->tag_no,
-                    'description' => $item->description,
-                    'min' => (float) $item->min_value,
-                    'max' => (float) $item->max_value,
-                    'average' => (float) $item->avg_value,
-                    'unit_name' => $item->unit_name,
-                    'group_id' => $item->group_id,
-                    'urutan' => $item->urutan
-                ];
-            })->toArray(),
+            'data' => collect($results)
+                ->unique('tag_no') // Remove duplicates by tag_no
+                ->values() // Reset array keys
+                ->map(function($item, $index) use ($page, $perPage) {
+                    return [
+                        'id' => $item->tag_no, // Use tag_no as unique identifier
+                        'no' => (($page - 1) * $perPage) + $index + 1,
+                        'tag_no' => $item->tag_no,
+                        'description' => $item->description,
+                        'min' => (float) $item->min_value,
+                        'max' => (float) $item->max_value,
+                        'average' => (float) $item->avg_value,
+                        'unit_name' => $item->unit_name,
+                        'group_id' => $item->group_id,
+                        'urutan' => $item->urutan
+                    ];
+                })->toArray(),
             'pagination' => [
                 'current_page' => $page,
                 'per_page' => $perPage,
