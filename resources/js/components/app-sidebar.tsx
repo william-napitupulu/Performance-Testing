@@ -29,6 +29,13 @@ const mainNavItems: NavItem[] = [
         icon: AlertTriangle,
     },
 
+    {
+
+        title: 'Contents and components',
+        href: '/contents',
+        icon: BookOpen,
+    },
+
     // {
 
     //     title: 'Testing',

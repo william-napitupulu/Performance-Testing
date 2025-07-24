@@ -42,7 +42,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
         }
         
         setCalendarPosition({
-          top: rect.bottom + window.scrollY + 5,
+          top: rect.bottom,
           left: Math.max(10, left) // Ensure at least 10px from left edge
         });
       }

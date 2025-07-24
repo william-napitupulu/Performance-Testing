@@ -4,6 +4,7 @@ use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\AnomalyController;
 use App\Http\Controllers\DataAnalysisController;
 use App\Http\Controllers\TestPageController;
+use App\Http\Controllers\ContentsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -88,6 +89,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/select-unit', [AuthenticatedSessionController::class, 'storeUnit'])->name('unit.store');
 
     Route::get('/test-page', [TestPageController::class, 'index'])->name('test-page');
+
+    Route::get('/contents', [ContentsController::class, 'index'])->name('contents.index');
 });
 
 // DCS Data API Proxy
