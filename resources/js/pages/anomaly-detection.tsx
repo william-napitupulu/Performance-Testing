@@ -1,34 +1,32 @@
-import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
 
 export default function AnomalyDetection() {
     return (
         <AppLayout>
             <Head title="Performance Test - Anomaly Detection" />
-            <div className="p-6 bg-background">
+            <div className="bg-background p-6">
                 {/* Header */}
-                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800/50 shadow-sm">
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-800/50 dark:bg-blue-900/10">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Anomaly Detection</h2>
-                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Performance Testing Environment</p>
+                            <p className="mt-1 text-sm text-blue-600 dark:text-blue-400">Performance Testing Environment</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Placeholder Content */}
-                <div className="rounded-lg shadow-lg overflow-hidden bg-card dark:bg-gray-800 border border-border dark:border-gray-700">
+                <div className="overflow-hidden rounded-lg border border-border bg-card shadow-lg dark:border-gray-700 dark:bg-gray-800">
                     <div className="p-8 text-center">
-                        <div className="text-6xl mb-4">🔧</div>
-                        <h3 className="text-xl font-semibold text-foreground dark:text-white mb-2">
-                            Anomaly Detection Module
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <div className="mb-4 text-6xl">🔧</div>
+                        <h3 className="mb-2 text-xl font-semibold text-foreground dark:text-white">Anomaly Detection Module</h3>
+                        <p className="mb-4 text-gray-600 dark:text-gray-400">
                             This is a placeholder for the anomaly detection functionality in the performance testing environment.
                         </p>
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-left max-w-md mx-auto">
-                            <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">Performance Testing Notes:</h4>
-                            <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1">
+                        <div className="mx-auto max-w-md rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-left dark:border-yellow-800 dark:bg-yellow-900/20">
+                            <h4 className="mb-2 font-medium text-yellow-800 dark:text-yellow-300">Performance Testing Notes:</h4>
+                            <ul className="space-y-1 text-sm text-yellow-700 dark:text-yellow-400">
                                 <li>• Use this page to test system performance</li>
                                 <li>• Implement mock data for load testing</li>
                                 <li>• Monitor response times and memory usage</li>

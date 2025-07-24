@@ -1,1 +1,1 @@
-export * from './temperatureUtils'; 
+export * from './temperatureUtils';

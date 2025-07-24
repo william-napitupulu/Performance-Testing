@@ -17,9 +17,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
                         <AppLogoIcon className="mr-2 size-10" />
                         <span className="text-xl">React Starter Kit</span>
                     </Link>
-                    <p className="text-lg text-gray-300">
-                        Welcome to our application. Please log in to continue.
-                    </p>
+                    <p className="text-lg text-gray-300">Welcome to our application. Please log in to continue.</p>
                 </div>
             </div>
             <div className="flex flex-1 items-center justify-center p-6 lg:p-10">

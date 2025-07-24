@@ -1,9 +1,9 @@
-import './bootstrap';
 import '../css/app.css';
+import './bootstrap';
 
-import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -17,7 +17,7 @@ createInertiaApp({
         root.render(
             <ThemeProvider>
                 <App {...props} />
-            </ThemeProvider>
+            </ThemeProvider>,
         );
     },
     progress: {

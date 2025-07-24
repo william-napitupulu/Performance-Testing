@@ -102,7 +102,7 @@
         --input: oklch(0.925 0 0);
         --ring: oklch(0.205 0 0);
         --radius: 0.5rem;
-        
+
         /* Enhanced light mode colors */
         --sidebar: #ffffff;
         --sidebar-foreground: #020817;
@@ -112,7 +112,7 @@
         --sidebar-accent-foreground: #0f172a;
         --sidebar-border: oklch(0.925 0 0);
         --sidebar-ring: oklch(0.205 0 0);
-        
+
         /* Chart colors for light mode */
         --chart-1: #3b82f6;
         --chart-2: #10b981;
@@ -139,7 +139,7 @@
         --border: oklch(0.316 0 0);
         --input: oklch(0.316 0 0);
         --ring: oklch(0.765 0 0);
-        
+
         /* Enhanced dark mode colors */
         --sidebar: #0f172a;
         --sidebar-foreground: #f8fafc;
@@ -149,7 +149,7 @@
         --sidebar-accent-foreground: #f8fafc;
         --sidebar-border: oklch(0.316 0 0);
         --sidebar-ring: oklch(0.765 0 0);
-        
+
         /* Chart colors for dark mode */
         --chart-1: #60a5fa;
         --chart-2: #34d399;
@@ -178,11 +178,11 @@
             transform: translateX(-50%);
         }
     }
-    
+
     .animate-scroll {
         animation: scroll 30s linear infinite;
     }
-    
+
     .animate-scroll:hover {
         animation-play-state: paused;
     }

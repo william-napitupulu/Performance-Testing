@@ -89,12 +89,7 @@ export default function Dashboard() {
                     ))}
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                    <ChartCard
-                        title="Anomaly Trend"
-                        description="Number of anomalies detected over time"
-                        icon={LineChart}
-                        className="md:col-span-2"
-                    >
+                    <ChartCard title="Anomaly Trend" description="Number of anomalies detected over time" icon={LineChart} className="md:col-span-2">
                         <Chart type="line" data={anomalyTrendData} className="h-[300px] w-full" />
                     </ChartCard>
                     <ChartCard title="Heat Rate Distribution" description="Distribution of heat rates across units">

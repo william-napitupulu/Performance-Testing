@@ -1,52 +1,49 @@
 import { ApiResponse } from '@/components/project-components/DataAnalysisComponents/types';
 
-interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-
 export async function makeApiCall<T = ApiResponse>(
-  url: string,
-  data: Record<string, any>,
-  options: {
-    showSuccessAlert?: boolean;
-    customSuccessMessage?: string;
-  } = {}
+    url: string,
+    data: Record<string, any>,
+    options: {
+        showSuccessAlert?: boolean;
+        customSuccessMessage?: string;
+    } = {},
 ): Promise<T> {
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-      },
-      body: JSON.stringify(data)
-    });
-
-    const responseText = await response.text();
-    let responseData: T & { success: boolean; message?: string };
-
     try {
-      responseData = JSON.parse(responseText);
-    } catch (parseError) {
-      throw new Error(`Failed to parse response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}\n\nResponse: ${responseText.substring(0, 500)}...`);
-    }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            body: JSON.stringify(data),
+        });
 
-    if (!response.ok) {
-      throw new Error(responseData.message || 'Unknown error');
-    }
+        const responseText = await response.text();
+        let responseData: T & { success: boolean; message?: string };
 
-    if (!responseData.success) {
-      throw new Error('Operation failed');
-    }
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(
+                `Failed to parse response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}\n\nResponse: ${responseText.substring(0, 500)}...`,
+            );
+        }
 
-    if (options.showSuccessAlert && options.customSuccessMessage) {
-      alert(options.customSuccessMessage);
-    }
+        if (!response.ok) {
+            throw new Error(responseData.message || 'Unknown error');
+        }
 
-    return responseData;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`API call failed: ${message}`);
-  }
-} 
+        if (!responseData.success) {
+            throw new Error('Operation failed');
+        }
+
+        if (options.showSuccessAlert && options.customSuccessMessage) {
+            alert(options.customSuccessMessage);
+        }
+
+        return responseData;
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`API call failed: ${message}`);
+    }
+}

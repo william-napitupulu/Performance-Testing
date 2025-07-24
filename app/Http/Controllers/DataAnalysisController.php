@@ -280,11 +280,11 @@ class DataAnalysisController extends Controller
     {
         // Use raw SQL query to get min, max, average - match your manual query structure
         $baseQuery = "
-            SELECT a.tag_no,a.description, min(b.value) MIN,
-            MAX(b.value) max,round(AVG(b.value),2) avg ,a.satuan FROM tb_input_tag a, tb_input b
+            SELECT a.tag_no,a.description, min(b.value) as min_value,
+            MAX(b.value) as max_value,round(AVG(b.value),2) as avg_value ,a.satuan FROM tb_input_tag a, tb_input b
             WHERE b.tag_no=a.tag_no
-            GROUP BY a.tag_no,a.description,a.satuan
             AND b.perf_id= ?
+            GROUP BY a.tag_no,a.description,a.satuan
             ORDER BY a.group_id, a.urutan
         ";
 
@@ -324,11 +324,8 @@ class DataAnalysisController extends Controller
 
         // Add WHERE conditions if any
         if (!empty($whereConditions)) {
-            $baseQuery .= " AND " . implode(" AND ", $whereConditions);
+            $baseQuery = str_replace("ORDER BY", "AND " . implode(" AND ", $whereConditions) . " ORDER BY", $baseQuery);
         }
-
-        // Add GROUP BY
-        $baseQuery .= " GROUP BY a.tag_no, a.description, a.satuan, a.group_id, a.urutan";
 
         // Apply HAVING conditions for aggregated values
         $havingConditions = [];
@@ -365,7 +362,7 @@ class DataAnalysisController extends Controller
 
         // Add HAVING clause if needed
         if (!empty($havingConditions)) {
-            $baseQuery .= " HAVING " . implode(" AND ", $havingConditions);
+            $baseQuery = str_replace("ORDER BY", "HAVING " . implode(" AND ", $havingConditions) . " ORDER BY", $baseQuery);
         }
 
         // Apply sorting
@@ -385,20 +382,22 @@ class DataAnalysisController extends Controller
         ];
         
         $actualSortField = $sortMapping[$sortField] ?? 'a.group_id';
-        $baseQuery .= " ORDER BY {$actualSortField} {$sortDirection}";
+        $orderBy = "ORDER BY {$actualSortField} {$sortDirection}";
         
         // Add secondary sort for consistency
         if ($actualSortField !== 'a.urutan') {
-            $baseQuery .= ", a.urutan ASC";
+            $orderBy .= ", a.urutan ASC";
         }
+        
+        // Replace the ORDER BY in the query
+        $baseQuery = str_replace("ORDER BY a.group_id, a.urutan", $orderBy, $baseQuery);
 
         // Get total count for pagination - need to use subquery for HAVING
         $countQuery = "
             SELECT COUNT(*) as total FROM (
                 SELECT a.tag_no
-                FROM tb_input_tag a 
-                INNER JOIN tb_input b ON b.tag_no = a.tag_no 
-                WHERE b.perf_id = ?
+                FROM tb_input_tag a, tb_input b
+                WHERE b.tag_no = a.tag_no AND b.perf_id = ?
         ";
         
         $countParams = [$perfId];
@@ -409,7 +408,7 @@ class DataAnalysisController extends Controller
             $countParams = array_merge($countParams, array_slice($params, 1, $whereParamsCount));
         }
         
-        $countQuery .= " GROUP BY a.tag_no, a.description, a.satuan, a.group_id, a.urutan";
+        $countQuery .= " GROUP BY a.tag_no, a.description, a.satuan";
         
         if (!empty($havingConditions)) {
             $countQuery .= " HAVING " . implode(" AND ", $havingConditions);

@@ -1,12 +1,9 @@
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { BarChart, BarChartDataset, generateSampleBarData } from '@/components/ui/bar-chart';
-import { Button } from '@/components/ui/button';
+import { BarChart, BarChartDataset } from '@/components/ui/bar-chart';
 import { Card } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
 
 export default function ContentsAndComponents() {
-
     // Sample data for different chart examples
     const performanceData = {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -69,7 +66,7 @@ export default function ContentsAndComponents() {
             const dataset = chart.data.datasets[datasetIndex];
             const label = chart.data.labels[dataIndex];
             const value = dataset.data[dataIndex];
-            
+
             alert(`Clicked on: ${dataset.label}\nLabel: ${label}\nValue: ${value}`);
         }
     };
@@ -77,17 +74,13 @@ export default function ContentsAndComponents() {
     return (
         <AppLayout>
             <Head title="Contents and Components - Bar Chart Examples" />
-            
+
             <div className="space-y-8 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            Bar Chart Component Examples
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            Reusable bar chart component with customizable options and themes
-                        </p>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bar Chart Component Examples</h1>
+                        <p className="mt-2 text-gray-600 dark:text-gray-400">Reusable bar chart component with customizable options and themes</p>
                     </div>
                     {/* <Button
                         onClick={() => setIsDarkMode(!isDarkMode)}
@@ -101,12 +94,8 @@ export default function ContentsAndComponents() {
                 {/* Performance Chart */}
                 <Card className="p-6">
                     <div className="mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Plant Performance Comparison
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Monthly performance metrics for different units
-                        </p>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Plant Performance Comparison</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Monthly performance metrics for different units</p>
                     </div>
                     <BarChart
                         {...performanceData}
@@ -117,19 +106,15 @@ export default function ContentsAndComponents() {
                         showLegend={true}
                         showGrid={true}
                         onBarClick={handleBarClick}
-                        className="border rounded-lg"
+                        className="rounded-lg border"
                     />
                 </Card>
 
                 {/* Power Output Chart */}
                 <Card className="p-6">
                     <div className="mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Power Plant Capacity
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Maximum power output by plant location
-                        </p>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Power Plant Capacity</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Maximum power output by plant location</p>
                     </div>
                     <BarChart
                         {...plantData}
@@ -145,12 +130,8 @@ export default function ContentsAndComponents() {
                 {/* Temperature Monitoring Chart */}
                 <Card className="p-6">
                     <div className="mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Temperature Monitoring
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            24-hour temperature readings from different components
-                        </p>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Temperature Monitoring</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">24-hour temperature readings from different components</p>
                     </div>
                     <BarChart
                         {...temperatureData}
@@ -164,7 +145,7 @@ export default function ContentsAndComponents() {
                             plugins: {
                                 tooltip: {
                                     callbacks: {
-                                        label: function(context) {
+                                        label: function (context) {
                                             return `${context.dataset.label}: ${context.parsed.y}°C`;
                                         },
                                     },
@@ -177,12 +158,8 @@ export default function ContentsAndComponents() {
                 {/* Horizontal Chart */}
                 <Card className="p-6">
                     <div className="mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Horizontal Bar Chart
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Equipment efficiency ratings displayed horizontally
-                        </p>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Horizontal Bar Chart</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Equipment efficiency ratings displayed horizontally</p>
                     </div>
                     <BarChart
                         labels={['Boiler', 'Turbine', 'Generator', 'Condenser', 'Pump']}

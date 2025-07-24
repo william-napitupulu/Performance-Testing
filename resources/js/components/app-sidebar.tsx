@@ -2,20 +2,11 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { 
-    BookOpen, 
-    Folder, 
-    AlertTriangle, 
-    Sun,
-    Moon,
-    Activity,
-    BarChart3,
-    TestTube
-} from 'lucide-react';
+import { Activity, AlertTriangle, BookOpen, Folder, Moon, Sun } from 'lucide-react';
 import AppLogo from './app-logo';
-import { useTheme } from '@/contexts/ThemeContext';
 
 const mainNavItems: NavItem[] = [
     {
@@ -30,7 +21,6 @@ const mainNavItems: NavItem[] = [
     },
 
     {
-
         title: 'Contents and components',
         href: '/contents',
         icon: BookOpen,
@@ -82,7 +72,7 @@ export function AppSidebar() {
                 <div className="px-3 py-2">
                     <button
                         onClick={toggleTheme}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                        className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-gray-700 transition-colors duration-200 hover:border-gray-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:border-gray-700 dark:hover:bg-gray-800"
                     >
                         {theme === 'dark' ? (
                             <>

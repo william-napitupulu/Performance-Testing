@@ -3,8 +3,8 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Settings, Building2 } from 'lucide-react';
-import React, { useState } from 'react';
+import { Building2, LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
 
 interface UserMenuContentProps {
     user: User;
@@ -21,9 +21,13 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         if (isLoggingOut) return;
         setIsLoggingOut(true);
         cleanup();
-        router.post(route('logout'), {}, {
-            onFinish: () => setIsLoggingOut(false)
-        });
+        router.post(
+            route('logout'),
+            {},
+            {
+                onFinish: () => setIsLoggingOut(false),
+            },
+        );
     };
 
     return (
@@ -52,12 +56,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild disabled={isLoggingOut}>
-                <button
-                    type="button"
-                    className="flex w-full items-center"
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                >
+                <button type="button" className="flex w-full items-center" onClick={handleLogout} disabled={isLoggingOut}>
                     <LogOut className="mr-2" />
                     {isLoggingOut ? 'Logging out…' : 'Log out'}
                 </button>
