@@ -201,6 +201,7 @@ export function DataAnalysisContainer() {
         try {
             const response = await axios.post('/api/data-analysis/get-data', {
                 ...formData,
+                per_page: 999999, // Ensure we get all data immediately
             });
 
             // Store the shared data - tab count will come from the response

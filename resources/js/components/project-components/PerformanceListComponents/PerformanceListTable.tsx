@@ -21,6 +21,7 @@ interface PerformanceListTableProps {
     onFilteredDataChange: (data: Performance[]) => void;
     sortField: keyof Performance | null;
     sortDirection: 'asc' | 'desc' | null;
+    deletingIds?: Set<number>;
 }
 
 export function PerformanceListTable({
@@ -39,6 +40,7 @@ export function PerformanceListTable({
     onFilteredDataChange,
     sortField,
     sortDirection,
+    deletingIds = new Set(),
 }: PerformanceListTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -104,6 +106,7 @@ export function PerformanceListTable({
                                     onCancelEdit={onCancelEdit}
                                     onDelete={onDelete}
                                     onEditFormChange={onEditFormChange}
+                                    isDeleting={deletingIds.has(performance.id)}
                                 />
                             ))
                         )}

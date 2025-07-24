@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(docker exec:*)",
+      "Bash(powershell:*)",
+      "Bash(docker-setup.bat)"
+    ],
+    "deny": []
+  }
+}

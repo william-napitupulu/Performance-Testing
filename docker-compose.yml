@@ -1,0 +1,43 @@
+services:
+  # Laravel Application using pre-built image
+  app:
+    image: webdevops/php-apache:8.2
+    container_name: performance-testing-app
+    restart: unless-stopped
+    ports:
+      - "10.7.1.253:8000:80"
+    volumes:
+      - .:/app
+      - ./storage:/app/storage
+      - ./.env:/app/.env
+    environment:
+      - WEB_DOCUMENT_ROOT=/app/public
+      - PHP_DISPLAY_ERRORS=1
+      - PHP_MEMORY_LIMIT=512M
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_POST_MAX_SIZE=50M
+      - PHP_UPLOAD_MAX_FILESIZE=50M
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - performance-testing-network
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: performance-testing-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - performance-testing-network
+
+volumes:
+  redis_data:
+
+networks:
+  performance-testing-network:
+    driver: bridge

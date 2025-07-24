@@ -4,8 +4,8 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { Activity, AlertTriangle, BookOpen, Folder, Moon, Sun } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Activity, AlertTriangle, BookOpen, Folder, Moon, PackageIcon, Sun } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -41,10 +41,16 @@ const footerNavItems: NavItem[] = [
         icon: Folder,
     },
     {
-        title: 'Documentation',
+        title: 'Framework Documentation',
         href: 'https://laravel.com/docs/starter-kits#react',
         icon: BookOpen,
     },
+    {
+        title: 'Documentation',
+        href: '/documentation',
+        icon: PackageIcon,
+    },
+    
 ];
 
 export function AppSidebar() {

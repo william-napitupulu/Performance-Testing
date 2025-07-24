@@ -1,9 +1,10 @@
 import { Performance } from '@/data/mockPerformanceData';
 import { getCurrentDateString } from '@/utils';
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { PerformanceListActions } from './PerformanceListActions';
 import { PerformanceListTable } from './PerformanceListTable';
+import { useToast, ToastContainer } from '@/components/ui/toast';
 
 interface PerformanceListContainerProps {
     initialPerformances: Performance[];
@@ -26,6 +27,12 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         date_perfomance: getCurrentDateString(),
         unit_id: selectedUnit || 1,
     });
+
+    // Toast notifications
+    const { toasts, removeToast, success, error: showError } = useToast();
+
+    // Track items being deleted to prevent multiple rapid deletions
+    const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
     // Tooltip state
     const [showTooltip, setShowTooltip] = useState(false);
@@ -89,42 +96,81 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setEditForm({});
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = useCallback(async (id: number) => {
         const performance = performances.find((p) => p.id === id);
-        if (performance && performance.status === 'Editable') {
-            if (window.confirm('Are you sure you want to delete this performance record?')) {
-                try {
-                    await router.delete(`/performance/${id}`, {
-                        preserveScroll: true,
-                        onSuccess: (page) => {
-                            // Remove locally without full reload
-                            setPerformances((prev) => prev.filter((p) => p.id !== id));
-                            setFilteredData((prev) => prev.filter((p) => p.id !== id));
-
-                            // Show success message
-                            if (page.props.success) {
-                                // Create a temporary toast notification
-                                const toast = document.createElement('div');
-                                toast.className =
-                                    'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300';
-                                toast.textContent = page.props.success as string;
-                                document.body.appendChild(toast);
-
-                                // Auto-remove after 3 seconds
-                                setTimeout(() => {
-                                    toast.style.opacity = '0';
-                                    setTimeout(() => document.body.removeChild(toast), 300);
-                                }, 3000);
-                            }
-                        },
-                    });
-                } catch (error) {
-                    console.error('Error deleting performance:', error);
-                    alert('Failed to delete performance record');
-                }
-            }
+        
+        // Check if performance exists and is editable
+        if (!performance || performance.status !== 'Editable') {
+            showError('This performance record cannot be deleted');
+            return;
         }
-    };
+
+        // Prevent multiple rapid deletions of the same item
+        if (deletingIds.has(id)) {
+            return;
+        }
+
+        // Confirm deletion
+        if (!window.confirm('Are you sure you want to delete this performance record?')) {
+            return;
+        }
+
+        // Mark as being deleted
+        setDeletingIds(prev => new Set(prev).add(id));
+
+        // Store the item for potential rollback
+        const deletedItem = performance;
+        const originalPerformances = [...performances];
+        const originalFilteredData = [...filteredData];
+
+        // Optimistically remove from UI immediately
+        setPerformances(prev => prev.filter(p => p.id !== id));
+        setFilteredData(prev => prev.filter(p => p.id !== id));
+
+        try {
+            // Attempt server deletion
+            await router.delete(`/performance/${id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Success - show success message
+                    success('Performance record deleted successfully');
+                },
+                onError: (errors) => {
+                    // Server error - rollback optimistic update
+                    setPerformances(originalPerformances);
+                    setFilteredData(originalFilteredData);
+                    
+                    const errorMessage = typeof errors === 'string' 
+                        ? errors 
+                        : 'Failed to delete performance record';
+                    showError(errorMessage);
+                },
+                onFinish: () => {
+                    // Always remove from deleting set when done
+                    setDeletingIds(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(id);
+                        return newSet;
+                    });
+                }
+            });
+        } catch (error) {
+            // Network/client error - rollback optimistic update
+            console.error('Error deleting performance:', error);
+            
+            setPerformances(originalPerformances);
+            setFilteredData(originalFilteredData);
+            
+            showError('Failed to delete performance record. Please try again.');
+            
+            // Remove from deleting set
+            setDeletingIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(id);
+                return newSet;
+            });
+        }
+    }, [performances, filteredData, deletingIds, success, showError]);
 
     const handleAddNew = async () => {
         if (!newForm.description?.trim()) {
@@ -206,6 +252,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
                 onFilteredDataChange={setFilteredData}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                deletingIds={deletingIds}
             />
 
             <PerformanceListActions
@@ -220,6 +267,9 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
                 onAddFromServer={handleAddFromServer}
                 setIsAddingNew={setIsAddingNew}
             />
+
+            {/* Toast notifications */}
+            <ToastContainer toasts={toasts} onClose={removeToast} />
         </div>
     );
 }

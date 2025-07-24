@@ -12,6 +12,7 @@ interface PerformanceTableRowProps {
     onCancelEdit: () => void;
     onDelete: (id: number) => void;
     onEditFormChange: (field: keyof Performance, value: string | number) => void;
+    isDeleting?: boolean;
 }
 
 export function PerformanceTableRow({
@@ -25,6 +26,7 @@ export function PerformanceTableRow({
     onCancelEdit,
     onDelete,
     onEditFormChange,
+    isDeleting = false,
 }: PerformanceTableRowProps) {
     const cellClasses = 'px-6 py-4 text-sm whitespace-nowrap';
     const inputClasses =
@@ -106,7 +108,11 @@ export function PerformanceTableRow({
     }
 
     return (
-        <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+        <tr className={`transition-all duration-300 ${
+            isDeleting 
+                ? 'opacity-50 bg-red-50 dark:bg-red-900/10 animate-pulse' 
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+        }`}>
             <td className={`${cellClasses} w-20 px-4 text-center`}>
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300">
                     {performance.id}
@@ -143,14 +149,14 @@ export function PerformanceTableRow({
                 </button>
                 <button
                     onClick={() => onDelete(performance.id)}
-                    disabled={performance.status !== 'Editable'}
+                    disabled={performance.status !== 'Editable' || isDeleting}
                     className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                        performance.status === 'Editable'
+                        performance.status === 'Editable' && !isDeleting
                             ? 'text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300'
                             : 'cursor-not-allowed text-gray-400'
                     }`}
                 >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className={`h-4 w-4 ${isDeleting ? 'animate-spin' : ''}`} />
                 </button>
             </td>
         </tr>
