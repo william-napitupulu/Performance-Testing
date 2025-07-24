@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 export default function ContentsAndComponents() {
-    const [isDarkMode, setIsDarkMode] = useState(false);
 
     // Sample data for different chart examples
     const performanceData = {
@@ -90,13 +89,13 @@ export default function ContentsAndComponents() {
                             Reusable bar chart component with customizable options and themes
                         </p>
                     </div>
-                    <Button
+                    {/* <Button
                         onClick={() => setIsDarkMode(!isDarkMode)}
                         variant="outline"
                         className="bg-white dark:bg-gray-800"
                     >
                         {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-                    </Button>
+                    </Button> */}
                 </div>
 
                 {/* Performance Chart */}
@@ -117,7 +116,6 @@ export default function ContentsAndComponents() {
                         height={400}
                         showLegend={true}
                         showGrid={true}
-                        isDarkMode={isDarkMode}
                         onBarClick={handleBarClick}
                         className="border rounded-lg"
                     />
@@ -140,7 +138,6 @@ export default function ContentsAndComponents() {
                         yAxisLabel="Power Output (MW)"
                         height={350}
                         showLegend={false}
-                        isDarkMode={isDarkMode}
                         onBarClick={handleBarClick}
                     />
                 </Card>
@@ -162,7 +159,6 @@ export default function ContentsAndComponents() {
                         yAxisLabel="Temperature (°C)"
                         height={400}
                         stacked={false}
-                        isDarkMode={isDarkMode}
                         onBarClick={handleBarClick}
                         customOptions={{
                             plugins: {
@@ -202,12 +198,11 @@ export default function ContentsAndComponents() {
                         yAxisLabel="Equipment"
                         height={350}
                         horizontal={true}
-                        isDarkMode={isDarkMode}
                         onBarClick={handleBarClick}
                     />
                 </Card>
 
-                {/* Usage Instructions */}
+                {/*
                 <Card className="p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                         How to Use the Bar Chart Component
@@ -245,6 +240,7 @@ export default function ContentsAndComponents() {
                         </div>
                     </div>
                 </Card>
+                */}
             </div>
         </AppLayout>
     );

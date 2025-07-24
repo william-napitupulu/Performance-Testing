@@ -42,7 +42,7 @@ export interface ApiResponse {
   pagination: {
     current_page: number;
     total: number;
-    per_page: number;
+    per_page: 1000;
     last_page: number;
     from: number;
     to: number;

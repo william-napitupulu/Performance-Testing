@@ -280,18 +280,12 @@ class DataAnalysisController extends Controller
     {
         // Use raw SQL query to get min, max, average - match your manual query structure
         $baseQuery = "
-            SELECT 
-                a.tag_no,
-                a.description, 
-                MIN(b.value) as min_value,
-                MAX(b.value) as max_value,
-                ROUND(AVG(b.value), 2) as avg_value,
-                a.satuan as unit_name,
-                a.group_id,
-                a.urutan
-            FROM tb_input_tag a, tb_input b
-            WHERE b.tag_no = a.tag_no 
-            AND b.perf_id = ?
+            SELECT a.tag_no,a.description, min(b.value) MIN,
+            MAX(b.value) max,round(AVG(b.value),2) avg ,a.satuan FROM tb_input_tag a, tb_input b
+            WHERE b.tag_no=a.tag_no
+            GROUP BY a.tag_no,a.description,a.satuan
+            AND b.perf_id= ?
+            ORDER BY a.group_id, a.urutan
         ";
 
         $params = [$perfId];
@@ -450,6 +444,8 @@ class DataAnalysisController extends Controller
         // Execute the main query
         $results = DB::select($baseQuery, $params);
 
+        
+
         // Check for duplicate tag_no values
         $tagNumbers = array_map(function($item) { return $item->tag_no; }, $results);
         $duplicateTags = array_filter(array_count_values($tagNumbers), function($count) { return $count > 1; });
@@ -473,6 +469,7 @@ class DataAnalysisController extends Controller
             'has_duplicates' => !empty($duplicateTags)
         ]);
 
+      
         return [
             'data' => collect($results)
                 ->unique('tag_no') // Remove duplicates by tag_no

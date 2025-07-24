@@ -56,7 +56,7 @@ export function DataAnalysisContainer() {
       current_page: 1,
       total: 0,
       // MODIFIED: Set high per_page to show all data at once
-      per_page: 999999, // Was: 10
+      per_page: 1000, // Was: 10
       last_page: 1,
       from: 0,
       to: 0

@@ -292,7 +292,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
                     onChange={(e) => setType(e.target.value)}
                     className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                       type 
-                        ? 'text-white dark:text-white' 
+                        ? 'text-black dark:text-white' 
                         : 'text-gray-500 dark:text-gray-400'
                     } ${
                       typeError 
@@ -334,7 +334,7 @@ export function DataAnalysisForm({ onSubmit, loading }: DataAnalysisFormProps) {
                     onChange={(e) => setWeight(e.target.value)}
                     className={`w-full px-4 py-3 border rounded-lg text-sm bg-background dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                       weight 
-                        ? 'text-white dark:text-white' 
+                        ? 'text-black dark:text-white' 
                         : 'text-gray-500 dark:text-gray-400'
                     } ${
                       weightError 

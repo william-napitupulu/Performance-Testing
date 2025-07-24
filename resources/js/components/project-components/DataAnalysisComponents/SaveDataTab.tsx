@@ -71,6 +71,7 @@ export const SaveDataTab = React.memo(function SaveDataTab({
     });
   }, [sort, filters, sharedData.perfId]);
 
+  console.log(pagination);
   // COMMENTED OUT: Page change handler - no longer using pagination
   // const handlePageChange = useCallback(async (page: number) => {
   //   await onDataUpdate({
