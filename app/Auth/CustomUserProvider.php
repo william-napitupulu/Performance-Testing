@@ -73,6 +73,8 @@ class CustomUserProvider extends EloquentUserProvider
      */
     public function retrieveByCredentials(array $credentials)
     {
+        $startTime = microtime(true);
+        
         Log::info('Retrieving user by credentials', [
             'username' => $credentials['username'] ?? 'not provided',
             'has_password' => isset($credentials['password'])
@@ -83,6 +85,7 @@ class CustomUserProvider extends EloquentUserProvider
         }
 
         // Build the query
+        $queryStartTime = microtime(true);
         $query = $this->newModelQuery();
 
         foreach ($credentials as $key => $value) {
@@ -99,13 +102,19 @@ class CustomUserProvider extends EloquentUserProvider
         }
 
         $user = $query->first();
+        $queryEndTime = microtime(true);
+        
+        $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+        $queryTime = round(($queryEndTime - $queryStartTime) * 1000, 2);
         
         Log::info('User retrieval by credentials result', [
             'found' => $user ? true : false,
             'user_id' => $user ? $user->id : null,
             'user_name' => $user ? $user->nama : null,
             'plant_id' => $user ? $user->plant_id : null,
-            'status' => $user ? $user->status : null
+            'status' => $user ? $user->status : null,
+            'query_time_ms' => $queryTime,
+            'total_time_ms' => $totalTime
         ]);
 
         return $user;
@@ -120,17 +129,26 @@ class CustomUserProvider extends EloquentUserProvider
      */
     public function validateCredentials(Authenticatable $user, array $credentials)
     {
+        $startTime = microtime(true);
+        
         Log::info('Validating credentials', [
             'user_id' => $user->id,
             'user_name' => $user->nama,
             'provided_password' => $credentials['password'] ?? 'not provided'
         ]);
 
+        $validationStartTime = microtime(true);
         $isValid = $user->validatePassword($credentials['password']);
+        $validationEndTime = microtime(true);
+        
+        $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+        $validationTime = round(($validationEndTime - $validationStartTime) * 1000, 2);
         
         Log::info('Credential validation result', [
             'user_id' => $user->id,
-            'valid' => $isValid
+            'valid' => $isValid,
+            'validation_time_ms' => $validationTime,
+            'total_time_ms' => $totalTime
         ]);
 
         return $isValid;

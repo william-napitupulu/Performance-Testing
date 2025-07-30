@@ -5,11 +5,14 @@ use App\Http\Controllers\AnomalyController;
 use App\Http\Controllers\DataAnalysisController;
 use App\Http\Controllers\TestPageController;
 use App\Http\Controllers\ContentsController;
+use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Unit;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,6 +94,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Documentation Routes
     Route::prefix('documentation')->name('documentation.')->group(function () {
         Route::get('/', [DocumentationController::class, 'index'])->name('index');
+        Route::get('/{section}', [DocumentationController::class, 'index'])->name('section');
+        Route::get('/{section}/{page}', [DocumentationController::class, 'index'])->name('page');
     });
 
     // Test/Debug Routes (Development only)
@@ -118,133 +123,49 @@ Route::middleware(['auth', 'verified'])->group(function () {
 */
 Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
     
-    // DCS Data Proxy
-    Route::get('/dcs-data', function (Request $request) {
-        $perfId = $request->query('perf_id');
-        $tgl = $request->query('tgl');
-        
-        if (!$perfId || !$tgl) {
-            return response()->json(['error' => 'Missing required parameters: perf_id and tgl'], 400);
-        }
-        
-        // HARDCODED RESPONSE FOR TESTING - Since the external API is not responding
-        Log::info('DCS API Call (MOCK MODE)', [
-            'perf_id' => $perfId,
-            'tgl' => $tgl,
-            'note' => 'Using hardcoded response since external API is unreachable',
-            'timestamp' => now()->toDateTimeString()
-        ]);
-        
-        // Mock the expected response format based on the actual API response
-        $mockResponse = "5\n2025-06-26 09:00:00\n1970-01-01 01:05:00\n1970-01-01 01:10:00\n1970-01-01 01:15:00\n1970-01-01 01:20:00\n1970-01-01 01:25:00\n1970-01-01 01:30:00\n1970-01-01 01:35:00\n1970-01-01 01:40:00\n1970-01-01 01:45:00\n1970-01-01 01:50:00\n1970-01-01 01:55:00\n1970-01-01 02:00:00\n1970-01-01 02:05:00\n1970-01-01 02:10:00\n1970-01-01 02:15:00\n1970-01-01 02:20:00\n1970-01-01 02:25:00\n1970-01-01 02:30:00\n1970-01-01 02:35:00\n1970-01-01 02:40:00\n1970-01-01 02:45:00\n1970-01-01 02:50:00\n1970-01-01 02:55:00\n[{\"sukses\":\"1\"}]";
-        
-        Log::info('DCS API Response (MOCK)', [
-            'status' => 200,
-            'successful' => true,
-            'body_length' => strlen($mockResponse),
-            'body' => $mockResponse,
-            'timestamp' => now()->toDateTimeString()
-        ]);
-        
-        // Return successful response with mock data
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $mockResponse,
-            'headers' => ['content-type' => 'text/plain'],
-            'url' => "http://10.7.140.96/PT/get-data/get-dcs.php?perf_id={$perfId}&tgl={$tgl}",
-            'note' => 'This is a hardcoded response for testing purposes'
-        ]);
-        
-        /* COMMENTED OUT - Real API call code (uncomment when API is accessible)
-        try {
-            // Make the external API call
-            $apiUrl = "http://10.7.140.96/PT/get-data/get-dcs.php?perf_id=" . urlencode($perfId) . "&tgl=" . urlencode($tgl);
-            
-            Log::info('DCS API Call', [
-                'url' => $apiUrl,
-                'perf_id' => $perfId,
-                'tgl' => $tgl,
-                'timestamp' => now()->toDateTimeString()
-            ]);
-            
-            // Use Laravel's HTTP client with shorter timeout and more options
-            $response = Http::timeout(10)
-                ->connectTimeout(5)
-                ->retry(1, 100)
-                ->get($apiUrl);
-            
-            Log::info('DCS API Response', [
-                'status' => $response->status(),
-                'successful' => $response->successful(),
-                'body_length' => strlen($response->body()),
-                'body_preview' => substr($response->body(), 0, 200),
-                'headers' => $response->headers(),
-                'timestamp' => now()->toDateTimeString()
-            ]);
-            
-            // Return JSON response with structured data
-            return response()->json([
-                'success' => $response->successful(),
-                'status' => $response->status(),
-                'data' => $response->body(),
-                'headers' => $response->headers(),
-                'url' => $apiUrl
-            ]);
-                
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('DCS API Connection Error', [
-                'error' => 'Connection timeout or failed',
-                'message' => $e->getMessage(),
-                'url' => $apiUrl ?? 'unknown',
-                'timestamp' => now()->toDateTimeString()
-            ]);
-            
-            return response()->json([
-                'error' => 'Connection failed',
-                'message' => 'Unable to connect to DCS API server. The server may be down or unreachable.',
-                'details' => $e->getMessage(),
-                'url' => $apiUrl ?? 'unknown'
-            ], 503);
-            
-        } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::error('DCS API Request Error', [
-                'error' => 'HTTP request failed',
-                'message' => $e->getMessage(),
-                'response' => $e->response ? $e->response->body() : 'No response',
-                'url' => $apiUrl ?? 'unknown',
-                'timestamp' => now()->toDateTimeString()
-            ]);
-            
-            return response()->json([
-                'error' => 'Request failed',
-                'message' => 'DCS API returned an error response.',
-                'details' => $e->getMessage(),
-                'url' => $apiUrl ?? 'unknown'
-            ], 502);
-            
-        } catch (\Exception $e) {
-            Log::error('DCS API General Error', [
-                'error' => 'Unexpected error',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'url' => $apiUrl ?? 'unknown',
-                'timestamp' => now()->toDateTimeString()
-            ]);
-            
-            return response()->json([
-                'error' => 'Unexpected error',
-                'message' => 'An unexpected error occurred while calling the DCS API.',
-                'details' => $e->getMessage(),
-                'url' => $apiUrl ?? 'unknown'
-            ], 500);
-        }
-        */
-    })->name('dcs-data');
     
     // Input Tags API
     Route::get('/input-tags', [DataAnalysisController::class, 'getInputTags'])->name('input-tags');
     Route::get('/performance-records', [DataAnalysisController::class, 'getPerformanceRecords'])->name('performance-records');
+    
+    // Units API
+    Route::get('/units/load', function(Request $request) {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+        $limit = (int) $request->query('limit', 20);
+        
+        $availableUnits = Unit::getAvailableForUser($user);
+        
+        // Apply search filter if provided
+        if ($search) {
+            $availableUnits = $availableUnits->filter(function($unit) use ($search) {
+                return stripos($unit->unit_name, $search) !== false;
+            });
+        }
+        
+        // Apply pagination
+        $offset = ($page - 1) * $limit;
+        $paginatedUnits = $availableUnits->slice($offset, $limit);
+        
+        return response()->json([
+            'units' => $paginatedUnits->map(function($unit) {
+                return [
+                    'value' => $unit->unit_id,
+                    'label' => $unit->getDisplayText(),
+                    'plant_id' => $unit->plant_id,
+                    'status' => $unit->status
+                ];
+            })->values(),
+            'total' => $availableUnits->count(),
+            'page' => $page,
+            'has_more' => $availableUnits->count() > ($offset + $limit)
+        ]);
+    })->name('units.load');
     
     // Data Analysis API Routes
     Route::prefix('data-analysis')->name('data-analysis.')->group(function () {

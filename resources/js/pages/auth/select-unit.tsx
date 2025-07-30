@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { router } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Unit {
     value: number;
@@ -20,12 +20,16 @@ interface User {
 interface Props {
     units: Unit[];
     user: User;
+    units_count: number;
+    load_units_url: string;
 }
 
-export default function SelectUnit({ units, user }: Props) {
+export default function SelectUnit({ units, user, units_count, load_units_url }: Props) {
     const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLogoutSubmitting, setIsLogoutSubmitting] = useState(false);
+    const [availableUnits, setAvailableUnits] = useState<Unit[]>([]);
+    const [isLoadingUnits, setIsLoadingUnits] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,6 +50,41 @@ export default function SelectUnit({ units, user }: Props) {
             },
         );
     };
+
+    const loadUnits = async () => {
+        if (isLoadingUnits) return;
+        
+        setIsLoadingUnits(true);
+        try {
+            const response = await fetch(`${load_units_url}?limit=300`, {
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            setAvailableUnits(data.units);
+        } catch (error) {
+            console.error('Failed to load units:', error);
+        } finally {
+            setIsLoadingUnits(false);
+        }
+    };
+
+    useEffect(() => {
+        // If units are passed directly, use them; otherwise load via API
+        if (units && units.length > 0) {
+            setAvailableUnits(units);
+        } else {
+            loadUnits();
+        }
+    }, []);
 
     const handleUnitChange = (value: string) => {
         const unitId = parseInt(value);
@@ -73,10 +112,10 @@ export default function SelectUnit({ units, user }: Props) {
                     <div className="w-80">
                         <Select onValueChange={handleUnitChange}>
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a unit..." />
+                                <SelectValue placeholder={isLoadingUnits ? "Loading units..." : "Select a unit..."} />
                             </SelectTrigger>
                             <SelectContent>
-                                {units.map((unit) => (
+                                {availableUnits.map((unit) => (
                                     <SelectItem key={unit.value} value={unit.value.toString()}>
                                         {unit.label}
                                     </SelectItem>

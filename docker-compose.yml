@@ -1,11 +1,11 @@
 services:
-  # Laravel Application using pre-built image
+  # Laravel Application with built assets
   app:
     image: webdevops/php-apache:8.2
     container_name: performance-testing-app
     restart: unless-stopped
     ports:
-      - "10.7.1.253:8000:80"
+      - "8000:80"
     volumes:
       - .:/app
       - ./storage:/app/storage
@@ -20,24 +20,4 @@ services:
     working_dir: /app
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    networks:
-      - performance-testing-network
-
-  # Redis Cache (optional)
-  redis:
-    image: redis:7-alpine
-    container_name: performance-testing-redis
-    restart: unless-stopped
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - performance-testing-network
-
-volumes:
-  redis_data:
-
-networks:
-  performance-testing-network:
-    driver: bridge
+    network_mode: bridge

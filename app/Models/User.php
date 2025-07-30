@@ -161,6 +161,8 @@ class User extends Authenticatable
      */
     public function validatePassword($password)
     {
+        $startTime = microtime(true);
+        
         Log::info('Password validation attempt', [
             'user_id' => $this->id,
             'provided_password_length' => strlen($password),
@@ -170,10 +172,16 @@ class User extends Authenticatable
 
         // Check if password is already hashed (bcrypt)
         if (str_starts_with($this->password, '$2y$')) {
+            $bcryptStartTime = microtime(true);
             $isValid = Hash::check($password, $this->password);
+            $bcryptEndTime = microtime(true);
+            
+            $bcryptTime = round(($bcryptEndTime - $bcryptStartTime) * 1000, 2);
+            
             Log::info('Using bcrypt hash verification', [
                 'user_id' => $this->id,
-                'hash_check_result' => $isValid
+                'hash_check_result' => $isValid,
+                'bcrypt_time_ms' => $bcryptTime
             ]);
         } else {
             // Plain text comparison for non-hashed passwords (backward compatibility)
@@ -184,10 +192,13 @@ class User extends Authenticatable
             ]);
         }
 
+        $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+        
         Log::info('Password validation result', [
             'user_id' => $this->id,
             'valid' => $isValid,
-            'validation_method' => str_starts_with($this->password, '$2y$') ? 'bcrypt' : 'plain_text'
+            'validation_method' => str_starts_with($this->password, '$2y$') ? 'bcrypt' : 'plain_text',
+            'total_validation_time_ms' => $totalTime
         ]);
 
         return $isValid;

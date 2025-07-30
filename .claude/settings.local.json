@@ -4,7 +4,14 @@
       "Bash(grep:*)",
       "Bash(docker exec:*)",
       "Bash(powershell:*)",
-      "Bash(docker-setup.bat)"
+      "Bash(docker-setup.bat)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker logs:*)",
+      "WebFetch(domain:serverfault.com)",
+      "WebFetch(domain:laravel.com)"
     ],
     "deny": []
   }

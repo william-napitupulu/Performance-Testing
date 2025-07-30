@@ -13,6 +13,17 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        hmr: {
+            host: '10.7.1.253',
+            port: 5173,
+        },
+        watch: {
+            usePolling: true,
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),
