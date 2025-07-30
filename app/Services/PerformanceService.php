@@ -96,7 +96,7 @@ class PerformanceService
      */
     public function callExternalApi(int $perfId, string $datetime): array
     {
-        $apiUrl = "http://10.7.146.114/pt/get-data/get-dcs2.php?perf_id={$perfId}&tgl=" . urlencode($datetime);
+        $apiUrl = "http://10.7.1.141/pt/get-data/get-dcs2.php?perf_id={$perfId}&tgl=" . urlencode($datetime);
         
         $response = Http::timeout(30)->post($apiUrl);
         if (!$response->successful()) {
