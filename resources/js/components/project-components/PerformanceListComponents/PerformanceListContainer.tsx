@@ -5,19 +5,56 @@ import { useState, useCallback } from 'react';
 import { PerformanceListActions } from './PerformanceListActions';
 import { PerformanceListTable } from './PerformanceListTable';
 import { useToast, ToastContainer } from '@/components/ui/toast';
+import { Pagination } from '@/components/ui/Pagination';
 
+export interface PaginatedLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface PaginatedPerformances {
+    id: number; // perf_id from database
+    description: string;
+    date_perfomance: string;
+    date_created: string;
+    status: 'Editable' | 'Locked';
+    unit_id: number;
+    unit_name?: string; // Optional for backward compatibility
+    type?: string; // Type field
+    weight?: string; // Weight field
+}
+
+export interface Paginator<TData> {
+    data: TData[]; // The actual data isn't needed here, just its structure
+    links: PaginatedLink[];
+    total: number;
+    current_page: number;
+    from: number;
+    to: number;
+    per_page: number;
+    first_page_url: string;
+    last_page_url: string;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+}
 interface PerformanceListContainerProps {
-    initialPerformances: Performance[];
+    performances: Paginator<Performance>;
     selectedUnit: number;
     selectedUnitName?: string;
     error?: string;
+    filters: {
+        search?: string;
+        sort_field: keyof Performance | null;
+        sort_direction: 'asc' | 'desc';
+    };
 }
 
-export function PerformanceListContainer({ initialPerformances, selectedUnit, selectedUnitName, error }: PerformanceListContainerProps) {
-    const [performances, setPerformances] = useState<Performance[]>(initialPerformances);
-    const [filteredData, setFilteredData] = useState<Performance[]>(initialPerformances);
-    const [sortField, setSortField] = useState<keyof Performance | null>(null);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+export function PerformanceListContainer({ performances, selectedUnit, selectedUnitName, error, filters }: PerformanceListContainerProps) {
+    // const [performances, setPerformances] = useState<Performance[]>(initialPerformances);
+    // const [filteredData, setFilteredData] = useState<Performance[]>(initialPerformances);
+    // const [sortField, setSortField] = useState<keyof Performance | null>(null);
+    // const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState<Partial<Performance>>({});
     const [isAddingNew, setIsAddingNew] = useState(false);
@@ -31,8 +68,8 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
     // Toast notifications
     const { toasts, removeToast, success, error: showError } = useToast();
 
-    // Track items being deleted to prevent multiple rapid deletions
-    const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+    // // Track items being deleted to prevent multiple rapid deletions
+    // const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
     // Tooltip state
     const [showTooltip, setShowTooltip] = useState(false);
@@ -42,22 +79,29 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
 
     // Sorting handler
     const handleSort = (field: keyof Performance) => {
-        const isAsc = sortField === field && sortDirection === 'asc';
-        setSortDirection(isAsc ? 'desc' : 'asc');
-        setSortField(field);
-
-        const sorted = [...filteredData].sort((a, b) => {
-            const aValue = a[field] ?? '';
-            const bValue = b[field] ?? '';
-
-            if (aValue === null) return 1;
-            if (bValue === null) return -1;
-
-            const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-            return isAsc ? -comparison : comparison;
+        router.get(window.location.href, {
+            sort_field: field,
+            sort_direction: filters.sort_field === field && filters.sort_direction === 'asc' ? 'desc' : 'asc'
+        }, {
+            preserveState: true,
+            replace: true
         });
+        // const isAsc = sortField === field && sortDirection === 'asc';
+        // setSortDirection(isAsc ? 'desc' : 'asc');
+        // setSortField(field);
 
-        setFilteredData(sorted);
+        // const sorted = [...filteredData].sort((a, b) => {
+        //     const aValue = a[field] ?? '';
+        //     const bValue = b[field] ?? '';
+
+        //     if (aValue === null) return 1;
+        //     if (bValue === null) return -1;
+
+        //     const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        //     return isAsc ? -comparison : comparison;
+        // });
+
+        // setFilteredData(sorted);
     };
 
     // CRUD Operations
@@ -96,8 +140,8 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setEditForm({});
     };
 
-    const handleDelete = useCallback(async (id: number) => {
-        const performance = performances.find((p) => p.id === id);
+    const handleDelete = useCallback((id: number) => {
+        const performance = performances.data.find((p) => p.id === id);
         
         // Check if performance exists and is editable
         if (!performance || performance.status !== 'Editable') {
@@ -106,71 +150,23 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         }
 
         // Prevent multiple rapid deletions of the same item
-        if (deletingIds.has(id)) {
-            return;
-        }
+        // if (deletingIds.has(id)) {
+        //     return;
+        // }
 
         // Confirm deletion
         if (!window.confirm('Are you sure you want to delete this performance record?')) {
-            return;
-        }
-
-        // Mark as being deleted
-        setDeletingIds(prev => new Set(prev).add(id));
-
-        // Store the item for potential rollback
-        const deletedItem = performance;
-        const originalPerformances = [...performances];
-        const originalFilteredData = [...filteredData];
-
-        // Optimistically remove from UI immediately
-        setPerformances(prev => prev.filter(p => p.id !== id));
-        setFilteredData(prev => prev.filter(p => p.id !== id));
-
-        try {
-            // Attempt server deletion
-            await router.delete(`/performance/${id}`, {
+            router.delete(`/performance/${id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    // Success - show success message
                     success('Performance record deleted successfully');
                 },
-                onError: (errors) => {
-                    // Server error - rollback optimistic update
-                    setPerformances(originalPerformances);
-                    setFilteredData(originalFilteredData);
-                    
-                    const errorMessage = typeof errors === 'string' 
-                        ? errors 
-                        : 'Failed to delete performance record';
-                    showError(errorMessage);
-                },
-                onFinish: () => {
-                    // Always remove from deleting set when done
-                    setDeletingIds(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(id);
-                        return newSet;
-                    });
+                onError: (errros) => {
+                    showError(errros.message || 'Failed to delete performance record');
                 }
             });
-        } catch (error) {
-            // Network/client error - rollback optimistic update
-            console.error('Error deleting performance:', error);
-            
-            setPerformances(originalPerformances);
-            setFilteredData(originalFilteredData);
-            
-            showError('Failed to delete performance record. Please try again.');
-            
-            // Remove from deleting set
-            setDeletingIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(id);
-                return newSet;
-            });
         }
-    }, [performances, filteredData, deletingIds, success, showError]);
+    }, [performances.data, success, showError]);
 
     const handleAddNew = async () => {
         if (!newForm.description?.trim()) {
@@ -237,8 +233,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
             </div>
 
             <PerformanceListTable
-                data={filteredData}
-                allData={performances}
+                data={performances.data}
                 editingId={editingId}
                 editForm={editForm}
                 showEditTooltip={showEditTooltip}
@@ -249,11 +244,14 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
                 onDelete={handleDelete}
                 onEditFormChange={handleEditFormChange}
                 onSort={handleSort}
-                onFilteredDataChange={setFilteredData}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                deletingIds={deletingIds}
+                sortField={filters.sort_field}
+                sortDirection={filters.sort_direction}
+                // deletingIds={deletingIds}
             />
+
+            <div className="mt-4">
+                <Pagination paginator={performances}/>
+            </div>
 
             <PerformanceListActions
                 isAddingNew={isAddingNew}

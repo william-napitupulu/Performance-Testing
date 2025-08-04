@@ -14,7 +14,7 @@ class PerformanceController extends Controller
     /**
      * Display the performance list page.
      */
-    public function index()
+    public function index(Request $request)
     {
        
         try {
@@ -27,15 +27,28 @@ class PerformanceController extends Controller
 
             // Get the selected unit information
             $selectedUnitInfo = Unit::find($selectedUnit);
+
+            // Start a query builder
+            $query = Performance::query()
+                ->forUnit($selectedUnit)
+                ->with('unit');
+
+            // Server-side sorting
+            if ($request->input('sort_field') && $request->input('sort_direction')) {
+                $query->orderBy($request->input('sort_field'), $request->input('sort_direction'));
+            } else {
+                // Default sort order
+                $query->orderBy('date_perfomance', 'desc')->orderBy('perf_id', 'desc');
+            }
+
+            // Apply server-side filtering (example)
+            if ($request->has('search')) {
+                $query->where('description', 'like', '%' . $request->input('search') . '%');
+            }
             
-            // Get performances for the selected unit with unit information
-            $performances = Performance::forUnit($selectedUnit)
-                ->with('unit')
-                ->orderBy('date_perfomance', 'desc')
-                ->orderBy('perf_id', 'desc')
-                ->get()
-                ->map(function ($performance) {
-                    return [
+            // Get paginated performances for the selected unit with unit information
+            $performances = $query->paginate(10)->through(function ($performance) {
+                return [
                         'id' => $performance->perf_id,
                         'description' => $performance->description,
                         'date_perfomance' => $performance->date_perfomance ? 
@@ -47,7 +60,7 @@ class PerformanceController extends Controller
                         'type' => $performance->type,
                         'weight' => $performance->weight,
                     ];
-                });
+            });
 
             Log::info('Performance list loaded', [
                 'unit_id' => $selectedUnit,
@@ -58,6 +71,7 @@ class PerformanceController extends Controller
                 'performances' => $performances,
                 'selectedUnit' => $selectedUnit,
                 'selectedUnitName' => $selectedUnitInfo ? $selectedUnitInfo->unit_name : 'Unknown Unit',
+                'filters' => $request->only(['search', 'sort_field', 'sort_direction']) // Return current filter to view
             ]);
 
         } catch (\Exception $e) {

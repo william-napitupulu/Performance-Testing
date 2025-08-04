@@ -1,24 +1,30 @@
-import { PerformanceListContainer } from '@/components/project-components/PerformanceListComponents/PerformanceListContainer';
+import { PerformanceListContainer, Paginator } from '@/components/project-components/PerformanceListComponents/PerformanceListContainer';
 import { Performance } from '@/data/mockPerformanceData';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 
 interface PerformanceListProps {
-    performances: Performance[];
+    performances: Paginator<Performance>;
     selectedUnit: number;
     selectedUnitName?: string;
     error?: string;
+    filters: {
+        search?: string;
+        sort_field: keyof Performance | null;
+        sort_direction: 'asc' | 'desc';
+    };
 }
 
-export default function PerformanceList({ performances: initialPerformances = [], selectedUnit, selectedUnitName, error }: PerformanceListProps) {
+export default function PerformanceList({ performances, selectedUnit, selectedUnitName, error, filters }: PerformanceListProps) {
     return (
         <AppLayout>
             <Head title="Performance Test - Performance List" />
             <PerformanceListContainer
-                initialPerformances={initialPerformances}
+                performances={performances}
                 selectedUnit={selectedUnit}
                 selectedUnitName={selectedUnitName}
                 error={error}
+                filters={filters}
             />
         </AppLayout>
     );
