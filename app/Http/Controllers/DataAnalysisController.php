@@ -371,7 +371,7 @@ class DataAnalysisController extends Controller
             $request->validate([
                 'data' => 'required|array',
                 'data.*.tag_no' => 'required|string',
-                'data.*.value' => 'required|numeric',
+                'data.*.value' => 'nullable|numeric',
                 'data.*.date_rec' => 'required|date_format:Y-m-d H:i:s',
                 'data.*.perf_id' => 'required|integer'
             ]);

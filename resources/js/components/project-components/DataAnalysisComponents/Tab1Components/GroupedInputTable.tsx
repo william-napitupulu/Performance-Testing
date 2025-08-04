@@ -61,12 +61,17 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = React.memo(
         // Validation function
         const validateInput = (value: string): { isValid: boolean; error?: string } => {
             if (!value || value.trim() === '') {
-                return { isValid: true }; // Empty is valid (optional)
+                return { isValid: true }; // Empty is valid (will be saved as null)
+            }
+
+            // Allow "NaN" as a valid input (represents null values from database)
+            if (value.trim().toLowerCase() === 'nan') {
+                return { isValid: true };
             }
 
             const numValue = parseFloat(value);
             if (isNaN(numValue)) {
-                return { isValid: false, error: 'Please enter a valid number' };
+                return { isValid: false, error: 'Please enter a valid number or "NaN"' };
             }
 
             if (numValue < 0) {

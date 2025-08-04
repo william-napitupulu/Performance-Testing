@@ -120,7 +120,9 @@ export const processExistingInputs = (
                     const inputKey = `${safeTagNo}_${timeIndex}`;
 
                     if (existingInputs[existingKey]) {
-                        newInputValuesByJm[jm][inputKey] = String(existingInputs[existingKey].value);
+                        const value = existingInputs[existingKey].value;
+                        // Show "NaN" for null values, otherwise show the actual value
+                        newInputValuesByJm[jm][inputKey] = value === null ? 'NaN' : String(value);
                     }
                 });
             }

@@ -20,7 +20,7 @@ export const useTab1Data = (
             string,
             {
                 tag_no: string;
-                value: number;
+                value: number | null;
                 date_rec: string;
             }
         >;

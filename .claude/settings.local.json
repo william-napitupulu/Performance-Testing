@@ -11,7 +11,8 @@
       "Bash(docker-compose up:*)",
       "Bash(docker logs:*)",
       "WebFetch(domain:serverfault.com)",
-      "WebFetch(domain:laravel.com)"
+      "WebFetch(domain:laravel.com)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }

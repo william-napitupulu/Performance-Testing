@@ -84,7 +84,7 @@ export const useTab1Actions = ({
 
         const dataToSave: Array<{
             tag_no: string;
-            value: number;
+            value: number | null;
             date_rec: string;
             perf_id: number;
         }> = [];
@@ -106,7 +106,7 @@ export const useTab1Actions = ({
                 for (let timeIndex = 0; timeIndex < slotsForTag.length; timeIndex++) {
                     const value = getInputValue(jm, safeTagNo, timeIndex);
 
-                    if (value && value.trim() !== '' && slotsForTag[timeIndex]) {
+                    if (slotsForTag[timeIndex]) {
                         const localDateTime = slotsForTag[timeIndex];
                         const year = localDateTime.getFullYear();
                         const month = String(localDateTime.getMonth() + 1).padStart(2, '0');
@@ -116,9 +116,22 @@ export const useTab1Actions = ({
                         const seconds = String(localDateTime.getSeconds()).padStart(2, '0');
                         const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
+                        // Use null for empty/invalid values, otherwise parse the value
+                        let finalValue: number | null = null;
+                        
+                        if (value && value.trim() !== '') {
+                            // Handle "NaN" input as null
+                            if (value.trim().toLowerCase() === 'nan') {
+                                finalValue = null;
+                            } else {
+                                const numericValue = parseFloat(value);
+                                finalValue = isNaN(numericValue) ? null : numericValue;
+                            }
+                        }
+
                         dataToSave.push({
                             tag_no: tag.tag_no,
-                            value: parseFloat(value),
+                            value: finalValue,
                             date_rec: formattedDateTime,
                             perf_id: activePerf.perf_id,
                         });
@@ -128,7 +141,7 @@ export const useTab1Actions = ({
         });
 
         if (dataToSave.length === 0) {
-            alert('No data to save. Please enter some values first.');
+            alert('No tags available to save. Please ensure you have selected a valid performance test.');
             return false;
         }
 
@@ -163,9 +176,17 @@ export const useTab1Actions = ({
         return true;
     };
 
-    // Check if there's any data to save
+    // Check if there's any data to save (always true if there are tags available)
     const hasDataToSave = () => {
-        return Object.values(inputValuesByJm).some((jmValues) => Object.values(jmValues).some((value) => value && value.trim() !== ''));
+        // Return true if there are any input tags available, since we now save zeros for empty fields
+        return Object.keys(groupedTags).some(jmKey => {
+            const jm = parseInt(jmKey, 10);
+            const allTags = groupedTags[jm];
+            const filters = filtersByJm[jm] || { tag_no: '', description: '', unit_name: '' };
+            const sortConfig = sortConfigByJm[jm] || { field: 'tag_no', direction: 'asc' };
+            const visibleTags = getFilteredAndSortedTags(jm, allTags, filters, sortConfig);
+            return visibleTags.length > 0;
+        });
     };
 
     return {
