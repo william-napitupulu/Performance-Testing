@@ -42,6 +42,7 @@ interface RunTabProps {
 
 export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, totalRecords }: RunTabProps) {
     const [exportLoading, setExportLoading] = useState(false);
+    const [showMissingDetails, setShowMissingDetails] = useState(false);
 
     // Check the 3 conditions
     const statusChecks = useMemo(() => {
@@ -52,7 +53,8 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
         let allTabsConfigured = true;
         let totalInputFields = 0;
         let filledInputFields = 0;
-
+        const missingFields: { tab: string; description: string }[] = [];
+        
         if (tabInputData && sharedData?.tabCount) {
             for (let i = 1; i <= sharedData.tabCount; i++) {
                 const tabKey = `tab${i}`;
@@ -63,35 +65,61 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                     tabData.input_tags.forEach((tag) => {
                         if (tag.jm_input > 0) {
                             totalInputFields += tag.jm_input;
+                            const allInputKeys = tabData.existing_inputs ? Object.keys(tabData.existing_inputs) : [];
+                            const matchingKeys = allInputKeys.filter(key => key.startsWith(tag.tag_no + '_'));
+                            const validFilledCount = matchingKeys.filter(key => {
+                                const input = tabData.existing_inputs[key];
+                                return input && input.value !== null && input.value !== undefined && input.value !== 0;
+                            }).length;
+
+                            filledInputFields += validFilledCount;
+
+                            if (validFilledCount < tag.jm_input) {
+                                missingFields.push({
+                                    tab: `Tab ${i}`,
+                                    description: `${tag.description} (${tag.unit_name}) - Missing ${tag.jm_input - validFilledCount} input`,
+                                });
+                            }
+                            // const existingInput = matchingKey ? tabData.existing_inputs[matchingKey] : undefined;
+                            // if (!existingInput || existingInput.value === null || existingInput.value === undefined || existingInput.value === 0) {
+                            //     missingFields.push({
+                            //         tab: `Tab ${i}`,
+                            //         description: `${tag.description} (${tag.unit_name})`,
+                            //     });
+                            // } else {
+                            //     filledInputFields += tag.jm_input;
+                            // }
                         }
                     });
 
                     // Count filled input fields for this tab
-                    if (tabData.existing_inputs) {
-                        Object.values(tabData.existing_inputs).forEach((input) => {
-                            if (input.value !== null && input.value !== undefined && input.value !== 0) {
-                                filledInputFields++;
-                            }
-                        });
-                    }
+                    // if (tabData.existing_inputs) {
+                    //     Object.values(tabData.existing_inputs).forEach((input) => {
+                    //         if (input.value !== null && input.value !== undefined && input.value !== 0) {
+                    //             filledInputFields++;
+                    //         }
+                    //     });
+                    // }
                 }
             }
 
-            // If we have input fields but not all are filled, configuration is incomplete
-            if (totalInputFields > 0 && filledInputFields < totalInputFields) {
-                allTabsConfigured = false;
-            }
+            
         }
 
+        // If we have input fields but not all are filled, configuration is incomplete
+        if (totalInputFields > 0 && filledInputFields < totalInputFields) {
+            allTabsConfigured = false;
+        }
+        
         // 3. Analysis: Not implemented yet, so always true for now
         const analysisReady = true;
-
         return {
             dataStatus: hasDataInDCS,
             configurationStatus: allTabsConfigured,
             analysisStatus: analysisReady,
             totalInputFields,
             filledInputFields,
+            missingFields,
         };
     }, [dcsData, tabInputData, sharedData?.tabCount, totalRecords]);
 
@@ -209,6 +237,14 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             ? `All manual inputs filled (${statusChecks.filledInputFields}/${statusChecks.totalInputFields} fields)`
                             : `Manual inputs incomplete (${statusChecks.filledInputFields}/${statusChecks.totalInputFields} fields filled)`}
                     </p>
+                    {!statusChecks.configurationStatus && (
+                        <button
+                            onClick={() => setShowMissingDetails(!showMissingDetails)}
+                            className="mt-2 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                            {showMissingDetails ? 'Hide Missing Details' : 'Show Missing Details'}
+                        </button>
+                    )}
                 </div>
 
                 {/* Analysis Status Card */}
@@ -235,7 +271,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
             </div>
 
             {/* Conditions Warning */}
-            {!canRunAnalysis && (
+            {showMissingDetails && (
                 <div className="mb-8 rounded-lg border-l-4 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 p-4 dark:border-orange-400 dark:from-orange-900/20 dark:to-red-900/20">
                     <div className="flex items-start gap-3">
                         <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
@@ -246,8 +282,22 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             </p>
                             <ul className="mt-2 space-y-1 text-sm text-orange-700 dark:text-orange-300">
                                 {!statusChecks.dataStatus && <li>• Load performance data into DATA DCS</li>}
-                                {!statusChecks.configurationStatus && <li>• Complete all manual input fields in the tabs</li>}
                                 {!statusChecks.analysisStatus && <li>• Ensure analysis engine is ready</li>}
+                                {!statusChecks.configurationStatus && (
+                                    <li>
+                                        Complete all manual input fields. Missing:
+                                        <ul className="mt-1 list-['-_'] space-y-1 pl-5">
+                                            {statusChecks.missingFields.slice(0, 5).map((field, index) => (
+                                                <li key={index}>
+                                                    <span className="font-semibold">{field.tab}:</span> {field.description}
+                                                </li>
+                                            ))}
+                                            {statusChecks.missingFields.length > 5 && (
+                                                <li>...and {statusChecks.missingFields.length - 5} more</li>
+                                            )}
+                                        </ul>
+                                    </li>
+                                )}
                             </ul>
                         </div>
                     </div>
