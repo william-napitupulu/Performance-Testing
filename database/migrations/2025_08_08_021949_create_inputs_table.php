@@ -12,17 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_input', function (Blueprint $table) {
-            $table->id();
-            $table->string('tag_no', 100);
-            $table->decimal('value', 15, 4)->nullable();
-            $table->timestamp('date_rec')->nullable();
-            $table->string('perf_id', 50);
-            
-            // Add indexes for better performance
-            $table->index('perf_id');
-            $table->index('tag_no');
-            $table->index('date_rec');
-            $table->index(['perf_id', 'date_rec']);
+            $table->string('tag_no', 255);
+            $table->float('value')->nullable();
+            $table->dateTime('date_rec');
+            $table->mediumInteger('perf_id')->unsigned();
+
+            $table->primary(['tag_no', 'date_rec', 'perf_id']);
+            $table->foreign('perf_id')->references('perf_id')->on('tb_performance')->onDelete('cascade');
         });
     }
 

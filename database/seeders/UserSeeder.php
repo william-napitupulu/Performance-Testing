@@ -13,37 +13,37 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('tb_um_users')->insert([
-            'f_user_id' => 52,
-            'f_full_name' => 'BHAKTI PRASTYAWAN',
-            'f_user_name' => '7494015JA',
-            'f_password' => Hash::make('7494015ja@ptpjb.com'),
-            'f_email' => '7494015ja@ptpjb.com',
-            'f_image_profile' => '/files/userprofile/user.jpg',
-            'f_division' => null,
-            'f_plant_id' => 1,
-            'f_role_id' => 1,
-            'f_position_id' => null,
-            'f_failed_counter' => 0,
-            'f_locked_time' => null,
-            'f_udf1' => null,
-            'f_udf2' => null,
-            'f_udf3' => null,
-            'f_udf4' => null,
-            'f_udf5' => null,
-            'f_is_active' => 1,
-            'f_updated_at' => '2021-03-18 13:58:46',
-            'f_image_path' => null,
-            'f_nik' => '7494015JA',
-            'f_login_status_mobile' => 1,
-            'f_login_status_web' => 1,
-            'f_login_status_web_pln' => 1,
-            'f_token_web' => 'eyJhbGciOiJIUzUxMiJ9.eyJleHAiOjE3NDk1NDI4MjQsInByaXZpbGVnZXMiOltdLCJyb2xlcyI6W10sInN1YiI6Ijc0OTQwMTVKQSJ9.v6hse0fvJ6d2Un-bfAkaZLDs4uhOuC8uvsOwJvSTWVFsqoAyZ5gYqTcZyecUCr9AlpaO3FfutQsxvnNFsczoRQ',
-            'f_token_mobile' => null,
-            'f_token_pln' => 'mjtf0uYgNWTCOds5N4m2fKZXwwwm4FUWg86HRgJbEfhw_vyv2ymsqqOp_cvi_MRUBGbSesARt6fxJvaQ',
-            'f_is_securepass' => null,
-            'f_is_login_status_svm' => null,
-            'f_token_svm' => null,
+        DB::table('tb_user')->insert([
+            [
+                'id' => '12345',
+                'nama' => 'BEJO',
+                'kode' => 'ABCDE', // Menggunakan 'kode' sebagai kode
+                'password' => '$2y$12$Ld9SBm6wWpT7Z9Nd0Th4X.uCxajYGfL5NNAJAAP/8F/mAgqO1IZVK',
+                'plant_id' => 2,
+                'unit_id' => '1', // Unit ID placeholder
+                'status' => 1, // Menggunakan 'status' sebagai status
+                'remember_token' => null,
+            ],
+            [
+                'id' => '7494015JA',
+                'nama' => 'BHAKTI PRASTYAWAN',
+                'kode' => 'ABCDE',
+                'password' => '$2y$12$K8jMmt7/.1uNPsLEXcy8M.bLSry59Tb1ltbaFESiB5o.FZVROo4De',
+                'plant_id' => 1,
+                'unit_id' => '1',
+                'status' => 1,
+                'remember_token' => null,
+            ],
+            [
+                'id' => 'IRNANTO',
+                'nama' => 'IRNANTO',
+                'kode' => 'ABCDE',
+                'password' => '$2y$12$K8jMmt7/.1uNPsLEXcy8M.bLSry59Tb1ltbaFESiB5o.FZVROo4De',
+                'plant_id' => 1,
+                'unit_id' => '1',
+                'status' => 1,
+                'remember_token' => null,
+            ],
         ]);
     }
 } 
