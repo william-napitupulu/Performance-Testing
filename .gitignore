@@ -8,6 +8,11 @@
 /storage/pail
 /vendor
 
+
+*.docx
+*.doc
+*.txt
+*.md
 .env
 .env.backup
 .env.production

@@ -24,7 +24,7 @@ interface UnifiedTabTemplateProps {
             string,
             {
                 tag_no: string;
-                value: number;
+                value: number | null;
                 date_rec: string;
             }
         >;

@@ -106,6 +106,7 @@ class DataAnalysisController extends Controller
                 'total' => $result['pagination']['total'] ?? 0
             ]);
 
+        
             return response()->json([
                 'success' => true,
                 'data' => $result['data'],
@@ -163,6 +164,8 @@ class DataAnalysisController extends Controller
                 'data' => []
             ], 500);
         }
+
+       
     }
 
     /**

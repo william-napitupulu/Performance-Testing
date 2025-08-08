@@ -1,7 +1,7 @@
 export interface InputTag {
     tag_no: string;
-    description: string;
-    unit_name: string;
+    description: string | null;
+    unit_name: string | null;
     jm_input: number;
 }
 
