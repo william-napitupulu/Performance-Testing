@@ -66,8 +66,8 @@ export const useTab1Data = (
 
             const processedTags = inputTagsData.input_tags.map((tag) => ({
                 tag_no: tag.tag_no,
-                description: tag.description,
-                unit_name: tag.unit_name,
+                description: tag.description ?? '',
+                unit_name: tag.unit_name ?? '',
                 jm_input: tag.jm_input,
             }));
 
@@ -147,7 +147,13 @@ export const useTab1Data = (
                 throw new Error(response.data.message || 'Operation was not successful');
             }
 
-            const processedTags = Array.isArray(response.data.input_tags) ? response.data.input_tags : [];
+            const rawTags = Array.isArray(response.data.input_tags) ? response.data.input_tags : [];
+            const processedTags = rawTags.map((tag: any) => ({
+                tag_no: tag?.tag_no ?? '',
+                description: tag?.description ?? '',
+                unit_name: tag?.unit_name ?? '',
+                jm_input: tag?.jm_input ?? 0,
+            }));
             setInputTags(processedTags);
 
             // Check if no data was found

@@ -224,7 +224,7 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = React.memo(
                                             <tr key={uniqueKey} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                                 <td className="px-6 py-4 font-medium text-blue-700 dark:text-blue-300">{tag.tag_no}</td>
                                                 <td className="px-6 py-4 text-emerald-700 dark:text-emerald-300">{tag.description}</td>
-                                                <td className="px-6 py-4 text-violet-700 dark:text-violet-300">{tag.unit_name}</td>
+                                                 <td className="px-6 py-4 text-violet-700 dark:text-violet-300">{tag.unit_name || ''}</td>
                                                 {headers.map((_, timeIndex) => {
                                                     const inputValue = getInputValue(safeTagNo, timeIndex);
                                                     const validation = validateInput(inputValue);

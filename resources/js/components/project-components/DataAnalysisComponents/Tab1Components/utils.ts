@@ -44,10 +44,10 @@ export const getFilteredAndSortedTags = (jm: number, tags: InputTag[], filters: 
         filtered = filtered.filter((tag) => tag.tag_no.toLowerCase().includes(filters.tag_no.toLowerCase()));
     }
     if (filters.description) {
-        filtered = filtered.filter((tag) => tag.description.toLowerCase().includes(filters.description.toLowerCase()));
+        filtered = filtered.filter((tag) => (tag.description || '').toLowerCase().includes(filters.description.toLowerCase()));
     }
     if (filters.unit_name) {
-        filtered = filtered.filter((tag) => tag.unit_name.toLowerCase().includes(filters.unit_name.toLowerCase()));
+        filtered = filtered.filter((tag) => (tag.unit_name || '').toLowerCase().includes(filters.unit_name.toLowerCase()));
     }
 
     // Apply sorting
