@@ -1,0 +1,32 @@
+# Use this file for day-to-day development with a single command
+# Run with: docker-compose -f docker-compose.dev.yml up -d
+
+services:
+  # The Laravel PHP Service
+  app:
+    image: webdevops/php-apache:8.2
+    container_name: performance-testing-app-dev
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/app
+    environment:
+      - WEB_DOCUMENT_ROOT=/app/public
+      - PHP_DISPLAY_ERRORS=1
+      # ... other environment variables
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # The NEW Vite Dev Server Service
+  vite:
+    image: node:18-alpine
+    container_name: performance-testing-vite-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173" # Expose Vite's default port
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: npm run dev -- --host
