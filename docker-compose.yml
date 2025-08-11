@@ -1,7 +1,9 @@
 services:
   # Laravel Application with built assets
   app:
-    image: webdevops/php-apache:8.2
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: performance-testing-app
     restart: unless-stopped
     ports:
