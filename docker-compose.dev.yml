@@ -20,13 +20,13 @@ services:
       - "host.docker.internal:host-gateway"
 
   # The NEW Vite Dev Server Service
-  vite:
-    image: node:18-alpine
-    container_name: performance-testing-vite-dev
-    restart: unless-stopped
-    ports:
-      - "5173:5173" # Expose Vite's default port
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: npm run dev -- --host
+  # vite:
+  #   image: node:18-alpine
+  #   container_name: performance-testing-vite-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5173:5173" # Expose Vite's default port
+  #   volumes:
+  #     - .:/app
+  #   working_dir: /app
+  #   command: npm run dev -- --host
