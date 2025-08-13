@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'analysis_server_ip' => env('ANALYSIS_SERVER_IP', 'http://localhost'),
+
 ];
