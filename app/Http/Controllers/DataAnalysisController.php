@@ -492,8 +492,10 @@ class DataAnalysisController extends Controller
 
     public function runAnalysis(Performance $performanceTest) {
         $apiUrl = config('app.analysis_server_ip') . '/run_analysis.php';
+        $apiToken = config('app.analysis_server_token');
         $response = Http::timeout(60)->post($apiUrl, [
-            'id' => $performanceTest->id
+            'id' => $performanceTest->id,
+            'token' => $apiToken,
         ]);
 
         if ($response->failed()){

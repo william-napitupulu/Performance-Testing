@@ -124,5 +124,6 @@ return [
     ],
 
     'analysis_server_ip' => env('ANALYSIS_SERVER_IP', 'http://localhost'),
+    'analysis_server_token' => env('ANALYSIS_SERVER_TOKEN', ''),
 
 ];
