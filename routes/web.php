@@ -173,6 +173,7 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
         Route::get('/data', [DataAnalysisController::class, 'getAnalysisData'])->name('data');
         Route::post('/save-manual-input', [DataAnalysisController::class, 'saveManualInput'])->name('save-manual-input');
         Route::get('/export-excel', [DataAnalysisController::class, 'exportAnalysisData'])->name('export-excel');
+        Route::post('/{performance}/run', [DataAnalysisController::class, 'runAnalysis'])->name('run');
     });
     
 });

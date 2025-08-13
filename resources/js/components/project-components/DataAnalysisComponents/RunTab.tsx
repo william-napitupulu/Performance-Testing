@@ -42,6 +42,8 @@ interface RunTabProps {
 
 export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, totalRecords }: RunTabProps) {
     const [exportLoading, setExportLoading] = useState(false);
+    const [runLoading, setRunLoading] = useState(false);
+    const [runResult, setRunResult] = useState<{ success: boolean; message: string } | null>(null);
     const [showMissingDetails, setShowMissingDetails] = useState(false);
 
     // Check the 3 conditions
@@ -126,16 +128,30 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
     // All conditions must be met to enable Run Analysis
     const canRunAnalysis = statusChecks.dataStatus && statusChecks.configurationStatus && statusChecks.analysisStatus;
 
-    const handleRunAnalysis = () => {
-        if (!canRunAnalysis) {
+    const handleRunAnalysis = async () => {
+        if (runLoading || !canRunAnalysis || !sharedData?.perfId) {
             alert('Cannot run analysis: Please ensure all conditions are met (Data Status, Configuration, and Analysis readiness).');
             return;
         }
 
-        if (onRunAnalysis) {
-            onRunAnalysis();
-        } else {
-            alert('Run Analysis functionality will be implemented here!');
+        setRunLoading(true);
+        setRunResult(null);
+
+        try {
+            const response = await axios.post(`/api/data-analysis/${sharedData.perfId}/run`, {
+                perf_id: sharedData.perfId
+            });
+            setRunResult({success: true, message: response.data.message || 'Analysis has been started successfully!'});
+            if (onRunAnalysis) {
+                onRunAnalysis();
+            }
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'An error occurred while running the analysis.';
+            setRunResult({success: false, message: errorMessage});
+            console.error('Error running analysis:', error);
+            alert('Failed to run analysis. Please try again.');
+        } finally {
+            setRunLoading(false);
         }
     };
 
@@ -372,18 +388,24 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                 <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
                     <button
                         onClick={handleRunAnalysis}
-                        disabled={!canRunAnalysis}
+                        disabled={!canRunAnalysis || runLoading}
                         className={`group relative flex min-w-[200px] transform items-center justify-center gap-3 rounded-xl px-8 py-4 font-semibold shadow-lg transition-all duration-300 hover:shadow-xl ${
                             canRunAnalysis
                                 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:scale-105 hover:from-red-700 hover:to-red-800'
                                 : 'cursor-not-allowed bg-gray-400 text-gray-600 dark:bg-gray-600 dark:text-gray-400'
-                        }`}
+                        } disalbled:transform-none disabled:cursor-not-allowed disabled:bg-gray-500 disabled:shadow-lg`}
                     >
-                        {canRunAnalysis && (
-                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-400 to-red-600 opacity-25 blur transition-opacity duration-300 group-hover:opacity-40"></div>
+                        {runLoading ? (
+                            <>
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            <span>Running...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Play className="h05 w-5"/>
+                                <span>{canRunAnalysis ? 'Run Analysis' : 'Requirements Not Met'}</span>
+                            </>
                         )}
-                        <Play className="relative z-10 h-5 w-5" />
-                        <span className="relative z-10">{canRunAnalysis ? 'Run Analysis' : 'Requirements Not Met'}</span>
                     </button>
 
                     <button
@@ -407,6 +429,26 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                         )}
                     </button>
                 </div>
+
+                {/* Analysis Result Display */}
+                {runResult && (
+                    <div className="mt-6 text-center">
+                        <div
+                            className={`inline-flex items-center gap-2 rounded-lg p-3 text-sm font-semibold ${
+                                runResult.success
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                            }`}
+                        >
+                            {runResult.success ? (
+                                <CheckCircle className="h-5 w-5" />
+                            ) : (
+                                <XCircle className="h-5 w-5" />
+                            )}
+                            <span>{runResult.message}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Information Footer */}
                 <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">

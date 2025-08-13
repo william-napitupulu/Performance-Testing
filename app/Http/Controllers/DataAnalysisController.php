@@ -488,4 +488,24 @@ class DataAnalysisController extends Controller
             return response()->json(['error' => 'Failed to export analysis data'], 500);
         }
     }
+
+    public function runAnalysis(Performance $performanceTest) {
+        $apiUrl = config('app.analysis_server_ip') . '/run_analysis.php';
+        $response = Http::timeout(60)->post($apiUrl, [
+            'id' => $performanceTest->id
+        ]);
+
+        if ($response->failed()){
+            return back()->with('error', 'Could not connect to the analysis server.');
+        }
+
+        $result = $response->json();
+
+        if (isset($result['success']) && $result['success']) {
+            return back()->with('status', $result['message']);
+        } else {
+            $errorMessage = $result['message'] ?? 'An unknown error occured on the analysis server.';
+            return back()->with('error', $errorMessage);
+        }
+    }
 }
