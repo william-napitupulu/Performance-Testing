@@ -501,7 +501,7 @@ class DataAnalysisController extends Controller
         Log::info('ID being sent: ' . $performance->perf_id);
         // --- END OF DEBUGGING LINES ---
 
-        $response = Http::timeout(60)->post($apiUrl, [
+        $response = Http::timeout(60)->asForm()->post($apiUrl, [
             'id' => $performance->perf_id,
             'token' => $apiToken,
         ]);
