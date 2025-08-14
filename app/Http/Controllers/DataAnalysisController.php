@@ -498,11 +498,11 @@ class DataAnalysisController extends Controller
         Log::info('--- Preparing to send analysis request ---');
         Log::info('Target URL: ' . $apiUrl);
         Log::info('Token being sent: ' . $apiToken);
-        Log::info('ID being sent: ' . $performance->id);
+        Log::info('ID being sent: ' . $performance->perf_id);
         // --- END OF DEBUGGING LINES ---
 
         $response = Http::timeout(60)->post($apiUrl, [
-            'id' => $performance->id,
+            'id' => $performance->perf_id,
             'token' => $apiToken,
         ]);
 
