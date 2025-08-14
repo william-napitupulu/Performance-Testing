@@ -493,6 +493,14 @@ class DataAnalysisController extends Controller
     public function runAnalysis(Performance $performanceTest) {
         $apiUrl = config('app.analysis_server_ip') . '/run_analysis.php';
         $apiToken = config('app.analysis_server_token');
+
+        // --- ADD THESE LOGGING LINES FOR DEBUGGING ---
+        Log::info('--- Preparing to send analysis request ---');
+        Log::info('Target URL: ' . $apiUrl);
+        Log::info('Token being sent: ' . $apiToken);
+        Log::info('ID being sent: ' . $performanceTest->id);
+        // --- END OF DEBUGGING LINES ---
+        
         $response = Http::timeout(60)->post($apiUrl, [
             'id' => $performanceTest->id,
             'token' => $apiToken,
