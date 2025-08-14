@@ -138,9 +138,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
         setRunResult(null);
 
         try {
-            const response = await axios.post(`/api/data-analysis/${sharedData.perfId}/run`, {
-                perf_id: sharedData.perfId
-            });
+            const response = await axios.post(`/api/data-analysis/${sharedData.perfId}/run`);
             setRunResult({success: true, message: response.data.message || 'Analysis has been started successfully!'});
             if (onRunAnalysis) {
                 onRunAnalysis();
@@ -393,7 +391,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             canRunAnalysis
                                 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:scale-105 hover:from-red-700 hover:to-red-800'
                                 : 'cursor-not-allowed bg-gray-400 text-gray-600 dark:bg-gray-600 dark:text-gray-400'
-                        } disalbled:transform-none disabled:cursor-not-allowed disabled:bg-gray-500 disabled:shadow-lg`}
+                        } disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-500 disabled:shadow-lg`}
                     >
                         {runLoading ? (
                             <>
@@ -402,7 +400,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             </>
                         ) : (
                             <>
-                                <Play className="h05 w-5"/>
+                                <Play className="h5 w-5"/>
                                 <span>{canRunAnalysis ? 'Run Analysis' : 'Requirements Not Met'}</span>
                             </>
                         )}
