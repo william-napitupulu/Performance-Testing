@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\RunExcelAnalysis;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Inertia\Inertia;
 use App\Models\Performance;
 use App\Services\DataAnalysisService;
@@ -491,32 +493,9 @@ class DataAnalysisController extends Controller
     }
 
     public function runAnalysis(Performance $performance) {
-        $apiUrl = config('app.analysis_server_ip') . '/run_analysis.php';
-        $apiToken = config('app.analysis_server_token');
+        RunExcelAnalysis::dispatch($performance->perf_id);
 
-        // --- ADD THESE LOGGING LINES FOR DEBUGGING ---
-        Log::info('--- Preparing to send analysis request ---');
-        Log::info('Target URL: ' . $apiUrl);
-        Log::info('Token being sent: ' . $apiToken);
-        Log::info('ID being sent: ' . $performance->perf_id);
-        // --- END OF DEBUGGING LINES ---
-
-        $response = Http::timeout(60)->asForm()->post($apiUrl, [
-            'id' => $performance->perf_id,
-            'token' => $apiToken,
-        ]);
-
-        if ($response->failed()){
-            return back()->with('error', 'Could not connect to the analysis server.');
-        }
-
-        $result = $response->json();
-
-        if (isset($result['success']) && $result['success']) {
-            return back()->with('status', $result['message']);
-        } else {
-            $errorMessage = $result['message'] ?? 'An unknown error occured on the analysis server.';
-            return back()->with('error', $errorMessage);
-        }
+        Redis::publish('analysis-jobs', 'new_job_available');
+        return back()->with('status', 'Your analysis has been successfully queued and will be processed shortly.');
     }
 }
