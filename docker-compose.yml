@@ -22,7 +22,7 @@ services:
       - "host.docker.internal:host-gateway"
     network_mode: bridge
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
