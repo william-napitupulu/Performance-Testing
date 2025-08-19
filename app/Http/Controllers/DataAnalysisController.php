@@ -495,7 +495,7 @@ class DataAnalysisController extends Controller
     public function runAnalysis(Performance $performance) {
         RunExcelAnalysis::dispatch($performance->perf_id);
 
-        Redis::publish('analysis-jobs', 'new_job_available');
+        // Redis::publish('analysis-jobs', 'new_job_available');
         return back()->with('status', 'Your analysis has been successfully queued and will be processed shortly.');
     }
 }
