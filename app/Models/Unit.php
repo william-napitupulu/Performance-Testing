@@ -71,11 +71,12 @@ class Unit extends Model
     {
         if ($user->canAccessAllUnits()) {
             // If plant_id is 1, user can choose any unit
-            return self::all();
+            return self::active()->get();
         } else {
             // Otherwise, only units with status = 1 for their plant
             return self::where('plant_id', $user->plant_id)
                       ->where('status', 1)
+                      ->active()
                       ->get();
         }
     }
