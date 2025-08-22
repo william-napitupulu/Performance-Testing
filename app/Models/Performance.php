@@ -137,4 +137,9 @@ class Performance extends Model
     {
         return $query->where('status', self::STATUS_LOCKED);
     }
-} 
+    
+    public function outputs()
+    {
+        return $this->hasMany(Output::class, 'perf_id', 'perf_id');
+    }
+}

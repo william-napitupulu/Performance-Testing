@@ -93,7 +93,7 @@ class AuthenticatedSessionController extends Controller
                 ]);
                 
                 // Multiple units available, force a full page redirect so the new CSRF token is sent to the client
-                return \Inertia\Inertia::location(route('unit.select'));
+                return Inertia::location(route('unit.select'));
             } elseif ($availableUnits->count() === 1) {
                 // Only one unit available, auto-select it
                 $unit = $availableUnits->first();
@@ -108,7 +108,7 @@ class AuthenticatedSessionController extends Controller
                 ]);
                 
                 // Force full reload so updated CSRF token is present in meta tag
-                return \Inertia\Inertia::location(route('dashboard'));
+                return Inertia::location(route('dashboard'));
             } else {
                 // No units available
                 $totalTime = round((microtime(true) - $startTime) * 1000, 2);
@@ -123,7 +123,7 @@ class AuthenticatedSessionController extends Controller
                     'username' => 'No units are available for your account. Please contact administrator.',
                 ]);
             }
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             // Handle authentication failures and rate limiting
             Log::warning('Authentication failed', [
                 'username' => $request->username,
@@ -277,6 +277,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         // Force full page reload so the new CSRF token meta tag is refreshed
-        return \Inertia\Inertia::location(route('login'));
+        return Inertia::location(route('login'));
     }
 }

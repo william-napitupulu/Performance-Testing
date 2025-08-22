@@ -4,8 +4,8 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { Activity, AlertTriangle, BookOpen, Folder, Moon, PackageIcon, Sun } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Activity, AlertTriangle, BookOpen, Folder, Moon, PackageIcon, Sun, ChartPie } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -15,11 +15,10 @@ const mainNavItems: NavItem[] = [
         icon: Activity,
     },
     {
-        title: 'Anomaly Detection',
-        href: '/anomaly',
-        icon: AlertTriangle,
+        title: 'Performance Test Output',
+        href: '/output/performance',
+        icon: ChartPie,
     },
-
     {
         title: 'Contents and components',
         href: '/contents',

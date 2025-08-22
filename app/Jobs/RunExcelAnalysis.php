@@ -19,7 +19,6 @@ class RunExcelAnalysis implements ShouldQueue
      */
     public function __construct(int $performanceId)
     {
-        // Git pull test text, delete this later
         $this->performanceId = $performanceId;
     }
 

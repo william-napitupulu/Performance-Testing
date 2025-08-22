@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OutputController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\AnomalyController;
 use App\Http\Controllers\DataAnalysisController;
@@ -84,6 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Anomaly Detection Routes
     Route::prefix('anomaly')->name('anomaly.')->group(function () {
         Route::get('/', [AnomalyController::class, 'index'])->name('index');
+    });
+
+    Route::prefix('output')->name('output.')->group(function () {
+        Route::get('/', [OutputController::class, 'index'])->name('index');
+        Route::get('/performance', [OutputController::class, 'performance'])->name('performance');
     });
     
     // Content Management Routes
@@ -175,7 +181,15 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
         Route::get('/export-excel', [DataAnalysisController::class, 'exportAnalysisData'])->name('export-excel');
         Route::post('/{performance}/run', [DataAnalysisController::class, 'runAnalysis'])->name('run');
     });
-    
+
+    Route::prefix('output')->name('output.')->group(function () {
+        Route::prefix('/details')->name('details.')->group(function () {
+            Route::get('/', [OutputController::class, 'index'])->name('index');
+            Route::get('/data', [OutputController::class, 'getOutputData'])->name('data');
+        });
+        Route::post('/generate-report', [OutputController::class, 'generateReport'])->name('generate-report');
+    });
+
 });
 
 require __DIR__.'/settings.php';
