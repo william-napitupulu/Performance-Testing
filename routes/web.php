@@ -187,6 +187,7 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
             Route::get('/', [OutputController::class, 'index'])->name('index');
             Route::get('/data', [OutputController::class, 'getOutputData'])->name('data');
         });
+        Route::get('/pareto/{performance}', [OutputController::class, 'getTop5Output'])->name('pareto');
         Route::post('/generate-report', [OutputController::class, 'generateReport'])->name('generate-report');
     });
 

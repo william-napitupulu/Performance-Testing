@@ -7,7 +7,9 @@ use App\Models\Unit;
 use App\Services\OutputService;
 use App\Services\PerformanceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class OutputController extends Controller
@@ -146,6 +148,35 @@ class OutputController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['error' => 'Failed to get output data'], 500);
+        }
+    }
+
+    public function getTop5Output(Performance $performance)
+    {
+        try {
+            $topData = DB::table('tb_output as a')
+                -> join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
+                ->select('b.description', 'a.value')
+                ->where('a.perf_id', $performance->perf_id)
+                ->orderBy('a.value', 'desc')
+                ->limit(5)
+                ->get();
+
+            $formattedData = $topData->map(function($item) {
+                $item->value = (float) $item->value;
+                $item->description = Str::limit($item->description, 30);
+                return $item;
+            });
+            return response()->json([
+                'success' => true,
+                'data' => $formattedData
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching top 5 output data: ', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to fetch chart data'], 500);
         }
     }
 

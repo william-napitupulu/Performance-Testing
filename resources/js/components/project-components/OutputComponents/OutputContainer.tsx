@@ -1,9 +1,10 @@
 import { Link } from '@inertiajs/react';
 import axios from 'axios';
-import { AlignLeft, ArrowLeft } from 'lucide-react';
+import { AlignLeft, ArrowLeft, BarChart2 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { OutputDataTab } from './OutputDataTab';
 import type { OutputData, ApiResponse } from './types';
+import { ParetoChartTab } from "./ParetoTab";
 
 type TabType = 'output' | string; // Allow dynamic tab IDs
 
@@ -17,6 +18,7 @@ interface TabConfig {
 // Base tabs that are always present
 const BASE_TABS: TabConfig[] = [
     { id: 'output', label: 'Output', icon: AlignLeft, color: 'green' },
+    { id: 'pareto', label: 'Pareto Chart', icon: BarChart2, color: 'indigo' },
 ];
 
 interface SharedPerformanceData {
@@ -33,6 +35,8 @@ export function OutputContainer() {
         description: '',
         dateTime: '',
     });
+    const [chartData, setChartData] = useState([]);
+    const [chartLoading, setChartLoading] = useState(true);
 
     const [apiResponse, setApiResponse] = useState<ApiResponse>({
         success: true,
@@ -56,6 +60,20 @@ export function OutputContainer() {
     });
 
     const [performanceId, setPerformanceId] = useState<number | undefined>();
+
+    const fetchChartData = async (perfId: number) => {
+        if (!perfId) return;
+        setChartLoading(true);
+        try {
+            const response = await axios.get(`/api/output/pareto/${perfId}`);
+            setChartData(response.data.data || []);
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            setChartData([]); // Reset on error
+        } finally {
+            setChartLoading(false);
+        }
+    };
 
     const fetchData = useCallback(async (params: {
         search?: string;
@@ -82,6 +100,10 @@ export function OutputContainer() {
         try {
             const response = await axios.get('/api/output/details/data', { params: apiParams });
             const { data: responseData, performance } = response.data;
+
+            if (response.data.performance) {
+                fetchChartData(response.data.performance.id);
+            }
 
             setData(responseData || []);
             setApiResponse(response.data);
@@ -194,6 +216,12 @@ export function OutputContainer() {
                     onDataUpdate={handleTableChange}
                     sharedData={sharedData}
                 />
+            );
+        }
+
+        if (tabId === 'pareto') {
+            return (
+                <ParetoChartTab data={chartData} loading={chartLoading}/>
             );
         }
 
