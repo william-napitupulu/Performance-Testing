@@ -1,5 +1,12 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+interface Reference {
+    reff_id: number;
+    description: string;
+    is_default: number;
+}
 
 interface ChartData {
     description: string;
@@ -9,9 +16,12 @@ interface ChartData {
 interface ParetoChartProps {
     data: ChartData[];
     loading: boolean;
+    references: Reference[];
+    selectedReferenceId: number | null;
+    onReferenceChange: (refId: string) => void;
 }
 
-export function ParetoChartTab({ data, loading }: ParetoChartProps) {
+export function ParetoChartTab({ data, loading, references, selectedReferenceId, onReferenceChange }: ParetoChartProps) {
     if (loading) {
         return (
             <div className="flex h-96 items-center justify-center">
@@ -31,7 +41,25 @@ export function ParetoChartTab({ data, loading }: ParetoChartProps) {
 
     return (
         <div className="rounded-lg border border-border bg-card p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 5 Highest Output Values</h3>
+            <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 7 Highest Output and Baseline Difference</h3>
+            <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Baseline:</label>
+                    <Select
+                        value={selectedReferenceId?.toString()}
+                        onValueChange={onReferenceChange}
+                    >
+                        <SelectTrigger className="w-[250px]">
+                            <SelectValue placeholder="Select a baseline..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {references.map((ref) => (
+                                <SelectItem key={ref.reff_id} value={ref.reff_id.toString()}>
+                                    {ref.description}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+            </div>
             <div style={{ width: '100%', height: 400 }}>
                 <ResponsiveContainer>
                     <BarChart

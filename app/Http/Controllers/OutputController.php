@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Performance;
+use App\Models\Refference;
 use App\Models\Unit;
 use App\Services\OutputService;
 use App\Services\PerformanceService;
@@ -151,22 +152,33 @@ class OutputController extends Controller
         }
     }
 
-    public function getTop5Output(Performance $performance)
+    public function getTop7OutputBaselineDifference(Performance $performance, Refference $reference)
     {
         try {
-            $topData = DB::table('tb_output as a')
+            $differenceData = DB::table('tb_output as a')
                 -> join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
-                ->select('b.description', 'a.value')
+                ->join('tb_refference_detail as c', function ($join) use ($reference) {
+                    $join->on('a.output_id', '=', 'c.output_id')
+                         ->where('c.reff_id', $reference->reff_id);
+                })
                 ->where('a.perf_id', $performance->perf_id)
-                ->orderBy('a.value', 'desc')
-                ->limit(5)
+                ->select(
+                    'b.description', 
+                    'a.value as output_value',
+                    'c.value as reference_value',
+                    DB::raw('(a.value - c.value) as difference')
+                )
+                ->orderBy('difference', 'desc')
+                ->limit(7)
                 ->get();
 
-            $formattedData = $topData->map(function($item) {
-                $item->value = (float) $item->value;
-                $item->description = Str::limit($item->description, 30);
-                return $item;
+            $formattedData = $differenceData->map(function ($item) {
+                return [
+                    'description' => Str::limit($item->description, 30),
+                    'value' => (float) $item->difference,
+                ];
             });
+    
             return response()->json([
                 'success' => true,
                 'data' => $formattedData
@@ -177,6 +189,33 @@ class OutputController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['error' => 'Failed to fetch chart data'], 500);
+        }
+    }
+
+    public function getAvailableReference()
+    {
+        try {
+            $selectedUnit = session('selected_unit');
+            if (!$selectedUnit) {
+                return response()->json(['error' => 'No unit selected'], 400);
+            }
+
+            $references = DB::table('tb_refference')
+                ->where('unit_id', $selectedUnit)
+                ->select('reff_id', 'description', 'is_default')
+                ->orderBy('description')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $references
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching available references: ', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to fetch references'], 500);
         }
     }
 

@@ -37,6 +37,8 @@ export function OutputContainer() {
     });
     const [chartData, setChartData] = useState([]);
     const [chartLoading, setChartLoading] = useState(true);
+    const [references, setReferences] = useState([]);
+    const [selectedRefId, setSelectedRefId] = useState<number | null>(null);
 
     const [apiResponse, setApiResponse] = useState<ApiResponse>({
         success: true,
@@ -61,11 +63,31 @@ export function OutputContainer() {
 
     const [performanceId, setPerformanceId] = useState<number | undefined>();
 
-    const fetchChartData = async (perfId: number) => {
-        if (!perfId) return;
+    
+
+    const fetchReferences = async () => {
+        try {
+            const response = await axios.get('/api/output/references');
+            const refs = response.data.data || [];
+            setReferences(refs);
+
+            // Find the default reference and set it as the initial selection
+            const defaultRef = refs.find(ref => ref.is_default === 1);
+            if (defaultRef) {
+                setSelectedRefId(defaultRef.reff_id);
+            } else if (refs.length > 0) {
+                setSelectedRefId(refs[0].reff_id);
+            }
+        } catch (error) {
+            console.error("Failed to fetch references:", error);
+        }
+    };
+
+    const fetchChartData = useCallback(async (perfId: number, refId: number) => {
+        if (!perfId || !refId) return;
         setChartLoading(true);
         try {
-            const response = await axios.get(`/api/output/pareto/${perfId}`);
+            const response = await axios.get(`/api/output/pareto/${perfId}/${refId}`);
             setChartData(response.data.data || []);
         } catch (error) {
             console.error('Error fetching chart data:', error);
@@ -73,7 +95,7 @@ export function OutputContainer() {
         } finally {
             setChartLoading(false);
         }
-    };
+    }, []);
 
     const fetchData = useCallback(async (params: {
         search?: string;
@@ -101,15 +123,12 @@ export function OutputContainer() {
             const response = await axios.get('/api/output/details/data', { params: apiParams });
             const { data: responseData, performance } = response.data;
 
-            if (response.data.performance) {
-                fetchChartData(response.data.performance.id);
-            }
-
             setData(responseData || []);
             setApiResponse(response.data);
 
             // Set shared data only if it's the first time loading for this performance
             if (performance && performance.id === targetPerfId) {
+                setPerformanceId(performance.id);
                 setSharedData({
                     description: performance.description,
                     dateTime: performance.date_perfomance,
@@ -128,19 +147,35 @@ export function OutputContainer() {
     }, [performanceId, apiResponse.sort, apiResponse.filters]);
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const perfIdFromUrl = params.get('perf_id');
+        const initializeData = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const perfIdFromUrl = params.get('perf_id');
+            let initialPerfId: number | undefined;
 
-        if (perfIdFromUrl) {
-            const perfIdNum = parseInt(perfIdFromUrl, 10);
-            if (!isNaN(perfIdNum)) {
-                setPerformanceId(perfIdNum);
-                fetchData({ perf_id: perfIdNum });
-                return;
+            if (perfIdFromUrl) {
+                const perfIdNum = parseInt(perfIdFromUrl, 10);
+                if (!isNaN(perfIdNum)) {
+                    initialPerfId = perfIdNum;
+                }
             }
-        }
-        fetchData();
+            await Promise.all([
+                fetchData({ perf_id: initialPerfId }),
+                fetchReferences()
+            ]);
+        };
+
+        initializeData();
     }, []);
+
+    useEffect(() => {
+        if (performanceId && selectedRefId) {
+            fetchChartData(performanceId, selectedRefId);
+        }
+    }, [performanceId, selectedRefId]);
+
+    const handleReferenceChange = (refId: string) => {
+        setSelectedRefId(Number(refId));
+    }
 
     const handleTableChange = useCallback(
         (params: { search?: string; sort_field?: string; sort_direction?: string }) => {
@@ -221,7 +256,13 @@ export function OutputContainer() {
 
         if (tabId === 'pareto') {
             return (
-                <ParetoChartTab data={chartData} loading={chartLoading}/>
+                <ParetoChartTab 
+                    data={chartData} 
+                    loading={chartLoading}
+                    references={references}
+                    selectedReferenceId={selectedRefId}
+                    onReferenceChange={handleReferenceChange}
+                />
             );
         }
 

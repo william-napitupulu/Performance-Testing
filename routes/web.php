@@ -127,7 +127,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | API Routes (Authenticated)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function () {
     
     
     // Input Tags API
@@ -187,8 +187,9 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
             Route::get('/', [OutputController::class, 'index'])->name('index');
             Route::get('/data', [OutputController::class, 'getOutputData'])->name('data');
         });
-        Route::get('/pareto/{performance}', [OutputController::class, 'getTop5Output'])->name('pareto');
+        Route::get('/pareto/{performance}/{reference}', [OutputController::class, 'getTop7OutputBaselineDifference'])->name('pareto');
         Route::post('/generate-report', [OutputController::class, 'generateReport'])->name('generate-report');
+        Route::get('/references', [OutputController::class, 'getAvailableReference'])->name('reference');
     });
 
 });
