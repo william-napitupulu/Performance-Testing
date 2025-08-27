@@ -36,5 +36,7 @@ export interface ApiResponse {
         status: string;
         date_perfomance: string;
         jumlah_tab_aktif?: number;
+        report_filename?: string | null;
+        report_download_url?: string | null;
     };
 }

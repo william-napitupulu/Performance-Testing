@@ -50,6 +50,7 @@ class Performance extends Model
         'unit_id',
         'type',
         'weight',
+        'report_filename',
     ];
 
     /**

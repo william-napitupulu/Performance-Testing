@@ -21,6 +21,7 @@ interface OutputDataTabProps {
         sort_direction?: string;
     }) => void;
     sharedData: SharedPerformanceData;
+    apiResponse: ApiResponse;
 }
 
 export const OutputDataTab = React.memo(function OutputDataTab({
@@ -30,8 +31,11 @@ export const OutputDataTab = React.memo(function OutputDataTab({
     sort, 
     loading, 
     onDataUpdate, 
-    sharedData 
+    sharedData,
+    apiResponse,
 }: OutputDataTabProps) {
+    const performance = apiResponse.performance;
+
     const handleSort = useCallback(
         async (field: string) => {
             const newDirection = sort.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
@@ -74,14 +78,27 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                 <div className="overflow-hidden rounded-b-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 dark:from-blue-700 dark:to-indigo-700">
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-b-lg bg-white/20 p-2">
-                                <BarChart3 className="h-5 w-5 text-white" />
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-b-lg bg-white/20 p-2">
+                                    <BarChart3 className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-semibold text-white">Performance Analysis Results</h2>
+                                    <p className="text-sm text-blue-100">Detailed analysis data and performance metrics</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-white">Performance Analysis Results</h2>
-                                <p className="text-sm text-blue-100">Detailed analysis data and performance metrics</p>
-                            </div>
+                            
+                            {performance?.report_download_url && (
+                                <a
+                                    href={performance.report_download_url}
+                                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-2 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Download Report
+                                </a>
+                            )}
                         </div>
                     </div>
 

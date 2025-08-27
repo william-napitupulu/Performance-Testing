@@ -116,6 +116,13 @@ class PerformanceService
      */
     public function formatPerformanceData(Performance $performance): array
     {
+        $downloadUrl = null;
+
+        if ($performance->report_filename) {
+            $baseUrl = config('app.analysis_server_ip');
+            $downloadUrl = rtrim($baseUrl, '/') . '/reports/' . $performance->report_filename;
+        }
+
         return [
             'id' => $performance->perf_id,
             'description' => $performance->description,
@@ -126,6 +133,8 @@ class PerformanceService
             'unit_id' => $performance->unit_id,
             'unit_name' => $performance->unit?->unit_name ?? 'Unknown Unit',
             'jumlah_tab_aktif' => $this->getActiveTabCount(), // Get from unit instead of performance
+            'report_filename' => $performance->report_filename,
+            'report_download_url' => $downloadUrl
         ];
     }
 

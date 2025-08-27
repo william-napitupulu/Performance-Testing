@@ -10,6 +10,7 @@ use App\Services\PerformanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -217,6 +218,17 @@ class OutputController extends Controller
             ]);
             return response()->json(['error' => 'Failed to fetch references'], 500);
         }
+    }
+
+    public function downloadReport(Performance $performance)
+    {
+        $filename = $performance->report_filename;
+
+        if (!$filename || !Storage::disk('excel_reports')->exists($filename)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('excel_reports')->download($filename);
     }
 
 }

@@ -188,8 +188,8 @@ Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function 
             Route::get('/data', [OutputController::class, 'getOutputData'])->name('data');
         });
         Route::get('/pareto/{performance}/{reference}', [OutputController::class, 'getTop7OutputBaselineDifference'])->name('pareto');
-        Route::post('/generate-report', [OutputController::class, 'generateReport'])->name('generate-report');
         Route::get('/references', [OutputController::class, 'getAvailableReference'])->name('reference');
+        Route::get('/download/{performances}', [OutputController::class, 'downloadReport'])->name('download-report');
     });
 
 });

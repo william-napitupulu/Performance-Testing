@@ -250,6 +250,7 @@ export function OutputContainer() {
                     loading={loading}
                     onDataUpdate={handleTableChange}
                     sharedData={sharedData}
+                    apiResponse={apiResponse}
                 />
             );
         }
