@@ -1,7 +1,8 @@
-import { AlertTriangle, BarChart3, Calendar, Database, Hash } from 'lucide-react';
+import { AlertTriangle, BarChart3, Calendar, Database, Download, Hash } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { OutputTable } from './OutputTable';
 import type { OutputData, ApiResponse } from './types';
+import { Button } from "@/components/ui/button";
 
 interface SharedPerformanceData {
     description: string;
@@ -88,17 +89,6 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                     <p className="text-sm text-blue-100">Detailed analysis data and performance metrics</p>
                                 </div>
                             </div>
-                            
-                            {performance?.report_download_url && (
-                                <a
-                                    href={performance.report_download_url}
-                                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-2 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Download Report
-                                </a>
-                            )}
                         </div>
                     </div>
 
@@ -106,13 +96,27 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                     <div className="p-6">
                         <div className="space-y-6">
                             {/* Description */}
-                            <div className="rounded-lg border border-slate-200 bg-gradient-to-r from-slate-50 to-gray-50 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-gray-800">
-                                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                                    Test Description
-                                </h3>
-                                <p className="text-base leading-relaxed text-gray-900 dark:text-gray-100">{sharedData.description}</p>
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                <div className="flex-grow rounded-lg border border-slate-200 bg-gradient-to-r from-slate-50 to-gray-50 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-gray-800">
+                                    <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                        Test Description
+                                    </h3>
+                                    <p className="text-base leading-relaxed text-gray-900 dark:text-gray-100">{sharedData.description}</p>
+                                </div>
+
+                                {/* Button */}
+                                {performance?.report_download_url && (
+                                    <Button asChild className="group w-full flex-shrink-0 transform bg-gradient-to-r from-green-600 to-green-700 px-6 py-6 text-base text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl sm:w-auto">
+                                        <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
+                                            <Download className="mr-2 h-5 w-5" />
+                                            Download Report
+                                        </a>
+                                    </Button>
+                                )}
                             </div>
+                            
+                            
 
                             {/* Details Grid */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
