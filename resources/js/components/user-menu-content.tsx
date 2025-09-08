@@ -50,6 +50,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         <Building2 className="mr-2" />
                         <div className="flex flex-col items-start">
                             <span>Change Units</span>
+                            <span className="text-xs text-muted-foreground" title={currentUnitName}>
+                                {currentUnitName}
+                            </span>
                         </div>
                     </Link>
                 </DropdownMenuItem>

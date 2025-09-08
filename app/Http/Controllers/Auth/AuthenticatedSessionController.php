@@ -97,7 +97,10 @@ class AuthenticatedSessionController extends Controller
             } elseif ($availableUnits->count() === 1) {
                 // Only one unit available, auto-select it
                 $unit = $availableUnits->first();
-                session(['selected_unit' => $unit->unit_id]);
+                session([
+                    'selected_unit' => $unit->unit_id,
+                    'current_unit_name' => $unit->unit_name
+                ]);
                 
                 $totalTime = round((microtime(true) - $startTime) * 1000, 2);
                 Log::info('Auto-selected unit', [
@@ -244,7 +247,10 @@ class AuthenticatedSessionController extends Controller
 
         // Store selected unit in session
         $sessionStartTime = microtime(true);
-        session(['selected_unit' => $unitId]);
+        session([
+            'selected_unit' => $unitId,
+            'current_unit_name' => $selectedUnit->unit_name
+        ]);
         $sessionEndTime = microtime(true);
         
         $totalTime = round((microtime(true) - $startTime) * 1000, 2);
