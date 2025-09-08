@@ -176,7 +176,6 @@ export function PerformanceOutputContainer({ initialPerformances, selectedUnitNa
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Performance Tests Outputs</h2>
-                        {selectedUnitName && <p className="text-sm text-blue-600 dark:text-blue-400">Unit: {selectedUnitName}</p>}
                     </div>
                 </div>
             </div>

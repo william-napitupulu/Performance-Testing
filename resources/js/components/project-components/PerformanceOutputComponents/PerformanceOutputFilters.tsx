@@ -53,19 +53,9 @@ export function PerformanceOutputFilters({ performances, onFilteredDataChange }:
             filtered = filtered.filter((performance) => performance.date_perfomance === searchValues.date_perfomance);
         }
 
-        // Apply unit name filter
-        if (searchValues.unit_name) {
-            filtered = filtered.filter((performance) => performance.unit_name?.toLowerCase().includes(searchValues.unit_name.toLowerCase()));
-        }
-
         // Apply type filter
         if (searchValues.type && searchValues.type !== 'all') {
             filtered = filtered.filter((performance) => performance.type === searchValues.type);
-        }
-
-        // Apply unit filter
-        if (unitFilter !== 'all') {
-            filtered = filtered.filter((performance) => performance.unit_name === unitFilter);
         }
 
         onFilteredDataChange(filtered);
@@ -103,15 +93,6 @@ export function PerformanceOutputFilters({ performances, onFilteredDataChange }:
                     value={searchValues.date_perfomance}
                     placeholder="Select performance date..."
                     onChange={(date) => handleChange('date_perfomance', date)}
-                />
-            </td>
-            <td className="px-6 py-3">
-                <Input
-                    type="text"
-                    value={searchValues.unit_name}
-                    onChange={(e) => handleChange('unit_name', e.target.value)}
-                    placeholder="Search unit name..."
-                    className="w-full bg-white text-[11px] focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:focus:ring-blue-400"
                 />
             </td>
             <td className="px-6 py-3">

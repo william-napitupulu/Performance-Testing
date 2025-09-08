@@ -63,7 +63,6 @@ export function PerformanceTableRow({
                         className={inputClasses}
                     />
                 </td>
-                <td className={`${cellClasses} w-48 text-center font-medium text-cyan-600 dark:text-cyan-400`}>{performance.unit_name}</td>
                 <td className={`${cellClasses} w-40`}>
                     <select value={editForm.type || ''} onChange={(e) => onEditFormChange('type', e.target.value)} className={inputClasses}>
                         <option value="">Select type...</option>
@@ -104,7 +103,6 @@ export function PerformanceTableRow({
             </td>
             <td className={`${cellClasses} font-medium text-blue-700 dark:text-blue-300`}>{performance.description}</td>
             <td className={`${cellClasses} text-center font-medium text-violet-700 dark:text-violet-300`}>{performance.date_perfomance}</td>
-            <td className={`${cellClasses} text-center font-medium text-cyan-700 dark:text-cyan-300`}>{performance.unit_name}</td>
             <td className={`${cellClasses} text-center font-medium text-orange-700 dark:text-orange-300`}>{performance.type || 'N/A'}</td>
             <td className={`${cellClasses} space-x-2 text-center`}>
                 <button

@@ -30,8 +30,6 @@ export function PerformanceTableHeader({ onSort, sortField, sortDirection }: Per
                 return 'text-violet-700 dark:text-violet-300 group-hover:text-green-700 dark:group-hover:text-green-300';
             case 'date_created':
                 return 'text-fuchsia-700 dark:text-fuchsia-300 group-hover:text-green-700 dark:group-hover:text-green-300';
-            case 'unit_name':
-                return 'text-cyan-700 dark:text-cyan-300 group-hover:text-green-700 dark:group-hover:text-green-300';
             case 'type':
                 return 'text-orange-700 dark:text-orange-300 group-hover:text-green-700 dark:group-hover:text-green-300';
             case 'weight':
@@ -55,9 +53,6 @@ export function PerformanceTableHeader({ onSort, sortField, sortDirection }: Per
                 </th>
                 <th className={`${headerBaseClasses} w-2/12 px-6 ${getHeaderColor('date_perfomance')}`} onClick={() => onSort('date_perfomance')}>
                     <div className="flex items-center justify-center">Performance Date {renderSortIcon('date_perfomance')}</div>
-                </th>
-                <th className={`${headerBaseClasses} w-2/12 px-6 ${getHeaderColor('unit_name')}`} onClick={() => onSort('unit_name')}>
-                    <div className="flex items-center justify-center">Unit Name {renderSortIcon('unit_name')}</div>
                 </th>
                 <th className={`${headerBaseClasses} w-2/12 px-6 ${getHeaderColor('type')}`} onClick={() => onSort('type')}>
                     <div className="flex items-center justify-center">Type {renderSortIcon('type')}</div>
