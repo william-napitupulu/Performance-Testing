@@ -1,8 +1,10 @@
-import { AlertTriangle, BarChart3, Calendar, Database, Download, Hash } from 'lucide-react';
-import React, { useCallback } from 'react';
+import { AlertTriangle, BarChart3, Calendar, Database, Download, Hash, PlusCircle } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
 import { OutputTable } from './OutputTable';
 import type { OutputData, ApiResponse } from './types';
 import { Button } from "@/components/ui/button";
+import { toast, Toaster } from "sonner";
+import axios from "axios";
 
 interface SharedPerformanceData {
     description: string;
@@ -36,6 +38,43 @@ export const OutputDataTab = React.memo(function OutputDataTab({
     apiResponse,
 }: OutputDataTabProps) {
     const performance = apiResponse.performance;
+
+    const [isCreating, setIsCreating] = useState(false);
+
+    const handleCreateBaseline = async () => {
+        if (!performance) return;
+
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear().toString().slice(-2);
+
+        const newBaselineName = `Baseline ${performance.id} ${day}-${month}-${year}`;
+
+        const isConfirmed = window.confirm(
+            `Are you sure you want to create a new baseline named "${newBaselineName}"?`
+        );
+
+        if (!isConfirmed) {
+            toast.info("Baseline creation cancelled.");
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const response = await axios.post(route('api.output.create-baseline'), {
+                performance_id: performance.id,
+                description: newBaselineName,
+            });
+
+            toast.success(response.data.message || "Baseline created successfully!");
+        } catch (error) {
+            console.error("Failed to create baseline:", error);
+            toast.error("Failed to create baseline. Please try again.");
+        } finally {
+            setIsCreating(false);
+        }
+    };
 
     const handleSort = useCallback(
         async (field: string) => {
@@ -95,6 +134,7 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                     {/* Content */}
                     <div className="p-6">
                         <div className="space-y-6">
+                            <Toaster richColors/>
                             {/* Description */}
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 <div className="flex-grow rounded-lg border border-slate-200 bg-gradient-to-r from-slate-50 to-gray-50 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-gray-800">
@@ -104,16 +144,36 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                     </h3>
                                     <p className="text-base leading-relaxed text-gray-900 dark:text-gray-100">{sharedData.description}</p>
                                 </div>
+                                <div className="flex w-full flex-shrink-0 gap-2 sm:w-auto">
+                                    {performance?.report_download_url && (
+                                        <Button asChild className="group w-full flex-shrink-0 transform bg-gradient-to-r from-green-600 to-green-700 px-6 py-6 text-base text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl sm:w-auto">
+                                            <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
+                                                <Download className="mr-2 h-5 w-5" />
+                                                Download Report
+                                            </a>
+                                        </Button>
+                                    )}
+                                    <Button
+                                        onClick={handleCreateBaseline}
+                                        disabled={isCreating}
+                                        variant="outline"
+                                        className="group w-full bg-white/10 flex-shrink-0 text-white transition-all hover:bg-white/20 sm:w-auto px-6 py-6 text-base sm:w-auto"
+                                    >
+                                        {isCreating ? (
+                                            <>
+                                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <PlusCircle className="mr-2 h-4 w-4"/>
+                                                Create Baseline
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
 
                                 {/* Button */}
-                                {performance?.report_download_url && (
-                                    <Button asChild className="group w-full flex-shrink-0 transform bg-gradient-to-r from-green-600 to-green-700 px-6 py-6 text-base text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl sm:w-auto">
-                                        <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
-                                            <Download className="mr-2 h-5 w-5" />
-                                            Download Report
-                                        </a>
-                                    </Button>
-                                )}
                             </div>
                             
                             

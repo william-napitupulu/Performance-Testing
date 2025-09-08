@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { OutputDataTab } from './OutputDataTab';
 import type { OutputData, ApiResponse } from './types';
 import { ParetoChartTab } from "./ParetoTab";
+import { ParetoChartTab2 } from "./ParetoTab2";
 
 type TabType = 'output' | string; // Allow dynamic tab IDs
 
@@ -19,6 +20,7 @@ interface TabConfig {
 const BASE_TABS: TabConfig[] = [
     { id: 'output', label: 'Output', icon: AlignLeft, color: 'green' },
     { id: 'pareto', label: 'Pareto Chart', icon: BarChart2, color: 'indigo' },
+    { id: 'pareto2', label: 'Pareto Chart 2', icon: BarChart2, color: 'indigo' },
 ];
 
 interface SharedPerformanceData {
@@ -258,6 +260,20 @@ export function OutputContainer() {
         if (tabId === 'pareto') {
             return (
                 <ParetoChartTab 
+                    data={chartData} 
+                    loading={chartLoading}
+                    references={references}
+                    selectedReferenceId={selectedRefId}
+                    onReferenceChange={handleReferenceChange}
+                />
+            );
+        }
+
+        
+
+        if (tabId === 'pareto2') {
+            return (
+                <ParetoChartTab2 
                     data={chartData} 
                     loading={chartLoading}
                     references={references}

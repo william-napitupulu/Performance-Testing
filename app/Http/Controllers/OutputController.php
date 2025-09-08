@@ -231,4 +231,54 @@ class OutputController extends Controller
         return Storage::disk('excel_reports')->download($filename);
     }
 
+    public function createBaseline(Request $request)
+    {
+        $validated = $request->validate([
+            'performance_id' => 'required|integer|exists:tb_performance,perf_id',
+            'description' => 'required|string|max:255',
+        ]);
+
+        $performanceId = $validated['performance_id'];
+        $description = $validated['description'];
+        $selectedUnitId = session('selected_unit');
+
+        DB::beginTransaction();
+
+        try {
+            $newReference = Refference::create([
+                'description' => $description,
+                'keterangan' => 'Baseline created from Performance ID: ' . $performanceId,
+                'unit_id' => $selectedUnitId,
+                'is_default' => 0,
+            ]);
+
+            $newReffId = $newReference->reff_id;
+
+            $copyQuery = "
+                INSERT INTO tb_refference_detail (reff_id, output_id, value)
+                SELECT ?, a.output_id, a.value
+                FROM tb_output as a
+                WHERE a.perf_id = ?
+            ";
+
+            DB::insert($copyQuery, [$newReffId, $performanceId]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'New baseline created successfully!',
+                'new_baseline' => $newReference,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating baseline: ', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to create baseline'], 500);
+        }
+    }
+
 }
