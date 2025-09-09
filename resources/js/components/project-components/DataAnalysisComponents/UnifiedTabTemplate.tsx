@@ -32,7 +32,7 @@ interface UnifiedTabTemplateProps {
     onDataSaved?: () => void;
 }
 
-export const UnifiedTabTemplate: React.FC<UnifiedTabTemplateProps> = ({ tabNumber, sharedData, inputTagsData, onDataSaved }) => {
+export const UnifiedTabTemplate: React.FC<UnifiedTabTemplateProps> = ({ tabNumber, sharedData }) => {
     // Use the universal tab context
     const { dataHook, actionsHook } = useUniversalTabContext();
 

@@ -3,8 +3,8 @@ import React, { useMemo, useState } from 'react';
 
 interface InputTag {
     tag_no: string;
-    description: string;
-    unit_name: string;
+    description: string | null;
+    unit_name: string | null;
     jm_input: number;
 }
 
@@ -38,7 +38,6 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = React.memo(
         jm,
         headers,
         tags,
-        inputValues,
         onValueChange,
         getInputValue,
         sortConfig,

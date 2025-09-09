@@ -32,9 +32,45 @@ export interface BaseTabProps {
     inputTagsData?: InputTagsData;
 }
 
+// ✅ DEFINED: Specific types for sort and filter configurations
+export interface SortConfig {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
+export interface FilterConfig {
+    tag_no: string;
+    description: string;
+    unit_name: string;
+}
+
+// ✅ DEFINED: The shape of the object returned by your data hook
+export interface DataHookReturnType {
+    groupedTags: Record<number, InputTag[]>;
+    groupedHeaders: Record<number, string[]>;
+    sortConfigByJm: Record<number, SortConfig>;
+    filtersByJm: Record<number, FilterConfig>;
+    inputValuesByJm: Record<number, Record<string, string>>;
+    noDataFound: boolean;
+    inputTags: InputTag[];
+    selectedPerformance: SharedPerformanceData | null;
+}
+
+// ✅ DEFINED: The shape of the object returned by your actions hook
+export interface ActionsHookReturnType {
+    handleInputChange: (jm: number, tagNo: string, timeIndex: number, value: string) => void;
+    getInputValue: (jm: number, tagNo: string, timeIndex: number) => string;
+    handleSort: (jm: number, field: string) => void;
+    handleFilterChange: (jm: number, field: keyof FilterConfig, value: string) => void;
+    saving: boolean;
+    hasDataToSave: () => boolean;
+    handleSaveData: (performance: SharedPerformanceData | null, sharedData: SharedPerformanceData) => Promise<void>;
+}
+
 export interface BaseTabContextType {
-    dataHook: any; // Will be properly typed based on the actual hook return type
-    actionsHook: any; // Will be properly typed based on the actual hook return type
+    // ✅ RESOLVED: Replaced 'any' with specific hook return types
+    dataHook: DataHookReturnType;
+    actionsHook: ActionsHookReturnType;
     mInput: number;
 }
 

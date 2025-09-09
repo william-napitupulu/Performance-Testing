@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import type { FilterPayload } from './types';
 
 interface FilterValues {
     tag_no: string;
@@ -43,7 +44,7 @@ export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onF
     useEffect(() => {
         // Debounce the filter changes
         const timeoutId = setTimeout(() => {
-            const filters: any = {};
+            const filters: FilterPayload = {};
 
             if (filterValues.tag_no) filters.filter_tag_no = filterValues.tag_no;
             if (filterValues.description) filters.filter_description = filterValues.description;
@@ -58,7 +59,7 @@ export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onF
         }, 300);
 
         return () => clearTimeout(timeoutId);
-    }, [filterValues]);
+    }, [filterValues, onFilterChange]);
 
     const handleChange = (field: keyof FilterValues, value: string) => {
         setFilterValues((prev) => ({

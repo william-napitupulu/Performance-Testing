@@ -43,7 +43,7 @@ export const ManualInputProvider: React.FC<ManualInputProviderProps> = ({
         if (sharedData.dateTime && sharedData.perfId && dataHook.inputTags.length === 0) {
             dataHook.fetchInputTags(sharedData.dateTime, sharedData.perfId);
         }
-    }, [sharedData.dateTime, sharedData.perfId, dataHook.inputTags.length, dataHook.fetchInputTags]);
+    }, [sharedData.dateTime, sharedData.perfId, dataHook.inputTags.length, dataHook.fetchInputTags, dataHook]);
 
     return <ManualInputContext.Provider value={{ dataHook, actionsHook, mInput }}>{children}</ManualInputContext.Provider>;
 };

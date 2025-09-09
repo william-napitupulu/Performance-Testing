@@ -76,7 +76,6 @@ export function DataAnalysisContainer() {
         tab_names: {},
     });
     const [initializedFromPerfId, setInitializedFromPerfId] = useState(false);
-    const [dataFetched, setDataFetched] = useState(false);
     const [lastPerfId, setLastPerfId] = useState<number | undefined>();
     const [initialDataLoaded, setInitialDataLoaded] = useState(false);
     const [stablePerfId, setStablePerfId] = useState<number | undefined>();
@@ -104,9 +103,11 @@ export function DataAnalysisContainer() {
             setData(response.data.data || []);
             setApiResponse(response.data);
             console.log('Data table refetched successfully after manual save');
-        } catch (error: any) {
-            if (axios.isCancel && !axios.isCancel(error)) {
-                console.error('Error refetching data table:', error.message || error);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error refetching data table:', error.message);
+            } else {
+                console.error('An unexpected error occurred:', error);
             }
         }
     }, [stablePerfId]);
@@ -167,14 +168,15 @@ export function DataAnalysisContainer() {
                         setActiveTabCount(tabCount);
                         setData(resp.data.data || []);
                         setApiResponse(resp.data);
-                        setDataFetched(true);
                         setInitialDataLoaded(true);
                         setLastPerfId(perf.id);
                         setActiveTab('save-data');
                         console.log('Initial data loaded for performance:', perf.id);
-                    } catch (err: any) {
-                        if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
-                            console.error('Error loading performance:', err.message || err);
+                    } catch (err: unknown) {
+                        if (axios.isAxiosError(err)) {
+                            console.error('Error loading performance:', err.message);
+                        } else {
+                            console.error('An unexpected error occurred:', err);
                         }
                     } finally {
                         setLoading(false);
@@ -190,7 +192,6 @@ export function DataAnalysisContainer() {
         if (sharedData.perfId && sharedData.perfId !== lastPerfId && initialDataLoaded) {
             // Only reset if we're switching to a completely different performance AND we've already loaded initial data
             console.log('Performance ID changed from', lastPerfId, 'to', sharedData.perfId, '- resetting data');
-            setDataFetched(false);
             setInitialDataLoaded(false);
             setLastPerfId(sharedData.perfId);
         }
@@ -217,16 +218,17 @@ export function DataAnalysisContainer() {
             // Store the response data
             setData(response.data.data || []);
             setApiResponse(response.data);
-            setDataFetched(true);
             setInitialDataLoaded(true);
             setLastPerfId(response.data.perf_id);
 
             // Automatically switch to Save Data tab to show results
             setActiveTab('save-data');
             console.log('New performance data loaded:', response.data.perf_id);
-        } catch (error: any) {
-            if (error.name !== 'AbortError' && error.code !== 'ERR_CANCELED') {
-                console.error('Error creating performance test:', error.message || error);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error creating performance test:', error.message);
+            } else {
+                console.error('An unexpected error occurred:', error);
             }
         } finally {
             setLoading(false);
@@ -268,14 +270,11 @@ export function DataAnalysisContainer() {
 
                 setData(response.data.data || []);
                 setApiResponse(response.data);
-            } catch (error: any) {
-                if (
-                    error.name !== 'AbortError' &&
-                    error.code !== 'ERR_CANCELED' &&
-                    error.code !== 'ECONNABORTED' &&
-                    !(axios.isCancel && axios.isCancel(error))
-                ) {
-                    console.error('Error updating data:', error.message || error);
+            } catch (error: unknown) {
+                if (axios.isAxiosError(error) && error.code !== 'ECONNABORTED') {
+                    console.error('Error updating data:', error.message);
+                } else if (!axios.isAxiosError(error)) {
+                    console.error('An unexpected error occurred:', error);
                 }
             }
         },

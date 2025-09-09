@@ -3,7 +3,7 @@ import React from 'react';
 // COMMENTED OUT: Pagination icons no longer needed
 // import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { DataAnalysisFilters } from './DataAnalysisFilters';
-import type { AnalysisData, ApiResponse } from './types';
+import type { AnalysisData, ApiResponse, FilterPayload } from './types';
 
 interface DataAnalysisTableProps {
     data: AnalysisData[];
@@ -12,7 +12,7 @@ interface DataAnalysisTableProps {
     pagination: ApiResponse['pagination'];
     onSort: (field: string) => void;
     onPageChange?: (page: number) => void; // COMMENTED OUT: Made optional since pagination is disabled
-    onFilterChange: (filters: any) => void;
+    onFilterChange: (filters: FilterPayload) => void;
 }
 
 export const DataAnalysisTable = React.memo(function DataAnalysisTable({
@@ -21,7 +21,6 @@ export const DataAnalysisTable = React.memo(function DataAnalysisTable({
     sort,
     pagination,
     onSort,
-    onPageChange,
     onFilterChange,
 }: DataAnalysisTableProps) {
     const handleSort = (field: string) => {
@@ -61,22 +60,22 @@ export const DataAnalysisTable = React.memo(function DataAnalysisTable({
         }
     };
 
-    const formatDateTime = (dateString: string | null) => {
-        if (!dateString) return 'N/A';
-        try {
-            return new Date(dateString).toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false,
-            });
-        } catch {
-            return dateString;
-        }
-    };
+    // const formatDateTime = (dateString: string | null) => {
+    //     if (!dateString) return 'N/A';
+    //     try {
+    //         return new Date(dateString).toLocaleString('en-US', {
+    //             year: 'numeric',
+    //             month: '2-digit',
+    //             day: '2-digit',
+    //             hour: '2-digit',
+    //             minute: '2-digit',
+    //             second: '2-digit',
+    //             hour12: false,
+    //         });
+    //     } catch {
+    //         return dateString;
+    //     }
+    // };
 
     const headerBaseClasses =
         'group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors';

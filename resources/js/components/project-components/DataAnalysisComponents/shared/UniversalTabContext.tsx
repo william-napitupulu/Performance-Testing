@@ -3,6 +3,7 @@ import { useTab1Actions } from '../Tab1Components/hooks/useTab1Actions';
 import { useTab1Data } from '../Tab1Components/hooks/useTab1Data';
 import { SharedPerformanceData } from '../Tab1Components/types';
 import { UnifiedTabTemplate } from '../UnifiedTabTemplate';
+import { InputTagsData } from "./types";
 
 export interface UniversalTabContextType {
     dataHook: ReturnType<typeof useTab1Data>;
@@ -70,7 +71,7 @@ export const useUniversalTabContext = () => {
 export const createUniversalTabComponent = (tabNumber: number) => {
     return React.memo(function UniversalTabComponent(props: {
         sharedData: SharedPerformanceData;
-        inputTagsData?: any;
+        inputTagsData?: InputTagsData;
         onDataSaved?: () => Promise<void>;
     }) {
         return (

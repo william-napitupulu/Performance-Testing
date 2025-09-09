@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Activity, AlertCircle, BarChart3, CheckCircle, Clock, Database, Download, FileText, Play, TrendingUp, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { AnalysisData } from "./types";
 
 interface SharedPerformanceData {
     description: string;
@@ -33,7 +34,7 @@ interface RunTabProps {
     onRunAnalysis?: () => void;
     sharedData?: SharedPerformanceData;
     // Data from DATA DCS
-    dcsData?: any[];
+    dcsData?: AnalysisData[];
     // Input data for all tabs (to check if manual inputs are filled)
     tabInputData?: Record<string, TabInputData>;
     // Total records from save data tab
@@ -143,9 +144,12 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
             if (onRunAnalysis) {
                 onRunAnalysis();
             }
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.message || 'An error occurred while running the analysis.';
-            setRunResult({success: false, message: errorMessage});
+        } catch (error: unknown) {
+            let errorMessage = 'An error occurred while running the analysis.';
+            if (axios.isAxiosError(error) && error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            setRunResult({ success: false, message: errorMessage });
             console.error('Error running analysis:', error);
             alert('Failed to run analysis. Please try again.');
         } finally {
@@ -186,7 +190,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Export error:', error);
             alert('Failed to export Excel file. Please try again.');
         } finally {

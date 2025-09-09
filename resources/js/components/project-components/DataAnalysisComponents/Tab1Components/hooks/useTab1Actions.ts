@@ -1,7 +1,16 @@
 import axios from 'axios';
 import { useState } from 'react';
-import { FilterConfig, InputTag, SortConfig } from '../types';
+import { FilterConfig, InputTag, SharedPerformanceData, SortConfig } from '../types';
 import { getFilteredAndSortedTags } from '../utils';
+
+interface PerformanceObject {
+    perf_id: number;
+}
+
+interface SaveResponse {
+    success: boolean;
+    message?: string;
+}
 
 interface UseTab1ActionsProps {
     inputValuesByJm: { [jm: number]: { [key: string]: string } };
@@ -25,7 +34,6 @@ export const useTab1Actions = ({
     setSortConfigByJm,
     filtersByJm,
     setFiltersByJm,
-    inputTags,
     groupedTags,
     groupedSlots,
     dateTime,
@@ -75,7 +83,7 @@ export const useTab1Actions = ({
     };
 
     // Save manual input data
-    const handleSaveData = async (selectedPerformance: any, sharedData: any): Promise<boolean> => {
+    const handleSaveData = async (selectedPerformance: PerformanceObject | null, sharedData: SharedPerformanceData): Promise<boolean> => {
         const activePerf = selectedPerformance || (sharedData.perfId ? { perf_id: sharedData.perfId } : null);
         if (!activePerf) {
             alert('No performance ID available. Please select a performance test first.');
@@ -147,7 +155,7 @@ export const useTab1Actions = ({
 
         setSaving(true);
         try {
-            const response = await axios.post('/api/data-analysis/save-manual-input', {
+            const response = await axios.post<SaveResponse>('/api/data-analysis/save-manual-input', {
                 data: dataToSave,
             });
 
@@ -164,12 +172,17 @@ export const useTab1Actions = ({
             } else {
                 throw new Error(response.data.message || 'Failed to save data');
             }
-        } catch (error: any) {
-            // Only log actual errors (not aborts/cancellations) to console
-            if (error.name !== 'AbortError' && error.code !== 'ERR_CANCELED') {
+        } catch (error: unknown) {
+            // Check if it's an Axios error and if it's a cancellation error
+            if (axios.isAxiosError(error) && error.code === 'ERR_CANCELED') {
+                // This is a cancellation, so we can ignore it silently.
+            } else if (error instanceof Error && error.name === 'AbortError') {
+                // This is another type of cancellation, ignore silently.
+            } else {
+                // This is a different, actual error that should be reported.
                 console.error('Error saving data:', error);
+                alert('Failed to save data. Please try again.');
             }
-            alert('Failed to save data. Please try again.');
         } finally {
             setSaving(false);
         }

@@ -1,5 +1,17 @@
 import { FilterConfig, InputTag, SortConfig } from './types';
 
+type SortableField = 'tag_no' | 'description' | 'unit_name';
+
+type ExistingInputs = Record<
+    string,
+    {
+        value: number | null;
+        // Including other potential properties for a complete type definition
+        tag_no?: string;
+        date_rec?: string;
+    }
+>;
+
 // Calculate time headers and slots
 export const calculateTimeHeaders = (baseTime: string, jmInput: number) => {
     if (!baseTime || !jmInput || jmInput <= 0) {
@@ -52,10 +64,11 @@ export const getFilteredAndSortedTags = (jm: number, tags: InputTag[], filters: 
 
     // Apply sorting
     filtered.sort((a, b) => {
+        const field = sortConfig.field as SortableField;
         let aValue: string | number = '';
         let bValue: string | number = '';
 
-        switch (sortConfig.field) {
+        switch (field) {
             case 'tag_no':
                 aValue = a.tag_no || '';
                 bValue = b.tag_no || '';
@@ -88,7 +101,7 @@ export const getFilteredAndSortedTags = (jm: number, tags: InputTag[], filters: 
 // Process existing inputs for pre-population
 export const processExistingInputs = (
     processedTags: InputTag[],
-    existingInputs: any,
+    existingInputs: ExistingInputs,
     selectedDateTime: string,
     calculateTimeHeaders: (dateTime: string, jm: number) => { headers: string[]; slots: Date[] },
 ) => {

@@ -1,7 +1,26 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { FilterConfig, InputTag, PerformanceRecord, SharedPerformanceData, SortConfig } from '../types';
+import { FilterConfig, InputTag, PerformanceRecord, SharedPerformanceData, SortConfig, InputTagsData } from '../types';
 import { calculateTimeHeaders, groupTagsByJmInput, processExistingInputs } from '../utils';
+
+
+// ✅ DEFINED: Specific types for API responses
+interface PerformanceRecordsResponse {
+    success: boolean;
+    performances: PerformanceRecord[];
+}
+
+interface InputTagsResponse extends InputTagsData {
+    success: boolean;
+    message?: string;
+}
+
+// ✅ DEFINED: Specific type for API request parameters
+interface InputTagParams {
+    datetime: string;
+    perf_id?: number;
+    m_input?: number;
+}
 
 export const useTab1Data = (
     sharedData: SharedPerformanceData,
@@ -55,7 +74,7 @@ export const useTab1Data = (
                 // Don't fetch input tags here - use passed data instead
             }
         }
-    }, [sharedData.perfId, performanceRecords, selectedPerformance]);
+    }, [sharedData.perfId, performanceRecords, selectedPerformance, sharedData.dateTime]);
 
     // Process passed input tags data
     useEffect(() => {
@@ -93,15 +112,17 @@ export const useTab1Data = (
     // Fetch all performance tests
     const fetchPerformanceRecords = async () => {
         try {
-            const response = await axios.get('/api/performance-records');
+            // ✅ TYPED: Added generic for the expected response type
+            const response = await axios.get<PerformanceRecordsResponse>('/api/performance-records');
             if (response.data.success) {
                 setPerformanceRecords(response.data.performances);
             }
-        } catch (error: any) {
-            // Only log actual errors (not aborts/cancellations) to console
-            if (error.name !== 'AbortError' && error.code !== 'ERR_CANCELED') {
-                console.error('Error fetching performance records:', error);
+        // ✅ RESOLVED: Using 'unknown' and a type guard for safe error handling
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error) && error.code === 'ERR_CANCELED') {
+                return; // Ignore cancellation errors
             }
+            console.error('Error fetching performance records:', error);
         }
     };
 
@@ -129,7 +150,7 @@ export const useTab1Data = (
         }, 10000);
 
         try {
-            const params: any = {
+            const params: InputTagParams = {
                 datetime: selectedDateTime,
                 perf_id: performanceId || sharedData.perfId,
             };
@@ -138,7 +159,7 @@ export const useTab1Data = (
                 params.m_input = mInput;
             }
 
-            const response = await axios.get('/api/input-tags', {
+            const response = await axios.get<InputTagsResponse>('/api/input-tags', {
                 params,
                 signal: abortController.signal,
             });
@@ -148,7 +169,8 @@ export const useTab1Data = (
             }
 
             const rawTags = Array.isArray(response.data.input_tags) ? response.data.input_tags : [];
-            const processedTags = rawTags.map((tag: any) => ({
+            const processedTags = rawTags.map((tag) => ({
+                ...tag,
                 tag_no: tag?.tag_no ?? '',
                 description: tag?.description ?? '',
                 unit_name: tag?.unit_name ?? '',
@@ -175,18 +197,13 @@ export const useTab1Data = (
             // Clear timeout since we got a response
             clearTimeout(timeoutId);
             setLoading(false);
-        } catch (error: any) {
-            // Clear timeout first
+        } catch (error: unknown) {
             clearTimeout(timeoutId);
 
-            // Check if error is due to abort (timeout)
-            if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
-                // Don't log timeout errors to console - this is expected behavior
-                // Don't modify state here since timeout callback already handled it
-                return;
+            if (axios.isAxiosError(error) && error.code === 'ERR_CANCELED') {
+                return; // Ignore cancellation errors (timeout)
             }
 
-            // Only log actual errors (not timeouts) to console
             console.error('Error fetching input tags:', error);
             setInputTags([]);
             setGroupedTags({});

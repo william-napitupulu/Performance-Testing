@@ -13,6 +13,17 @@ export interface AnalysisData {
     date_rec?: string | null;
 }
 
+export type FilterPayload = {
+    filter_tag_no?: string;
+    filter_description?: string;
+    filter_min_from?: string;
+    filter_min_to?: string;
+    filter_max_from?: string;
+    filter_max_to?: string;
+    filter_average_from?: string;
+    filter_average_to?: string;
+};
+
 export interface AnalysisFormData {
     description: string;
     dateTime: string;

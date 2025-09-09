@@ -1,7 +1,7 @@
 import { AlertTriangle, BarChart3, Calendar, Database, Hash } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { DataAnalysisTable } from './DataAnalysisTable';
-import type { AnalysisData, ApiResponse } from './types';
+import type { AnalysisData, ApiResponse, FilterPayload } from './types';
 
 interface SharedPerformanceData {
     description: string;
@@ -40,7 +40,7 @@ interface SaveDataTabProps {
  * and removing null/undefined/empty values.
  */
 const prepareFilterParams = (filters: ApiResponse['filters']) => {
-    const params: Record<string, any> = {};
+    const params: Record<string, string> = {};
     for (const key in filters) {
         const filterKey = key as keyof ApiResponse['filters'];
         if (filters[filterKey] !== null && filters[filterKey] !== undefined && filters[filterKey] !== '') {
@@ -63,7 +63,7 @@ export const SaveDataTab = React.memo(function SaveDataTab({ data, pagination, f
                 perf_id: sharedData.perfId,
             });
         },
-        [sort, filters, sharedData.perfId],
+        [sort, filters, sharedData.perfId, onDataUpdate],
     );
 
     console.log(pagination);
@@ -79,7 +79,7 @@ export const SaveDataTab = React.memo(function SaveDataTab({ data, pagination, f
     // }, [sort, filters, sharedData.perfId]);
 
     const handleFilterChange = useCallback(
-        async (filterParams: any) => {
+        async (filterParams: FilterPayload) => {
             await onDataUpdate({
                 ...filterParams,
                 sort_field: sort.field,
@@ -89,7 +89,7 @@ export const SaveDataTab = React.memo(function SaveDataTab({ data, pagination, f
                 perf_id: sharedData.perfId,
             });
         },
-        [sort, sharedData.perfId],
+        [sort, sharedData.perfId, onDataUpdate],
     );
 
     return (

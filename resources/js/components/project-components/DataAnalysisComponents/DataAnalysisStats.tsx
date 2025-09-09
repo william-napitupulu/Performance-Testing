@@ -61,23 +61,23 @@ export function DataAnalysisStats({ data, performance }: DataAnalysisStatsProps)
 
     const stats = calculateStats();
 
-    const getLatestDate = () => {
-        if (data.length === 0) return 'N/A';
-        const validDates = data
-            .map((item) => item.date_rec)
-            .filter((date): date is string => !!date)
-            .map((date) => new Date(date))
-            .filter((date) => !isNaN(date.getTime()));
+    // const getLatestDate = () => {
+    //     if (data.length === 0) return 'N/A';
+    //     const validDates = data
+    //         .map((item) => item.date_rec)
+    //         .filter((date): date is string => !!date)
+    //         .map((date) => new Date(date))
+    //         .filter((date) => !isNaN(date.getTime()));
 
-        if (validDates.length === 0) return 'N/A';
+    //     if (validDates.length === 0) return 'N/A';
 
-        const latest = new Date(Math.max(...validDates.map((d) => d.getTime())));
-        return latest.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    };
+    //     const latest = new Date(Math.max(...validDates.map((d) => d.getTime())));
+    //     return latest.toLocaleDateString('en-US', {
+    //         year: 'numeric',
+    //         month: 'short',
+    //         day: 'numeric',
+    //     });
+    // };
 
     return (
         <div className="space-y-4">
