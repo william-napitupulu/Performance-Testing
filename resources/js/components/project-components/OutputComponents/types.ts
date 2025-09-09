@@ -40,3 +40,24 @@ export interface ApiResponse {
         report_download_url?: string | null;
     };
 }
+
+export interface Reference {
+    reff_id: number;
+    description: string;
+    is_default: 1 | 0;
+}
+
+export interface ChartDataPoint {
+    description: string; // Add the required 'description' property
+    value: number;       // Add the required 'value' property
+    contribution: number;
+    cumulative: number;
+}
+
+export interface ReferencesApiResponse {
+    data: Reference[];
+}
+
+export interface ChartApiResponse {
+    data: ChartDataPoint[];
+}

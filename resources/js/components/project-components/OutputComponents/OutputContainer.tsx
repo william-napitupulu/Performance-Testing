@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AlignLeft, ArrowLeft, BarChart2 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { OutputDataTab } from './OutputDataTab';
-import type { OutputData, ApiResponse } from './types';
+import type { OutputData, ApiResponse, ReferencesApiResponse, ChartApiResponse, ChartDataPoint, Reference } from './types';
 import { ParetoChartTab } from "./ParetoTab";
 import { ParetoChartTab2 } from "./ParetoTab2";
 
@@ -37,9 +37,11 @@ export function OutputContainer() {
         description: '',
         dateTime: '',
     });
-    const [chartData, setChartData] = useState([]);
+    // ✅ TYPED: useState now has a specific type
+    const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const [chartLoading, setChartLoading] = useState(true);
-    const [references, setReferences] = useState([]);
+    // ✅ TYPED: useState now has a specific type
+    const [references, setReferences] = useState<Reference[]>([]);
     const [selectedRefId, setSelectedRefId] = useState<number | null>(null);
 
     const [apiResponse, setApiResponse] = useState<ApiResponse>({
@@ -69,18 +71,19 @@ export function OutputContainer() {
 
     const fetchReferences = async () => {
         try {
-            const response = await axios.get('/api/output/references');
+            // ✅ TYPED: axios call now expects a specific response shape
+            const response = await axios.get<ReferencesApiResponse>('/api/output/references');
             const refs = response.data.data || [];
             setReferences(refs);
 
-            // Find the default reference and set it as the initial selection
             const defaultRef = refs.find(ref => ref.is_default === 1);
             if (defaultRef) {
                 setSelectedRefId(defaultRef.reff_id);
             } else if (refs.length > 0) {
                 setSelectedRefId(refs[0].reff_id);
             }
-        } catch (error) {
+        // ✅ RESOLVED: Safe error handling
+        } catch (error: unknown) {
             console.error("Failed to fetch references:", error);
         }
     };
@@ -89,11 +92,13 @@ export function OutputContainer() {
         if (!perfId || !refId) return;
         setChartLoading(true);
         try {
-            const response = await axios.get(`/api/output/pareto/${perfId}/${refId}`);
+            // ✅ TYPED: axios call now expects a specific response shape
+            const response = await axios.get<ChartApiResponse>(`/api/output/pareto/${perfId}/${refId}`);
             setChartData(response.data.data || []);
-        } catch (error) {
+        // ✅ RESOLVED: Safe error handling
+        } catch (error: unknown) {
             console.error('Error fetching chart data:', error);
-            setChartData([]); // Reset on error
+            setChartData([]);
         } finally {
             setChartLoading(false);
         }
@@ -122,7 +127,7 @@ export function OutputContainer() {
         };
 
         try {
-            const response = await axios.get('/api/output/details/data', { params: apiParams });
+            const response = await axios.get<ApiResponse>('/api/output/details/data', { params: apiParams });
             const { data: responseData, performance } = response.data;
 
             setData(responseData || []);
@@ -167,13 +172,13 @@ export function OutputContainer() {
         };
 
         initializeData();
-    }, []);
+    }, [fetchData]);
 
     useEffect(() => {
         if (performanceId && selectedRefId) {
             fetchChartData(performanceId, selectedRefId);
         }
-    }, [performanceId, selectedRefId]);
+    }, [performanceId, selectedRefId, fetchChartData]);
 
     const handleReferenceChange = (refId: string) => {
         setSelectedRefId(Number(refId));
