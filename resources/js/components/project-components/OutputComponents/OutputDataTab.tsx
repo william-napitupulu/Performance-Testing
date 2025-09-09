@@ -154,10 +154,6 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                         {performance ? new Date(performance.date_perfomance).toLocaleString('en-GB') : 'N/A'}
                                     </span>
                                 </div>
-                                <div className="flex items-center">
-                                    <span className="w-28 text-sm font-semibold text-gray-500 dark:text-gray-400">Total Records</span>
-                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{pagination?.total || 0}</span>
-                                </div>
                                 <div className="flex items-start">
                                     <span className="w-28 flex-shrink-0 text-sm font-semibold text-gray-500 dark:text-gray-400">Description</span>
                                     <p className="text-sm text-gray-800 dark:text-gray-200">{performance?.description || 'No description provided.'}</p>
