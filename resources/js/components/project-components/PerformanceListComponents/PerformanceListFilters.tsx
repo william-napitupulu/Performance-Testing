@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Performance } from '@/data/mockPerformanceData';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarDropdown } from './CalendarDropdown';
 
 interface SearchValues {
@@ -33,15 +33,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
     });
 
     // Get unique units for the filter
-    const uniqueUnits = Array.from(new Set(performances.map((p) => p.unit_name || ''))).filter(Boolean) as string[];
-    const [unitFilter, setUnitFilter] = useState<string>('all');
-
-    const [showPerformanceDateCalendar, setShowPerformanceDateCalendar] = useState(false);
-    const [showCreatedDateCalendar, setShowCreatedDateCalendar] = useState(false);
-    const performanceInputRef = useRef<HTMLInputElement>(null);
-    const createdInputRef = useRef<HTMLInputElement>(null);
-    const [performanceCalPos, setPerformanceCalPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-    const [createdCalPos, setCreatedCalPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+    const [unitFilter] = useState<string>('all');
 
     useEffect(() => {
         let filtered = [...performances];
@@ -100,31 +92,6 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
             [field]: value,
         }));
     };
-
-    const clearFilters = () => {
-        setSearchValues({
-            id: '',
-            description: '',
-            status: '',
-            date_perfomance: '',
-            date_created: '',
-            unit_name: '',
-            type: '',
-            weight: '',
-        });
-        setUnitFilter('all');
-    };
-
-    const hasActiveFilters =
-        searchValues.id ||
-        searchValues.description ||
-        searchValues.status ||
-        searchValues.date_perfomance ||
-        searchValues.date_created ||
-        searchValues.unit_name ||
-        searchValues.type ||
-        searchValues.weight ||
-        unitFilter !== 'all';
 
     return (
         <tr className="overflow-visible border-b bg-blue-50/30 dark:border-gray-800 dark:bg-blue-900/10">

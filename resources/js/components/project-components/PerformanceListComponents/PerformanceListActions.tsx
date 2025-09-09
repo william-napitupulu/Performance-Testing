@@ -21,12 +21,10 @@ export function PerformanceListActions({
     newForm,
     showTooltip,
     tooltipMessage,
-    selectedUnitName,
     onAddNew,
     onCancelAdd,
     onNewFormChange,
     onAddFromServer,
-    setIsAddingNew,
 }: PerformanceListActionsProps) {
     return (
         <div className="mt-4">

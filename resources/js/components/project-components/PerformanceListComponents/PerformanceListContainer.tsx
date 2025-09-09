@@ -119,7 +119,6 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setDeletingIds(prev => new Set(prev).add(id));
 
         // Store the item for potential rollback
-        const deletedItem = performance;
         const originalPerformances = [...performances];
         const originalFilteredData = [...filteredData];
 
