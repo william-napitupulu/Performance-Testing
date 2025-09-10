@@ -24,7 +24,7 @@ interface Props {
     load_units_url: string;
 }
 
-export default function SelectUnit({ units, user, units_count, load_units_url }: Props) {
+export default function SelectUnit({ units, load_units_url }: Props) {
     const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLogoutSubmitting, setIsLogoutSubmitting] = useState(false);
@@ -84,6 +84,7 @@ export default function SelectUnit({ units, user, units_count, load_units_url }:
         } else {
             loadUnits();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleUnitChange = (value: string) => {

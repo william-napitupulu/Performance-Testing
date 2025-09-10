@@ -11,7 +11,7 @@ interface PerformanceListContainerProps {
     error?: string;
 }
 
-export function PerformanceOutputContainer({ initialPerformances, selectedUnitName, error }: PerformanceListContainerProps) {
+export function PerformanceOutputContainer({ initialPerformances, error }: PerformanceListContainerProps) {
     const [performances, setPerformances] = useState<Performance[]>(initialPerformances);
     const [filteredData, setFilteredData] = useState<Performance[]>(initialPerformances);
     const [sortField, setSortField] = useState<keyof Performance | null>(null);

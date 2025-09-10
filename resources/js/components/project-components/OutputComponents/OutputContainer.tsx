@@ -172,7 +172,8 @@ export function OutputContainer() {
         };
 
         initializeData();
-    }, [fetchData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (performanceId && selectedRefId) {

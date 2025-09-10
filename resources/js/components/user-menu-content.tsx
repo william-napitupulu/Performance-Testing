@@ -1,9 +1,9 @@
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { type User } from '@/types';
+import { type User, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Building2, LogOut, Settings } from 'lucide-react';
+import { Building2, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 interface UserMenuContentProps {
@@ -13,8 +13,12 @@ interface UserMenuContentProps {
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const { props } = usePage();
-    const session = (props as any).session || {};
+    
+    // ✅ FIX: Provide the shared props type to the usePage hook
+    const { props } = usePage<SharedData>();
+    
+    // ✅ FIX: Access props safely without 'as any'
+    const session = props.session || {};
     const currentUnitName = session.current_unit_name || 'No Unit Selected';
 
     const handleLogout = () => {

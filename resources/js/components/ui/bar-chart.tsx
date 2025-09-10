@@ -9,6 +9,9 @@ import {
   Legend,
   ChartOptions,
   ChartData,
+  ChartEvent,
+  ActiveElement,
+  TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
@@ -64,7 +67,7 @@ export interface BarChartProps {
   customOptions?: Partial<ChartOptions<'bar'>>;
   
   // Event handlers
-  onBarClick?: (event: any, elements: any[], chart: any) => void;
+  onBarClick?: (event: ChartEvent, elements: ActiveElement[], chart: ChartJS) => void;
 }
 
 export function BarChart({
@@ -149,7 +152,7 @@ export function BarChart({
           color: isDarkMode ? '#e5e7eb' : '#374151',
           font: {
             size: 12,
-            weight: '500',
+            weight: 500,
           },
           padding: 16,
           usePointStyle: true,
@@ -187,10 +190,10 @@ export function BarChart({
         },
         displayColors: true,
         callbacks: {
-          label: function(context) {
-            const label = context.dataset.label || '';
-            const value = context.parsed.y || context.parsed.x;
-            return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
+          label: function (context: TooltipItem<'bar'>) {
+              const label = context.dataset.label || '';
+              const value = context.parsed.y ?? context.parsed.x;
+              return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
           },
         },
       },
@@ -205,7 +208,7 @@ export function BarChart({
           color: isDarkMode ? '#d1d5db' : '#6b7280',
           font: {
             size: 12,
-            weight: '600',
+            weight: 600,
           },
           padding: {
             top: 10,
@@ -236,7 +239,7 @@ export function BarChart({
           color: isDarkMode ? '#d1d5db' : '#6b7280',
           font: {
             size: 12,
-            weight: '600',
+            weight: 600,
           },
           padding: {
             bottom: 10,
@@ -247,15 +250,16 @@ export function BarChart({
           font: {
             size: 11,
           },
-          callback: function(tickValue) {
-            const value = tickValue as number;
-            // Format large numbers
-            if (Math.abs(value) >= 1000000) {
-              return (value / 1000000).toFixed(1) + 'M';
-            } else if (Math.abs(value) >= 1000) {
-              return (value / 1000).toFixed(1) + 'K';
-            }
-            return value.toLocaleString();
+          callback: function (tickValue: string | number) {
+              const value = typeof tickValue === 'string' ? parseFloat(tickValue) : tickValue;
+              if (isNaN(value)) return tickValue;
+              
+              if (Math.abs(value) >= 1000000) {
+                  return (value / 1000000).toFixed(1) + 'M';
+              } else if (Math.abs(value) >= 1000) {
+                  return (value / 1000).toFixed(1) + 'K';
+              }
+              return value.toLocaleString();
           },
         },
         grid: {
@@ -272,9 +276,6 @@ export function BarChart({
     interaction: {
       intersect: false,
       mode: 'index',
-    },
-    hover: {
-      animationDuration: 150,
     },
     ...customOptions,
   };

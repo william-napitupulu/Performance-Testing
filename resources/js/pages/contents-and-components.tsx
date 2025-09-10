@@ -2,6 +2,7 @@ import { BarChart, BarChartDataset } from '@/components/ui/bar-chart';
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
+import { ActiveElement, Chart as ChartJS, ChartEvent } from "chart.js";
 
 export default function ContentsAndComponents() {
     // Sample data for different chart examples
@@ -58,13 +59,13 @@ export default function ContentsAndComponents() {
         ] as BarChartDataset[],
     };
 
-    const handleBarClick = (event: any, elements: any[], chart: any) => {
+    const handleBarClick = (event: ChartEvent, elements: ActiveElement[], chart: ChartJS) => {
         if (elements.length > 0) {
             const element = elements[0];
             const datasetIndex = element.datasetIndex;
             const dataIndex = element.index;
             const dataset = chart.data.datasets[datasetIndex];
-            const label = chart.data.labels[dataIndex];
+            const label = chart.data.labels?.[dataIndex];
             const value = dataset.data[dataIndex];
 
             alert(`Clicked on: ${dataset.label}\nLabel: ${label}\nValue: ${value}`);

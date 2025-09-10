@@ -14,6 +14,7 @@ type LoginForm = {
     username: string;
     password: string;
     remember: boolean;
+    _token?: string; // CSRF token
 };
 
 interface LoginProps {
@@ -22,7 +23,7 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
+    const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
         username: '',
         password: '',
         remember: false,
@@ -33,7 +34,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
         // Ensure CSRF token is present in the payload (handles very first request after logout)
         const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-        setData('_token' as any, csrfToken);
+        setData('_token', csrfToken);
 
         post(route('login'), {
             onFinish: () => reset('password'),

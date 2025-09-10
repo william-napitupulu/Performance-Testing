@@ -1,8 +1,11 @@
 import { ApiResponse } from '@/components/project-components/DataAnalysisComponents/types';
 
-export async function makeApiCall<T = ApiResponse>(
+export async function makeApiCall<
+    T = ApiResponse,
+    U = Record<string, unknown>
+>(
     url: string,
-    data: Record<string, any>,
+    data: U,
     options: {
         showSuccessAlert?: boolean;
         customSuccessMessage?: string;
