@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Activity, AlertTriangle, BookOpen, Folder, Moon, PackageIcon, Sun, ChartPie } from 'lucide-react';
+import { Activity, /*AlertTriangle, BookOpen, Folder, PackageIcon,*/ Moon, Sun, ChartPie } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -19,11 +19,11 @@ const mainNavItems: NavItem[] = [
         href: '/output/performance',
         icon: ChartPie,
     },
-    {
-        title: 'Contents and components',
-        href: '/contents',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Contents and components',
+    //     href: '/contents',
+    //     icon: BookOpen,
+    // },
 
     // {
 
@@ -34,21 +34,21 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/william-napitupulu/Performance-Testing',
-        icon: Folder,
-    },
-    {
-        title: 'Framework Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-    {
-        title: 'Documentation',
-        href: '/documentation',
-        icon: PackageIcon,
-    },
+    // {
+    //     title: 'Repository',
+    //     href: 'https://github.com/william-napitupulu/Performance-Testing',
+    //     icon: Folder,
+    // },
+    // {
+    //     title: 'Framework Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits#react',
+    //     icon: BookOpen,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: '/documentation',
+    //     icon: PackageIcon,
+    // },
     
 ];
 
