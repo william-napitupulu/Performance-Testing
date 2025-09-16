@@ -1,10 +1,12 @@
-import { AlertTriangle, BarChart3, Download, Info, PlusCircle } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import { AlertTriangle, BarChart3, Download, Info, Save } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { OutputTable } from './OutputTable';
 import type { OutputData, ApiResponse } from './types';
 import { Button } from "@/components/ui/button";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface SharedPerformanceData {
     description: string;
@@ -40,23 +42,24 @@ export const OutputDataTab = React.memo(function OutputDataTab({
     const performance = apiResponse.performance;
 
     const [isCreating, setIsCreating] = useState(false);
+    const [newBaselineDesc, setNewBaselineDesc] = useState('');
+    const [newBaselineKeterangan, setNewBaselineKeterangan] = useState('');
+
+    useEffect(() => {
+        if (performance) {
+
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear().toString().slice(-2);
+            setNewBaselineDesc(`Baseline (${performance.id}) (${day}-${month}-${year})`);
+            setNewBaselineKeterangan(`Created from performance test on ${new Date(performance.date_perfomance).toLocaleDateString()}`);
+        }
+    }, [performance]);
 
     const handleCreateBaseline = async () => {
-        if (!performance) return;
-
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear().toString().slice(-2);
-
-        const newBaselineName = `Baseline ${performance.id} ${day}-${month}-${year}`;
-
-        const isConfirmed = window.confirm(
-            `Are you sure you want to create a new baseline named "${newBaselineName}"?`
-        );
-
-        if (!isConfirmed) {
-            toast.info("Baseline creation cancelled.");
+        if (!performance || !newBaselineDesc) {
+            toast.error("Baseline descripiton cannot be empty.");
             return;
         }
 
@@ -64,7 +67,8 @@ export const OutputDataTab = React.memo(function OutputDataTab({
         try {
             const response = await axios.post(route('api.output.create-baseline'), {
                 performance_id: performance.id,
-                description: newBaselineName,
+                description: newBaselineDesc,
+                keterangan: newBaselineKeterangan,
             });
 
             toast.success(response.data.message || "Baseline created successfully!");
@@ -170,20 +174,39 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                         </a>
                                     </Button>
                                 )}
-                                <Button
-                                    onClick={handleCreateBaseline}
-                                    disabled={isCreating}
-                                    variant="outline"
-                                    size="lg"
-                                    className="group w-full md:w-auto px-4 py-2 text-sm"
-                                >
-                                    {isCreating ? 'Creating...' : (
-                                        <>
-                                            <PlusCircle className="mr-2 h-4 w-4"/>
-                                            Create Baseline
-                                        </>
-                                    )}
-                                </Button>
+                                <div className="space-y-3 rounded-lg border bg-slate-50 p-4 dark:bg-slate-800/50 dark:border-slate-700">
+                                    <h4 className="font-semibold text-sm text-gray-800 dark:text-gray-200">Create New Baseline</h4>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="baseline-desc">Description</Label>
+                                        <Input 
+                                            id="baseline-desc"
+                                            value={newBaselineDesc}
+                                            onChange={(e) => setNewBaselineDesc(e.target.value)}
+                                            placeholder="Enter baseline name..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="baseline-ket">Notes (Keterangan)</Label>
+                                        <Input 
+                                            id="baseline-ket"
+                                            value={newBaselineKeterangan}
+                                            onChange={(e) => setNewBaselineKeterangan(e.target.value)}
+                                            placeholder="Optional notes..."
+                                        />
+                                    </div>
+                                    <Button
+                                        onClick={handleCreateBaseline}
+                                        disabled={isCreating || !newBaselineDesc}
+                                        className="w-full"
+                                    >
+                                        {isCreating ? 'Saving...' : (
+                                            <>
+                                                <Save className="mr-2 h-4 w-4"/>
+                                                Save as Baseline
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>

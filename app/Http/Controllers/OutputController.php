@@ -236,6 +236,7 @@ class OutputController extends Controller
         $validated = $request->validate([
             'performance_id' => 'required|integer|exists:tb_performance,perf_id',
             'description' => 'required|string|max:255',
+            'keterangan' => 'nullable|string|max:255',
         ]);
 
         $performanceId = $validated['performance_id'];
@@ -247,7 +248,7 @@ class OutputController extends Controller
         try {
             $newReference = Refference::create([
                 'description' => $description,
-                'keterangan' => 'Baseline created from Performance ID: ' . $performanceId,
+                'keterangan' => $validated['keterangan'] ?? 'Baseline created from Performance ID: ' . $performanceId,
                 'unit_id' => $selectedUnitId,
                 'is_default' => 0,
             ]);
