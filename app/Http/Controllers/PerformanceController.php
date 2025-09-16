@@ -224,22 +224,33 @@ class PerformanceController extends Controller
 
             $performance = Performance::forUnit($selectedUnit)->findOrFail($id);
 
-            // Delete related manual input data
-            DB::table('tb_input')->where('perf_id', $performance->perf_id)->delete();
+            $isReferenced = DB::table('tb_refference')
+                ->where('perf_id', $performance->perf_id)
+                ->exists();
+
+            if ($isReferenced) {
+                return redirect()->back()->with('error', 'Cannot delete: This performance record is used as a baseline.');
+            }
 
             // Only allow deleting if status is Editable
             if ($performance->status !== Performance::STATUS_EDITABLE) {
                 return response()->json(['error' => 'Cannot delete locked performance record'], 403);
             }
 
-            $performance->delete();
+            DB::transaction(function () use ($performance) {
+                DB::table('tb_input')->where('perf_id', $performance->perf_id)->delete();
+
+                DB::table('tb_output')->where('perf_id', $performance->perf_id)->delete();
+                
+                $performance->delete();
+            });
 
             Log::info('Performance record deleted', [
                 'perf_id' => $id,
                 'unit_id' => $selectedUnit
             ]);
 
-            return back()->with('success', 'Performance record deleted successfully');
+            return back()->with('success', 'Performance record and all related data deleted successfully');
 
         } catch (\Exception $e) {
             Log::error('Error deleting performance record', [
