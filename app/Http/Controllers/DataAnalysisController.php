@@ -207,7 +207,7 @@ class DataAnalysisController extends Controller
                 'perf_id' => $result['perf_id']
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::error('Validation error in getInputTags:', [
                 'errors' => $e->errors()
             ]);
@@ -408,7 +408,7 @@ class DataAnalysisController extends Controller
                 'total_processed' => $result['total_processed']
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::error('Validation error in saveManualInput:', [
                 'errors' => $e->errors()
             ]);
@@ -493,7 +493,7 @@ class DataAnalysisController extends Controller
     }
 
     public function runAnalysis(Performance $performance) {
-        RunExcelAnalysis::dispatch($performance->perf_id);
+        RunExcelAnalysis::dispatch($performance->perf_id, $performance->unit_id);
 
         // Redis::publish('analysis-jobs', 'new_job_available');
         return back()->with('status', 'Your analysis has been successfully queued and will be processed shortly.');

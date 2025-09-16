@@ -13,13 +13,15 @@ class RunExcelAnalysis implements ShouldQueue
     use Queueable, Dispatchable, InteractsWithQueue, SerializesModels;
 
     public $performanceId;
+    public int $unitId;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(int $performanceId)
+    public function __construct(int $performanceId, int $unitId)
     {
         $this->performanceId = $performanceId;
+        $this->unitId = $unitId;
     }
 
     /**
