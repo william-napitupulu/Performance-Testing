@@ -143,4 +143,8 @@ class Performance extends Model
     {
         return $this->hasMany(Output::class, 'perf_id', 'perf_id');
     }
+
+    public function reference() {
+        return $this->hasOne(Refference::class, 'perf_id', 'perf_id');
+    }
 }

@@ -1,7 +1,7 @@
 import { Performance } from '@/data/mockPerformanceData';
 import { getCurrentDateString } from '@/utils';
 import { router } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PerformanceListActions } from './PerformanceListActions';
 import { PerformanceListTable } from './PerformanceListTable';
 import { useToast, ToastContainer } from '@/components/ui/toast';
@@ -14,7 +14,6 @@ interface PerformanceListContainerProps {
 }
 
 export function PerformanceListContainer({ initialPerformances, selectedUnit, selectedUnitName, error }: PerformanceListContainerProps) {
-    const [performances, setPerformances] = useState<Performance[]>(initialPerformances);
     const [filteredData, setFilteredData] = useState<Performance[]>(initialPerformances);
     const [sortField, setSortField] = useState<keyof Performance | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
@@ -27,6 +26,10 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         date_perfomance: getCurrentDateString(),
         unit_id: selectedUnit || 1,
     });
+
+    useEffect(() => {
+        setFilteredData(initialPerformances);
+    }, [initialPerformances]);
 
     // Toast notifications
     const { toasts, removeToast, success, error: showError } = useToast();
@@ -96,80 +99,53 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setEditForm({});
     };
 
-    const handleDelete = useCallback(async (id: number) => {
-        const performance = performances.find((p) => p.id === id);
-        
-        // Check if performance exists and is editable
-        if (!performance || performance.status !== 'Editable') {
-            showError('This performance record cannot be deleted');
+    const handleDelete = useCallback((id: number) => {
+        // Check if performance is deletable based on frontend data (good for UX)
+        const performance = initialPerformances.find((p) => p.id === id);
+        if (performance?.status !== 'Editable') {
+            showError('Locked records cannot be deleted.');
+            return;
+        }
+        // Proactive check based on the new 'reference_exists' flag from the backend
+        if (performance?.reference_exists) {
+            showError('Cannot delete: This performance is used as a baseline.');
             return;
         }
 
-        // Prevent multiple rapid deletions of the same item
-        if (deletingIds.has(id)) {
-            return;
-        }
-
-        // Confirm deletion
         if (!window.confirm('Are you sure you want to delete this performance record?')) {
             return;
         }
 
-        // Mark as being deleted
-        setDeletingIds(prev => new Set(prev).add(id));
-
-        // Store the item for potential rollback
-        const originalPerformances = [...performances];
-        const originalFilteredData = [...filteredData];
-
-        // Optimistically remove from UI immediately
-        setPerformances(prev => prev.filter(p => p.id !== id));
-        setFilteredData(prev => prev.filter(p => p.id !== id));
-
-        try {
-            // Attempt server deletion
-            await router.delete(`/performance/${id}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Success - show success message
-                    success('Performance record deleted successfully');
-                },
-                onError: (errors) => {
-                    // Server error - rollback optimistic update
-                    setPerformances(originalPerformances);
-                    setFilteredData(originalFilteredData);
-                    
-                    const errorMessage = typeof errors === 'string' 
-                        ? errors 
-                        : 'Failed to delete performance record';
-                    showError(errorMessage);
-                },
-                onFinish: () => {
-                    // Always remove from deleting set when done
-                    setDeletingIds(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(id);
-                        return newSet;
-                    });
+        // Use Inertia's router with its built-in callbacks
+        router.delete(route('performance.destroy', id), {
+            preserveScroll: true,
+            // onStart is called when the request begins
+            onStart: () => {
+                setDeletingIds(prev => new Set(prev).add(id));
+            },
+            // onSuccess is ONLY called if the server responds with success
+            onSuccess: (page) => {
+                if (page.props.flash?.error) {
+                    showError(page.props.flash.error as string);
+                } else {
+                    success('Performance record is deleted successfully.');
                 }
-            });
-        } catch (error) {
-            // Network/client error - rollback optimistic update
-            console.error('Error deleting performance:', error);
-            
-            setPerformances(originalPerformances);
-            setFilteredData(originalFilteredData);
-            
-            showError('Failed to delete performance record. Please try again.');
-            
-            // Remove from deleting set
-            setDeletingIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(id);
-                return newSet;
-            });
-        }
-    }, [performances, filteredData, deletingIds, success, showError]);
+                // Inertia will automatically reload the 'performances' prop with the updated list
+            },
+            // onError is ONLY called if the server responds with an error
+            onError: () => {
+                showError('An unexpected error occurred while deleting the record.');
+            },
+            // onFinish is ALWAYS called after the request completes (success or error)
+            onFinish: () => {
+                setDeletingIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(id);
+                    return newSet;
+                });
+            }
+        });
+    }, [initialPerformances, success, showError]); // Dependencies for the useCallback hook
 
     const handleAddNew = async () => {
         if (!newForm.description?.trim()) {
@@ -237,7 +213,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
 
             <PerformanceListTable
                 data={filteredData}
-                allData={performances}
+                allData={initialPerformances}
                 editingId={editingId}
                 editForm={editForm}
                 showEditTooltip={showEditTooltip}

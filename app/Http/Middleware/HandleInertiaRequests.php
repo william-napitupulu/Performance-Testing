@@ -69,6 +69,10 @@ class HandleInertiaRequests extends Middleware
                 'current_unit_name' => SessionHelper::getCurrentUnitName(),
                 'plant_unit_display' => SessionHelper::getCurrentPlantUnitDisplay(),
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

@@ -32,6 +32,10 @@ export interface SharedData {
     session?: {
         current_unit_name?: string;
     };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }
 
 export interface User {
@@ -43,4 +47,10 @@ export interface User {
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+declare module '@inertiajs/core' {
+    
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface PageProps extends SharedData {}
 }

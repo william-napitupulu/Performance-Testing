@@ -33,6 +33,7 @@ class PerformanceController extends Controller
                 ->with('unit')
                 ->orderBy('date_perfomance', 'desc')
                 ->orderBy('perf_id', 'desc')
+                ->withExists('reference')
                 ->get()
                 ->map(function ($performance) {
                     return [
@@ -46,6 +47,7 @@ class PerformanceController extends Controller
                         'unit_name' => $performance->unit ? $performance->unit->unit_name : 'Unknown Unit',
                         'type' => $performance->type,
                         'weight' => $performance->weight,
+                        'reference_exists' => $performance->references_exists
                     ];
                 });
 
@@ -234,7 +236,7 @@ class PerformanceController extends Controller
 
             // Only allow deleting if status is Editable
             if ($performance->status !== Performance::STATUS_EDITABLE) {
-                return response()->json(['error' => 'Cannot delete locked performance record'], 403);
+                return redirect()->back()->with('error', 'Cannot delete locked performance record');
             }
 
             DB::transaction(function () use ($performance) {
