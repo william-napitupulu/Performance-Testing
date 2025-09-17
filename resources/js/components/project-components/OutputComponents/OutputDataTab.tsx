@@ -165,15 +165,7 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                             </div>
 
                             {/* Right Side: Action Buttons */}
-                            <div className="md:col-span-1 flex flex-col md:items-end justify-start gap-2">
-                                {performance?.report_download_url && (
-                                    <Button asChild className="group w-full md:w-auto transform bg-gradient-to-r from-green-600 to-green-700 px-4 py-2 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl">
-                                        <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Download Report
-                                        </a>
-                                    </Button>
-                                )}
+                            <div className="md:col-span-1 flex flex-col justify-start gap-4">
                                 <div className="space-y-3 rounded-lg border bg-slate-50 p-4 dark:bg-slate-800/50 dark:border-slate-700">
                                     <h4 className="font-semibold text-sm text-gray-800 dark:text-gray-200">Create New Baseline</h4>
                                     <div className="space-y-1">
@@ -197,7 +189,7 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                     <Button
                                         onClick={handleCreateBaseline}
                                         disabled={isCreating || !newBaselineDesc}
-                                        className="w-full"
+                                        className="w-full group transform bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:from-gray-500 disabled:to-gray-600 disabled:transform-none"
                                     >
                                         {isCreating ? 'Saving...' : (
                                             <>
@@ -206,6 +198,17 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                             </>
                                         )}
                                     </Button>
+                                    <div className="w-full">
+                                        {performance?.report_download_url && (
+                                            <Button asChild className="w-full transform bg-gradient-to-r from-green-600 to-green-700 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl">
+                                                <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    Download Report
+                                                </a>
+                                            </Button>
+                                        )}
+                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
