@@ -18,6 +18,7 @@ class Refference extends Model
         'keterangan',
         'unit_id',
         'is_default',
+        'perf_id'
     ];
 
     public function details(): HasMany
