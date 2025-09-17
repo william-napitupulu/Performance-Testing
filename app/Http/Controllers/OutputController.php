@@ -251,6 +251,7 @@ class OutputController extends Controller
                 'keterangan' => $validated['keterangan'] ?? 'Baseline created from Performance ID: ' . $performanceId,
                 'unit_id' => $selectedUnitId,
                 'is_default' => 0,
+                'perf_id' => $performanceId
             ]);
 
             $newReffId = $newReference->reff_id;
