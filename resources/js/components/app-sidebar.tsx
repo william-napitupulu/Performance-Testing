@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Activity, /*AlertTriangle, BookOpen, Folder, PackageIcon,*/ Moon, Sun, ChartPie } from 'lucide-react';
+import { Activity, /*AlertTriangle, BookOpen, Folder, PackageIcon,*/ Moon, Sun, ChartPie, ChartBar } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -18,6 +18,11 @@ const mainNavItems: NavItem[] = [
         title: 'Performance Test Output',
         href: '/output/performance',
         icon: ChartPie,
+    },
+    {
+        title: 'Performance Baseline',
+        href: '/baseline',
+        icon: ChartBar
     },
     // {
     //     title: 'Contents and components',

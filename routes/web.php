@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BaselineController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\AnomalyController;
@@ -90,6 +91,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('output')->name('output.')->group(function () {
         Route::get('/', [OutputController::class, 'index'])->name('index');
         Route::get('/performance', [OutputController::class, 'performance'])->name('performance');
+    });
+
+    Route::prefix('baseline')->name('baseline.')->group(function () {
+        Route::get('/', [BaselineController::class, 'index'])->name('index');
     });
     
     // Content Management Routes

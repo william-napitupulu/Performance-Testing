@@ -250,6 +250,7 @@ class OutputController extends Controller
                 'description' => $description,
                 'keterangan' => $validated['keterangan'] ?? 'Baseline created from Performance ID: ' . $performanceId,
                 'unit_id' => $selectedUnitId,
+                'date_created' => now(),
                 'is_default' => 0,
                 'perf_id' => $performanceId
             ]);
