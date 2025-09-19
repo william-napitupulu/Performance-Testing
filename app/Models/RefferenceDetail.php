@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -46,5 +47,11 @@ class RefferenceDetail extends Model
     {
         // Defines the inverse of the one-to-many relationship.
         return $this->belongsTo(Refference::class, 'reff_id', 'reff_id');
+    }
+
+    public function outputTag(): BelongsTo
+    {
+        // This connects this model to the OutputTag model via the 'output_id' column.
+        return $this->belongsTo(OutputTag::class, 'output_id', 'output_id');
     }
 }

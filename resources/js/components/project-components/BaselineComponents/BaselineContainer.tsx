@@ -42,12 +42,7 @@ export function BaselineContainer({ initialBaselines, error }: BaselineContainer
     const handleViewDetails = (baseline: Baseline) => {
         // You might want a dedicated detail page later. For now, we can just log it.
         console.log("Viewing details for baseline:", baseline);
-        // Or if each baseline is tied to a performance, link back to it:
-        if (baseline.perf_id) {
-            router.visit(`/output/details?perf_id=${baseline.perf_id}`);
-        } else {
-            showError("This baseline is not linked to a specific performance test.");
-        }
+        router.visit(route('api.baseline.show', baseline.reff_id));
     };
 
     const handleDelete = useCallback((id: number) => {
@@ -56,7 +51,7 @@ export function BaselineContainer({ initialBaselines, error }: BaselineContainer
         }
         
         // Example route, you will need to create this in web.php
-        router.delete(route('baseline.destroy', id), {
+        router.delete(route('api.baseline.destroy', id), {
             preserveScroll: true,
             onStart: () => setDeletingIds(prev => new Set(prev).add(id)),
             onSuccess: (page) => {

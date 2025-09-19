@@ -198,6 +198,12 @@ Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function 
         Route::post('/create-baseline', [OutputController::class, 'createBaseline'])->name('create-baseline');
     });
 
+    Route::prefix('baseline')->name('baseline.')->group(function () {
+        Route::get('/{refference}', [BaselineController::class, 'show'])->name('show');
+        Route::post('/{refference}/set-default', [BaselineController::class, 'setDefault'])->name('set-default');
+        Route::delete('/{refference}', [BaselineController::class, 'destroy'])->name('destroy');
+    });
+
 });
 
 require __DIR__.'/settings.php';

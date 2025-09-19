@@ -47,14 +47,13 @@ export function BaselineTableRow({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => onViewDetails(baseline)}
-                                disabled={!baseline.perf_id}
                                 className="h-8 w-8 text-blue-600 disabled:text-gray-400"
                             >
                                 <Eye className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            {baseline.perf_id ? 'View source performance' : 'Not linked to a performance'}
+                            View Baseline Detail
                         </TooltipContent>
                     </Tooltip>
                     <Tooltip>

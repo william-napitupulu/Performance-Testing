@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Refference extends Model
 {
+
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
     protected $table = 'tb_refference';
 
     protected $primaryKey = 'reff_id';
