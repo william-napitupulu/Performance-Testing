@@ -10,7 +10,7 @@ import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Performance List',
+        title: 'Performance Test List',
         href: '/performance',
         icon: Activity,
     },

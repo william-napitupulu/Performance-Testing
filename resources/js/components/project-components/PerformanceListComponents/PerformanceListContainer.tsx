@@ -205,7 +205,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
             <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-800/50 dark:bg-blue-900/10">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Performance List</h2>
+                        <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Performance Test List</h2>
                         {selectedUnitName && <p className="text-sm text-blue-600 dark:text-blue-400">Unit: {selectedUnitName}</p>}
                     </div>
                 </div>

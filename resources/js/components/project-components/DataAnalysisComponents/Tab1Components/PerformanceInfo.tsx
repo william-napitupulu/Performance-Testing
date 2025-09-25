@@ -20,7 +20,7 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ sharedData }) 
                     <div>
                         <h3 className="font-semibold text-orange-800 dark:text-orange-200">No Performance Test Selected</h3>
                         <p className="mt-1 text-sm text-orange-700 dark:text-orange-300">
-                            Please choose a performance from the Performance List or create a new one to begin your analysis.
+                            Please choose a performance from the Performance Test List or create a new one to begin your analysis.
                         </p>
                     </div>
                 </div>

@@ -13,7 +13,7 @@ interface PerformanceListProps {
 export default function PerformancesOutput({ performances: initialPerformances = [], selectedUnit, selectedUnitName, error }: PerformanceListProps) {
     return (
         <AppLayout>
-            <Head title="Performance Test - Performance List" />
+            <Head title="Performance Test - Performance Test Output" />
             <PerformanceOutputContainer
                 initialPerformances={initialPerformances}
                 selectedUnit={selectedUnit}
