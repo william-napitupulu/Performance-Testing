@@ -120,7 +120,7 @@ class PerformanceService
 
         if ($performance->report_filename) {
             $baseUrl = config('app.analysis_server_ip');
-            $downloadUrl = rtrim($baseUrl, '/') . '/reports/' . $performance->report_filename;
+            $downloadUrl = rtrim($baseUrl, '/') . '/units/' . $performance->unit_id . '/reports/' . $performance->report_filename;
         }
 
         return [
