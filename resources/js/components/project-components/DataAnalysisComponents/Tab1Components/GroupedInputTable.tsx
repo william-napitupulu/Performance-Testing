@@ -77,8 +77,8 @@ export const GroupedInputTable: React.FC<GroupedInputTableProps> = React.memo(
                 return { isValid: false, error: 'Value cannot be negative' };
             }
 
-            if (numValue > 999999) {
-                return { isValid: false, error: 'Value is too large (max: 999,999)' };
+            if (numValue > 999999999) {
+                return { isValid: false, error: 'Value is too large (max: 999,999,999)' };
             }
 
             return { isValid: true };
