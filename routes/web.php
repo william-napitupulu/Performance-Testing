@@ -9,6 +9,7 @@ use App\Http\Controllers\TestPageController;
 use App\Http\Controllers\ContentsController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\TrendingController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -98,8 +99,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     
     // Content Management Routes
-    Route::prefix('contents')->name('contents.')->group(function () {
-        Route::get('/', [ContentsController::class, 'index'])->name('index');
+    Route::prefix('trending')->name('trending.')->group(function () {
+        Route::get('/', [TrendingController::class, 'index'])->name('index');
+        // Returns the list of setups (Combustion, Boiler Eff, etc.)
+        Route::get('/templates', [TrendingController::class, 'getTemplates']);
+        
+        // Returns the raw data points for the chart
+        Route::get('/data', [TrendingController::class, 'getChartData']);
     });
 
     // Documentation Routes

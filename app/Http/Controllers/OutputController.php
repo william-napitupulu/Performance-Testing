@@ -160,7 +160,7 @@ class OutputController extends Controller
                 -> join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
                 ->join('tb_refference_detail as c', function ($join) use ($reference) {
                     $join->on('a.output_id', '=', 'c.output_id')
-                         ->where('c.reff_id', $reference->reff_id);
+                        ->where('c.reff_id', $reference->reff_id);
                 })
                 ->where('a.perf_id', $performance->perf_id)
                 ->select(

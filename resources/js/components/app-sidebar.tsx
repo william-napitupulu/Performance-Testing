@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { useTheme } from '@/contexts/ThemeContext';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Activity, /*AlertTriangle, BookOpen, Folder, PackageIcon,*/ Moon, Sun, ChartPie, ChartBar } from 'lucide-react';
+import { Activity, Moon, Sun, ChartPie, ChartBar, ChartLine } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -24,11 +24,11 @@ const mainNavItems: NavItem[] = [
         href: '/baseline',
         icon: ChartBar
     },
-    // {
-    //     title: 'Contents and components',
-    //     href: '/contents',
-    //     icon: BookOpen,
-    // },
+    {
+        title: 'Trending Chart',
+        href: '/trending',
+        icon: ChartLine,
+    },
 
     // {
 
@@ -84,18 +84,18 @@ export function AppSidebar() {
                         <SidebarMenuButton size="lg" asChild>
                                 <button
                                     onClick={toggleTheme}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-gray-700 transition-colors duration-200 hover:border-gray-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:border-gray-700 dark:hover:bg-gray-800"
+                                    className="flex items-center w-full gap-3 px-3 py-2 text-gray-700 transition-colors duration-200 border border-transparent rounded-lg hover:border-gray-200 hover:bg-gray-100 dark:text-gray-300 dark:hover:border-gray-700 dark:hover:bg-gray-800"
                                 >
                                     {theme === 'dark' ? (
                                         <>
-                                            <Sun className="h-5 w-5 text-yellow-500" />
+                                            <Sun className="w-5 h-5 text-yellow-500" />
                                             <span className="text-sm font-medium group-data-[collapsible=icon]:hidden">
                                                 Light Mode
                                             </span>
                                         </>
                                     ) : (
                                         <>
-                                            <Moon className="h-5 w-5 text-blue-500" />
+                                            <Moon className="w-5 h-5 text-blue-500" />
                                             <span className="text-sm font-medium group-data-[collapsible=icon]:hidden">Dark Mode</span>
                                         </>
                                     )}
