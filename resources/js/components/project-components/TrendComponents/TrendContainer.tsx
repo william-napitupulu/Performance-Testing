@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -36,6 +36,49 @@ interface ProcessedChartData {
     date: string;
     [key: string]: string | number;
 }
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{
+        dataKey: string;
+        name: string;
+        color: string;
+        payload: {
+            [key: string]: string | number;
+        };
+    }>;
+    label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="p-3 border rounded-lg shadow-md bg-background border-border">
+                <p className="mb-2 font-medium">{label ? format(parseISO(label), "MMM d, yyyy") : ''}</p>
+                {payload.map((entry, index) => {
+                    // We retrieve the original data key
+                    const dataKey = entry.dataKey as string; // e.g., "tag_4_norm"
+                    const originalKey = dataKey.replace("_norm", "_original");
+                    const originalValue = entry.payload[originalKey];
+                    
+                    return (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                            <div 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-muted-foreground">{entry.name}:</span>
+                            <span className="font-semibold">
+                                {Number(originalValue).toLocaleString()} {/* Format number */}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+    return null;
+};
 
 const getChartColor = (index: number) => `var(--chart-${(index % 5) + 1})`;
 
@@ -169,7 +212,7 @@ export function TrendContainer() {
         const config: ChartConfig = {};
         if (activeTemplate?.tags) {
             activeTemplate.tags.forEach((tag, index) => {
-                config[`tag_${tag.output_id}`] = {
+                config[`tag_${tag.output_id}_norm`] = {
                 label: `${tag.description} (${tag.satuan})`,
                 color: getChartColor(index),
                 };
@@ -182,12 +225,36 @@ export function TrendContainer() {
         if (!rawChartData.length) return [];
         const groupedByDate: Record<string, ProcessedChartData> = {};
 
+        const meta: Record<string, { min: number; max: number }> = {};
+
+        rawChartData.forEach((record) => {
+            const tagKey = `tag_${record.output_id}`;
+            if (!meta[tagKey]) {
+                meta[tagKey] = { min: record.value, max: record.value };
+            } else {
+                if (record.value < meta[tagKey].min) meta[tagKey].min = record.value;
+                if (record.value > meta[tagKey].max) meta[tagKey].max = record.value;
+            }
+        });
+
         rawChartData.forEach((record) => {
             const dateKey = record.date_perfomance.split(" ")[0];
             if (!groupedByDate[dateKey]) {
                 groupedByDate[dateKey] = { date:dateKey};
             }
-            groupedByDate[dateKey][`tag_${record.output_id}`] = record.value;
+
+            const tagKey = `tag_${record.output_id}`;
+            const { min, max} = meta[tagKey];
+
+            let normalizedValue = 0;
+
+            if (max === min) {
+                normalizedValue = max === 0 ? 0 :50;
+            } else {
+                normalizedValue = (record.value / max) * 100;
+            }
+            groupedByDate[dateKey][`${tagKey}_norm`] = normalizedValue;
+            groupedByDate[dateKey][`${tagKey}_original`] = record.value;
         });
 
         return Object.values(groupedByDate).sort((a, b) =>
@@ -343,10 +410,12 @@ export function TrendContainer() {
                                     axisLine={false}
                                     tickMargin={10}
                                     width={40}
+                                    tickFormatter={(value) => `${value.toFixed(0)}%`}
+                                    domain={[0, 100]}
                                 />
                                 <ChartTooltip
                                     cursor={false}
-                                    content={<ChartTooltipContent/>}
+                                    content={<CustomTooltip/>}
                                 />
                                 <ChartLegend content={<ChartLegendContent/>} />
                                 
@@ -354,7 +423,8 @@ export function TrendContainer() {
                                     <Line
                                         key={tag.output_id}
                                         type="linear"
-                                        dataKey={`tag_${tag.output_id}`}
+                                        dataKey={`tag_${tag.output_id}_norm`}
+                                        name={tag.description}
                                         stroke={getChartColor(index)}
                                         strokeWidth={2}
                                         dot={{ r: 4, fill: getChartColor(index) }}
