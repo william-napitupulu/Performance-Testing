@@ -10,6 +10,7 @@ export interface Performance {
     type?: string; // Type field
     weight?: string; // Weight field
     reference_exists?: boolean; // New field to indicate if references exist
+    outputs_exists?: boolean; // New field to indicate if outputs exist
 }
 
 // Mock data for development (will be replaced by actual database data)

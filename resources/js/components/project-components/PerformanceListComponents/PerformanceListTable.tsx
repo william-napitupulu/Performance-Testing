@@ -12,6 +12,7 @@ interface PerformanceListTableProps {
     editForm: Partial<Performance>;
     showEditTooltip: boolean;
     editTooltipMessage: string;
+    onDetail: (performance: Performance) => void;
     onEdit: (performance: Performance) => void;
     onSaveEdit: () => void;
     onCancelEdit: () => void;
@@ -31,6 +32,7 @@ export function PerformanceListTable({
     editForm,
     showEditTooltip,
     editTooltipMessage,
+    onDetail,
     onEdit,
     onSaveEdit,
     onCancelEdit,
@@ -80,7 +82,7 @@ export function PerformanceListTable({
     };
 
     return (
-        <div className="overflow-visible rounded-lg border border-border bg-card shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="overflow-visible border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800">
             <div className="relative overflow-x-auto" style={{ overflowY: 'visible' }}>
                 <table className="min-w-full divide-y divide-border dark:divide-gray-700">
                     <PerformanceTableHeader onSort={onSort} sortField={sortField} sortDirection={sortDirection || 'asc'} />
@@ -101,6 +103,7 @@ export function PerformanceListTable({
                                     editForm={editForm}
                                     showEditTooltip={showEditTooltip && editingId === performance.id}
                                     editTooltipMessage={editTooltipMessage}
+                                    onDetail={onDetail}
                                     onEdit={onEdit}
                                     onSaveEdit={onSaveEdit}
                                     onCancelEdit={onCancelEdit}
@@ -115,7 +118,7 @@ export function PerformanceListTable({
             </div>
 
             {totalPages > 1 && (
-                <div className="border-t border-border bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-700">
+                <div className="px-6 py-4 border-t border-border bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-gray-700 dark:text-gray-300">
                             Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
@@ -127,18 +130,18 @@ export function PerformanceListTable({
                             <button
                                 onClick={() => handlePageChange(1)}
                                 disabled={currentPage === 1}
-                                className="rounded-md border border-gray-300 bg-white p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                                className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                             >
-                                <ChevronsLeft className="h-4 w-4" />
+                                <ChevronsLeft className="w-4 h-4" />
                             </button>
 
                             {/* Previous page */}
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="rounded-md border border-gray-300 bg-white p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                                className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                             >
-                                <ChevronLeft className="h-4 w-4" />
+                                <ChevronLeft className="w-4 h-4" />
                             </button>
 
                             {/* Page numbers */}
@@ -160,18 +163,18 @@ export function PerformanceListTable({
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
-                                className="rounded-md border border-gray-300 bg-white p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                                className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                             >
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="w-4 h-4" />
                             </button>
 
                             {/* Last page */}
                             <button
                                 onClick={() => handlePageChange(totalPages)}
                                 disabled={currentPage === totalPages}
-                                className="rounded-md border border-gray-300 bg-white p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                                className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                             >
-                                <ChevronsRight className="h-4 w-4" />
+                                <ChevronsRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>

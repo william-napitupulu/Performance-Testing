@@ -63,6 +63,11 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setFilteredData(sorted);
     };
 
+    const handleDetail = (performance: Performance) => {
+        // Navigate to output/details with perf_id query param
+        router.visit(`/output?perf_id=${performance.id}`);
+    };
+
     // CRUD Operations
     const handleEdit = (performance: Performance) => {
         // Navigate to data-analysis with perf_id query param
@@ -195,14 +200,14 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
     };
 
     return (
-        <div className="bg-background p-6">
+        <div className="p-6 bg-background">
             {error && (
-                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-800/50 dark:bg-red-900/10">
+                <div className="p-4 mb-4 border border-red-200 rounded-lg shadow-sm bg-red-50 dark:border-red-800/50 dark:bg-red-900/10">
                     <div className="text-red-700 dark:text-red-300">{error}</div>
                 </div>
             )}
 
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-800/50 dark:bg-blue-900/10">
+            <div className="p-4 mb-4 border border-blue-200 rounded-lg shadow-sm bg-blue-50 dark:border-blue-800/50 dark:bg-blue-900/10">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Performance Test List</h2>
@@ -218,6 +223,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
                 editForm={editForm}
                 showEditTooltip={showEditTooltip}
                 editTooltipMessage={editTooltipMessage}
+                onDetail={handleDetail}
                 onEdit={handleEdit}
                 onSaveEdit={handleSaveEdit}
                 onCancelEdit={handleCancelEdit}

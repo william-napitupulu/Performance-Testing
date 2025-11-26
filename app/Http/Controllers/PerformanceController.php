@@ -34,6 +34,7 @@ class PerformanceController extends Controller
                 ->orderBy('date_perfomance', 'desc')
                 ->orderBy('perf_id', 'desc')
                 ->withExists('reference')
+                ->withExists('outputs')
                 ->get()
                 ->map(function ($performance) {
                     return [
@@ -47,7 +48,8 @@ class PerformanceController extends Controller
                         'unit_name' => $performance->unit ? $performance->unit->unit_name : 'Unknown Unit',
                         'type' => $performance->type,
                         'weight' => $performance->weight,
-                        'reference_exists' => $performance->references_exists
+                        'reference_exists' => $performance->reference_exists,
+                        'outputs_exists' => $performance->outputs_exists
                     ];
                 });
 

@@ -108,7 +108,7 @@ export const OutputDataTab = React.memo(function OutputDataTab({
             <Toaster richColors />
             {/* Warning when no performance selected */}
             {!sharedData.perfId ? (
-                <div className="border-l-4 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 p-4 dark:border-orange-400 dark:from-orange-900/20 dark:to-red-900/20">
+                <div className="p-4 border-l-4 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 dark:border-orange-400 dark:from-orange-900/20 dark:to-red-900/20">
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
                         <div>
@@ -120,12 +120,12 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                     </div>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
+                <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md dark:border-gray-700 dark:bg-gray-800">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 dark:from-blue-700 dark:to-indigo-700">
+                    <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-lg bg-white/20 p-2">
-                                <BarChart3 className="h-5 w-5 text-white" />
+                            <div className="p-2 rounded-lg bg-white/20">
+                                <BarChart3 className="w-5 h-5 text-white" />
                             </div>
                             <div>
                                 <h2 className="text-lg font-semibold text-white">Performance Analysis Results</h2>
@@ -136,38 +136,38 @@ export const OutputDataTab = React.memo(function OutputDataTab({
 
                     {/* Content */}
                     <div className="p-6">
-                        <div className="border-b border-gray-200 pb-4 mb-6 dark:border-gray-700">
-                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-                                <Info className="mr-2 h-5 w-5 text-gray-500" />
+                        <div className="pb-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="flex items-center text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                <Info className="w-5 h-5 mr-2 text-gray-500" />
                                 Performance Information
                             </h3>
                         </div>
 
                         {/* Main grid for details and actions */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             
                             {/* Left Side: Information List */}
-                            <div className="md:col-span-2 space-y-4">
+                            <div className="space-y-4 md:col-span-2">
                                 <div className="flex items-center">
-                                    <span className="w-28 text-sm font-semibold text-gray-500 dark:text-gray-400">ID</span>
+                                    <span className="text-sm font-semibold text-gray-500 w-28 dark:text-gray-400">ID</span>
                                     <span className="font-mono text-sm text-gray-800 dark:text-gray-200">{performance?.id || 'N/A'}</span>
                                 </div>
                                 <div className="flex items-center">
-                                    <span className="w-28 text-sm font-semibold text-gray-500 dark:text-gray-400">Created</span>
+                                    <span className="text-sm font-semibold text-gray-500 w-28 dark:text-gray-400">Created</span>
                                     <span className="text-sm text-gray-800 dark:text-gray-200">
                                         {performance ? new Date(performance.date_perfomance).toLocaleString('en-GB') : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex items-start">
-                                    <span className="w-28 flex-shrink-0 text-sm font-semibold text-gray-500 dark:text-gray-400">Description</span>
+                                    <span className="flex-shrink-0 text-sm font-semibold text-gray-500 w-28 dark:text-gray-400">Description</span>
                                     <p className="text-sm text-gray-800 dark:text-gray-200">{performance?.description || 'No description provided.'}</p>
                                 </div>
                             </div>
 
                             {/* Right Side: Action Buttons */}
-                            <div className="md:col-span-1 flex flex-col justify-start gap-4">
-                                <div className="space-y-3 rounded-lg border bg-slate-50 p-4 dark:bg-slate-800/50 dark:border-slate-700">
-                                    <h4 className="font-semibold text-sm text-gray-800 dark:text-gray-200">Create New Baseline</h4>
+                            <div className="flex flex-col justify-start gap-4 md:col-span-1">
+                                <div className="p-4 space-y-3 border rounded-lg bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700">
+                                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Create New Baseline</h4>
                                     <div className="space-y-1">
                                         <Label htmlFor="baseline-desc">Description</Label>
                                         <Input 
@@ -189,20 +189,20 @@ export const OutputDataTab = React.memo(function OutputDataTab({
                                     <Button
                                         onClick={handleCreateBaseline}
                                         disabled={isCreating || !newBaselineDesc}
-                                        className="w-full group transform bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:from-gray-500 disabled:to-gray-600 disabled:transform-none"
+                                        className="w-full px-4 py-2 text-sm text-white transition-all duration-300 transform shadow-lg group bg-gradient-to-r from-blue-600 to-blue-700 hover:scale-105 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:from-gray-500 disabled:to-gray-600 disabled:transform-none"
                                     >
                                         {isCreating ? 'Saving...' : (
                                             <>
-                                                <Save className="mr-2 h-4 w-4"/>
+                                                <Save className="w-4 h-4 mr-2"/>
                                                 Save as Baseline
                                             </>
                                         )}
                                     </Button>
                                     <div className="w-full">
                                         {performance?.report_download_url && (
-                                            <Button asChild className="w-full transform bg-gradient-to-r from-green-600 to-green-700 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl">
+                                            <Button asChild className="w-full text-sm text-white transition-all duration-300 transform shadow-lg bg-gradient-to-r from-green-600 to-green-700 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl">
                                                 <a href={performance.report_download_url} target="_blank" rel="noopener noreferrer">
-                                                    <Download className="mr-2 h-4 w-4" />
+                                                    <Download className="w-4 h-4 mr-2" />
                                                     Download Report
                                                 </a>
                                             </Button>

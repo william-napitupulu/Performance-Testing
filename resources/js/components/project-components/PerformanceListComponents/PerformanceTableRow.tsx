@@ -1,5 +1,5 @@
 import { Performance } from '@/data/mockPerformanceData';
-import { Edit2, Save, Trash2, X } from 'lucide-react';
+import { Edit2, Eye, Save, Trash2, X } from 'lucide-react';
 
 interface PerformanceTableRowProps {
     performance: Performance;
@@ -7,6 +7,7 @@ interface PerformanceTableRowProps {
     editForm: Partial<Performance>;
     showEditTooltip: boolean;
     editTooltipMessage: string;
+    onDetail: (performance: Performance) => void;
     onEdit: (performance: Performance) => void;
     onSaveEdit: () => void;
     onCancelEdit: () => void;
@@ -21,6 +22,7 @@ export function PerformanceTableRow({
     editForm,
     showEditTooltip,
     editTooltipMessage,
+    onDetail,
     onEdit,
     onSaveEdit,
     onCancelEdit,
@@ -34,7 +36,7 @@ export function PerformanceTableRow({
 
     if (isEditing) {
         return (
-            <tr className="bg-blue-50/50 transition-colors dark:bg-blue-900/20">
+            <tr className="transition-colors bg-blue-50/50 dark:bg-blue-900/20">
                 <td className={`${cellClasses} w-20 px-4 text-center`}>
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300">
                         {performance.id}
@@ -92,15 +94,15 @@ export function PerformanceTableRow({
                 <td className={`${cellClasses} space-x-3 text-right`}>
                     <button
                         onClick={onSaveEdit}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
+                        className="inline-flex items-center justify-center w-8 h-8 text-green-600 transition-colors rounded-full hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
                     >
-                        <Save className="h-4 w-4" />
+                        <Save className="w-4 h-4" />
                     </button>
                     <button
                         onClick={onCancelEdit}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-300"
+                        className="inline-flex items-center justify-center w-8 h-8 text-gray-600 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-300"
                     >
-                        <X className="h-4 w-4" />
+                        <X className="w-4 h-4" />
                     </button>
                 </td>
             </tr>
@@ -136,6 +138,14 @@ export function PerformanceTableRow({
             <td className={`${cellClasses} text-center font-medium text-orange-700 dark:text-orange-300`}>{performance.type || 'N/A'}</td>
             <td className={`${cellClasses} text-center font-medium text-purple-700 dark:text-purple-300`}>{performance.weight || 'N/A'}</td>
             <td className={`${cellClasses} space-x-2 text-right`}>
+                {performance.outputs_exists && (
+                    <button
+                    onClick={() => onDetail(performance)}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${'text-green-600 hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300'}`}
+                >
+                    <Eye className={`h-4 w-4 ${isDeleting ? 'animate-spin' : ''}`} />
+                </button>
+                )}
                 <button
                     onClick={() => onEdit(performance)}
                     disabled={performance.status !== 'Editable'}
@@ -145,7 +155,7 @@ export function PerformanceTableRow({
                             : 'cursor-not-allowed text-gray-400'
                     }`}
                 >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                     onClick={() => onDelete(performance.id)}
