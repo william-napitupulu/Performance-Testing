@@ -1,5 +1,5 @@
 import { Performance } from '@/data/mockPerformanceData';
-import { Edit2, Eye, Save, Trash2, X } from 'lucide-react';
+import { Edit2, Save, Trash2, X } from 'lucide-react';
 
 interface PerformanceTableRowProps {
     performance: Performance;
@@ -137,13 +137,13 @@ export function PerformanceTableRow({
             <td className={`${cellClasses} text-center font-medium text-cyan-700 dark:text-cyan-300`}>{performance.unit_name}</td>
             <td className={`${cellClasses} text-center font-medium text-orange-700 dark:text-orange-300`}>{performance.type || 'N/A'}</td>
             <td className={`${cellClasses} text-center font-medium text-purple-700 dark:text-purple-300`}>{performance.weight || 'N/A'}</td>
-            <td className={`${cellClasses} space-x-2 text-right`}>
+            <td className={`${cellClasses} space-x-2 text-center`}>
                 {performance.outputs_exists && (
                     <button
                     onClick={() => onDetail(performance)}
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${'text-green-600 hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300'}`}
+                    className={`inline-flex px-2 py-1 items-center justify-center rounded transition-colors ${'text-green-100 bg-green-600 hover:bg-green-500 hover:text-green-100 dark:text-green-100 dark:hover:bg-green-700 dark:hover:text-white'}`}
                 >
-                    <Eye className={`h-4 w-4 ${isDeleting ? 'animate-spin' : ''}`} />
+                    Output
                 </button>
                 )}
                 <button
