@@ -256,7 +256,7 @@ export function TrendContainer() {
             let normalizationMax: number;
 
             if (tagInfo?.max_value && tagInfo.max_value > 0) {
-                normalizationMax = tagInfo.max_value === 0 ? 0 :50;
+                normalizationMax = tagInfo.max_value;
             } else if (tagInfo?.satuan === '%') {
                 normalizationMax = 100;
             } else {
