@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { format, isValid, parseISO, subDays } from "date-fns";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, PlusCircle } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface OutputTag {
     output_id: number;
@@ -49,6 +51,12 @@ export function TrendContainer() {
 
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
 
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [availableTags, setAvailableTags] = useState<OutputTag[]>([]);
+    const [newTemplateName, setNewTemplateName] = useState("");
+    const [newTemplateTags, setNewTemplateTags] = useState<number[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
@@ -60,6 +68,18 @@ export function TrendContainer() {
                 if (data.length > 0) {
                     setSelectedTemplateId(data[0].id.toString());
                 }
+
+                const tagResponse = await fetch('/trending/tags');
+                if(tagResponse.ok) {
+                    const tagData = await tagResponse.json();
+                    setAvailableTags(tagData);
+                } else {
+                    const uniqueTags = new Map();
+                    data.forEach((t: Trending) => {
+                        t.tags.forEach(tag => uniqueTags.set(tag.output_id, tag));
+                    });
+                    setAvailableTags(Array.from(uniqueTags.values()));
+                }
             } catch (error) {
                 console.error("Failed to fetch templates:", error);
             }
@@ -69,7 +89,7 @@ export function TrendContainer() {
     }, []);
 
     useEffect(() => {
-        if (!selectedTemplateId) return;
+        if (!selectedTemplateId || selectedTemplateId === "NEW") return;
 
         const fetchData = async () => {
             setLoading(true);
@@ -94,14 +114,56 @@ export function TrendContainer() {
         fetchData();
     }, [selectedTemplateId, fromDate, toDate]);
 
+    const handleTemplateChange = (val: string) => {
+        if (val === "NEW") {
+            setNewTemplateName("");
+            setNewTemplateTags([]);
+            setIsCreateOpen(true);
+        } else {
+            setSelectedTemplateId(val);
+        }
+    };
+
+    const toggleTagSelection = (tagId: number) => {
+        setNewTemplateTags(prev =>
+            prev.includes(tagId)
+                ? prev.filter(id => id !== tagId)
+                : [...prev, tagId]
+        );
+    }
+
+    const handleSaveNewTemplate = async () => {
+        if (!newTemplateName || newTemplateTags.length === 0) return;
+        setIsSaving(true);
+
+        try {
+            // Sending data to backend
+            const response = await fetch('/trending/templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' },
+                body: JSON.stringify({
+                    name: newTemplateName,
+                    output_ids: newTemplateTags
+                })
+            });
+
+            if (response.ok) {
+                const newTemplate = await response.json();
+                setTemplates([...templates, newTemplate]);
+                setSelectedTemplateId(newTemplate.id.toString());
+                setIsCreateOpen(false);
+            }
+        } catch (error) {
+            console.error("Failed to create template", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const activeTemplate = useMemo(() =>
         templates.find(t => t.id.toString() === selectedTemplateId),
         [templates, selectedTemplateId]
     );
-
-    // const visibleTags = useMemo(() => 
-    //     mockOutputTag.filter(tag => activeTemplate.output_ids.includes(tag.output_id)),
-    // [activeTemplate]);
 
     const chartConfig = useMemo(() => {
         const config: ChartConfig = {};
@@ -230,11 +292,18 @@ export function TrendContainer() {
                             <Label htmlFor="trending-select" className="px-1">
                                 Trending Setup
                             </Label>
-                            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                            <Select value={selectedTemplateId} onValueChange={handleTemplateChange}>
                                 <SelectTrigger id="template-select" className="w-[160px] rounded-lg">
                                     <SelectValue placeholder="Select Trending..." />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
+                                    <SelectItem value="NEW" className="font-semibold text-blue-600 cursor-pointer focus:text-blue-700 focus:bg-blue-50">
+                                        <div className="flex items-center gap-2">
+                                            <PlusCircle className="w-4 h-4" />
+                                            Create New Setup
+                                        </div>
+                                    </SelectItem>
+                                    <div className="h-px my-1 bg-muted"/>
                                     {templates.map((t) => (
                                         <SelectItem key={t.id} value={t.id.toString()}>
                                             {t.name}
@@ -295,10 +364,77 @@ export function TrendContainer() {
                                 ))}
                             </LineChart>
                         )}
-                    
                     </ChartContainer>
                 </CardContent>
             </Card>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Create Trending Setup</DialogTitle>
+                        <DialogDescription>
+                            Give your setup a name and select the parameters you want to compare on the chart.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                        {/* Name Input */}
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="name" className="text-right">Setup Name</Label>
+                            <Input 
+                                id="name" 
+                                placeholder="e.g., Boiler Efficiency vs Load" 
+                                value={newTemplateName}
+                                onChange={(e) => setNewTemplateName(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Tag Selection List */}
+                        <div className="flex flex-col gap-2">
+                            <Label>Select Parameters to Compare</Label>
+                            <div className="h-[250px] w-full rounded-md border p-4 overflow-y-auto">
+                                {availableTags.length === 0 ? (
+                                    <div className="py-8 text-sm text-center text-muted-foreground">
+                                        Loading tags...
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {availableTags.map((tag) => (
+                                            <div key={tag.output_id} className="flex items-center space-x-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`tag-${tag.output_id}`}
+                                                    className="w-4 h-4 border-gray-300 rounded text-primary focus:ring-primary"
+                                                    checked={newTemplateTags.includes(tag.output_id)}
+                                                    onChange={() => toggleTagSelection(tag.output_id)}
+                                                />
+                                                <label 
+                                                    htmlFor={`tag-${tag.output_id}`} 
+                                                    className="text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {tag.description} <span className="text-xs text-muted-foreground">({tag.satuan})</span>
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-xs text-right text-muted-foreground">
+                                {newTemplateTags.length} tags selected
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                        <Button 
+                            onClick={handleSaveNewTemplate} 
+                            disabled={!newTemplateName || newTemplateTags.length < 1 || isSaving}
+                        >
+                            {isSaving ? "Saving..." : "Save Setup"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

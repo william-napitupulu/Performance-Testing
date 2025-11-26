@@ -106,6 +106,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Returns the raw data points for the chart
         Route::get('/data', [TrendingController::class, 'getChartData']);
+        Route::get('/tags', [TrendingController::class, 'getTags']);
+        Route::post('/templates', [TrendingController::class, 'store']);
     });
 
     // Documentation Routes

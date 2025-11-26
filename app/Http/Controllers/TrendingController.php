@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OutputTag;
 use App\Models\Trending;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -65,5 +67,31 @@ class TrendingController extends Controller
 
     public function index() {
         return Inertia::Render('trend');
+    }
+
+    public function store(Request $request) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'output_ids' => 'required|array|min:1',
+            'output_ids.*' => 'exists:tb_output_tag,output_id',
+        ]);
+
+        $template = DB::transaction(function () use ($validated) {
+            $newTemplate = Trending::create([
+                'name' => $validated['name'],
+            ]);
+
+            $newTemplate->tags()->attach($validated['output_ids']);
+
+            return $newTemplate;
+        });
+
+        return response()->json($template->load('tags'), 201);
+    }
+
+    public function getTags() {
+        // Select specific fields to keep payload light
+        $tags = OutputTag::select('output_id', 'description', 'satuan')->get();
+        return response()->json($tags);
     }
 }
