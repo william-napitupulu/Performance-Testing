@@ -96,7 +96,14 @@ class PerformanceService
      */
     public function callExternalApi(int $perfId, string $datetime): array
     {
-        $apiUrl = "http://10.7.146.115/get-data/get-dcs2.php?perf_id={$perfId}&tgl=" . urlencode($datetime);
+        $selectedUnit = session('selected_unit');
+        if (!$selectedUnit) {
+            throw new \Exception('No unit selected');
+        }
+
+        $database = Unit::findOrFail($selectedUnit)->database;
+
+        $apiUrl = "http://10.7.146.115/get-data/get-dcs2.php?perf_id={$perfId}&database={$database}&tgl=" . urlencode($datetime);
         
         $response = Http::timeout(30)->post($apiUrl);
         if (!$response->successful()) {
