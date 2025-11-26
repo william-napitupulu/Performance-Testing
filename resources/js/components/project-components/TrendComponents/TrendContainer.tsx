@@ -16,6 +16,7 @@ interface OutputTag {
     output_id: number;
     description: string;
     satuan: string;
+    max_value?: number | null;
 }
 
 interface Trending {
@@ -69,7 +70,10 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                             />
                             <span className="text-muted-foreground">{entry.name}:</span>
                             <span className="font-semibold">
-                                {Number(originalValue).toLocaleString()} {/* Format number */}
+                                { originalValue !== undefined
+                                    ? Number(originalValue).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                    : "N/A"
+                                } {/* Format number */}
                             </span>
                         </div>
                     );
@@ -222,18 +226,20 @@ export function TrendContainer() {
     }, [activeTemplate]);
 
     const processedData = useMemo(() => {
-        if (!rawChartData.length) return [];
+        if (!rawChartData.length || !activeTemplate) return [];
         const groupedByDate: Record<string, ProcessedChartData> = {};
 
-        const meta: Record<string, { min: number; max: number }> = {};
+        const tagMetaMap = new Map<number, OutputTag>();
+        activeTemplate.tags.forEach(tag => tagMetaMap.set(tag.output_id, tag));
 
+        const observedMeta: Record<string, { min: number; max: number }> = {};
         rawChartData.forEach((record) => {
             const tagKey = `tag_${record.output_id}`;
-            if (!meta[tagKey]) {
-                meta[tagKey] = { min: record.value, max: record.value };
+            if (!observedMeta[tagKey]) {
+                observedMeta[tagKey] = { min: record.value, max: record.value };
             } else {
-                if (record.value < meta[tagKey].min) meta[tagKey].min = record.value;
-                if (record.value > meta[tagKey].max) meta[tagKey].max = record.value;
+                if (record.value < observedMeta[tagKey].min) observedMeta[tagKey].min = record.value;
+                if (record.value > observedMeta[tagKey].max) observedMeta[tagKey].max = record.value;
             }
         });
 
@@ -243,16 +249,31 @@ export function TrendContainer() {
                 groupedByDate[dateKey] = { date:dateKey};
             }
 
-            const tagKey = `tag_${record.output_id}`;
-            const { min, max} = meta[tagKey];
+            const tagId = Number(record.output_id);
+            const tagInfo = tagMetaMap.get(tagId);
+            const tagKey = `tag_${tagId}`;
+
+            let normalizationMax: number;
+
+            if (tagInfo?.max_value && tagInfo.max_value > 0) {
+                normalizationMax = tagInfo.max_value === 0 ? 0 :50;
+            } else if (tagInfo?.satuan === '%') {
+                normalizationMax = 100;
+            } else {
+                normalizationMax = observedMeta[tagKey]?.max || 1;
+            }
 
             let normalizedValue = 0;
 
-            if (max === min) {
-                normalizedValue = max === 0 ? 0 :50;
+            if (!tagInfo?.max_value && tagInfo?.satuan !== '%' && observedMeta[tagKey]?.max === observedMeta[tagKey]?.min && observedMeta[tagKey]?.max !== 0) {
+                normalizedValue = 50;
             } else {
-                normalizedValue = (record.value / max) * 100;
+                // Standard Normalization: (Value / Max) * 100
+                // Cap it at 100 (in case value > max_value due to bad data/config)
+                const calculated = (record.value / normalizationMax) * 100;
+                normalizedValue = calculated > 100 ? 100 : calculated;
             }
+            
             groupedByDate[dateKey][`${tagKey}_norm`] = normalizedValue;
             groupedByDate[dateKey][`${tagKey}_original`] = record.value;
         });
@@ -260,7 +281,9 @@ export function TrendContainer() {
         return Object.values(groupedByDate).sort((a, b) =>
             new Date(a.date).getTime() - new Date(b.date).getTime()
         );
-    }, [rawChartData]);
+    }, [rawChartData, activeTemplate]);
+
+    
 
     const handleQuickRange = (val: string) => {
         const end = new Date();

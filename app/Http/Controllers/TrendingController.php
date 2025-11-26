@@ -91,7 +91,7 @@ class TrendingController extends Controller
 
     public function getTags() {
         // Select specific fields to keep payload light
-        $tags = OutputTag::select('output_id', 'description', 'satuan')->get();
+        $tags = OutputTag::select('output_id', 'description', 'satuan', 'max_value')->get();
         return response()->json($tags);
     }
 }
