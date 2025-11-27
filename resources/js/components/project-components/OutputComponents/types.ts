@@ -61,3 +61,13 @@ export interface ReferencesApiResponse {
 export interface ChartApiResponse {
     data: ChartDataPoint[];
 }
+
+export interface ComparisonChartDataPoint {
+    description: string;
+    output: number;
+    reference: number;
+}
+
+export interface ComparisonChartApiResponse {
+    data: ComparisonChartDataPoint[];
+}

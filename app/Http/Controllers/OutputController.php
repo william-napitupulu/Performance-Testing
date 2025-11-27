@@ -164,7 +164,7 @@ class OutputController extends Controller
                 })
                 ->where('a.perf_id', $performance->perf_id)
                 ->select(
-                    'b.description', 
+                    'b.description',
                     'a.value as output_value',
                     'c.value as reference_value',
                     DB::raw('(a.value - c.value) as difference')
@@ -186,6 +186,47 @@ class OutputController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching top 5 output data: ', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to fetch chart data'], 500);
+        }
+    }
+
+    public function getOutputAndBaseline(Performance $performance, Refference $reference)
+    {
+        try {
+            $comparisonData = DB::table('tb_output as a')
+                -> join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
+                ->join('tb_refference_detail as c', function ($join) use ($reference) {
+                    $join->on('a.output_id', '=', 'c.output_id')
+                        ->where('c.reff_id', $reference->reff_id);
+                })
+                ->where('a.perf_id', $performance->perf_id)
+                ->whereNotNull('a.value')
+                ->whereNotNull('c.value')
+                ->select(
+                    'b.description',
+                    'a.value as output_value',
+                    'c.value as reference_value'
+                )
+                ->orderBy('b.description')
+                ->get();
+
+            $formattedData = $comparisonData->map(function ($item) {
+                return [
+                    'description' => $item->description,
+                    'output' => (float) $item->output_value,
+                    'reference' => (float) $item->reference_value,
+                ];
+            });
+    
+            return response()->json([
+                'success' => true,
+                'data' => $formattedData
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching output and baseline data: ', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

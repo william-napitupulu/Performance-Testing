@@ -24,8 +24,8 @@ interface ParetoChartProps {
 export function ParetoChartTab({ data, loading, references, selectedReferenceId, onReferenceChange }: ParetoChartProps) {
     if (loading) {
         return (
-            <div className="flex h-96 items-center justify-center">
-                <div className="mr-2 h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+            <div className="flex items-center justify-center h-96">
+                <div className="w-6 h-6 mr-2 border-2 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
                 <span className="text-blue-600 dark:text-blue-400">Loading Chart Data...</span>
             </div>
         );
@@ -33,14 +33,14 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
 
     if (!data || data.length === 0) {
         return (
-            <div className="flex h-96 items-center justify-center">
+            <div className="flex items-center justify-center h-96">
                 <p className="text-gray-500 dark:text-gray-400">No data available to display the chart.</p>
             </div>
         );
     }
 
     return (
-        <div className="rounded-lg border border-border bg-card p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="p-6 border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800">
             <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 7 Highest Output and Baseline Difference</h3>
             <div className="flex items-center gap-2">
                 <label className="text-sm font-medium">Baseline:</label>
@@ -89,9 +89,10 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                         <Tooltip
                             cursor={{ fill: 'rgba(238, 242, 255, 0.5)' }} // Tailwind's indigo-50
                             contentStyle={{
-                                backgroundColor: '#fff',
-                                border: '1px solid #ddd',
+                                backgroundColor: '#020817',
+                                border: '0.5px solid var(--color-border)',
                                 borderRadius: '0.5rem',
+                                fontFamily: 'var(--font-sans)',
                             }}
                         />
                         <Bar dataKey="value" fill="#4f46e5" /> {/* Tailwind's indigo-600 */}

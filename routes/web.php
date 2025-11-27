@@ -204,6 +204,7 @@ Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function 
         Route::get('/references', [OutputController::class, 'getAvailableReference'])->name('reference');
         Route::get('/download/{performances}', [OutputController::class, 'downloadReport'])->name('download-report');
         Route::post('/create-baseline', [OutputController::class, 'createBaseline'])->name('create-baseline');
+        Route::get('/comparison/{performance}/{reference}', [OutputController::class, 'getOutputAndBaseline'])->name('comparison');
     });
 
     Route::prefix('baseline')->name('baseline.')->group(function () {

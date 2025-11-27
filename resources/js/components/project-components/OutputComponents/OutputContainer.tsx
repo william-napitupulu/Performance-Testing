@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AlignLeft, ArrowLeft, BarChart2 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { OutputDataTab } from './OutputDataTab';
-import type { OutputData, ApiResponse, ReferencesApiResponse, ChartApiResponse, ChartDataPoint, Reference } from './types';
+import type { OutputData, ApiResponse, ReferencesApiResponse, ChartApiResponse, ChartDataPoint, Reference, ComparisonChartApiResponse, ComparisonChartDataPoint } from './types';
 import { ParetoChartTab } from "./ParetoTab";
 import { ParetoChartTab2 } from "./ParetoTab2";
 
@@ -37,10 +37,10 @@ export function OutputContainer() {
         description: '',
         dateTime: '',
     });
-    // ✅ TYPED: useState now has a specific type
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const [chartLoading, setChartLoading] = useState(true);
-    // ✅ TYPED: useState now has a specific type
+    const [comparisonChartData, setComparisonChartData] = useState<ComparisonChartDataPoint[]>([]);
+    const [comparisonChartLoading, setComparisonChartLoading] = useState(true);
     const [references, setReferences] = useState<Reference[]>([]);
     const [selectedRefId, setSelectedRefId] = useState<number | null>(null);
 
@@ -92,15 +92,28 @@ export function OutputContainer() {
         if (!perfId || !refId) return;
         setChartLoading(true);
         try {
-            // ✅ TYPED: axios call now expects a specific response shape
             const response = await axios.get<ChartApiResponse>(`/api/output/pareto/${perfId}/${refId}`);
             setChartData(response.data.data || []);
-        // ✅ RESOLVED: Safe error handling
         } catch (error: unknown) {
             console.error('Error fetching chart data:', error);
             setChartData([]);
         } finally {
             setChartLoading(false);
+        }
+    }, []);
+
+    const fetchComparisonChartData = useCallback(async (perfId: number, refId: number) => {
+        if (!perfId || !refId) return;
+        setComparisonChartLoading(true);
+        try {
+            // The endpoint should match your route definition for getOutputAndBaseline
+            const response = await axios.get<ComparisonChartApiResponse>(`/api/output/comparison/${perfId}/${refId}`);
+            setComparisonChartData(response.data.data || []);
+        } catch (error: unknown) {
+            console.error('Error fetching comparison chart data:', error);
+            setComparisonChartData([]);
+        } finally {
+            setComparisonChartLoading(false);
         }
     }, []);
 
@@ -177,9 +190,12 @@ export function OutputContainer() {
 
     useEffect(() => {
         if (performanceId && selectedRefId) {
-            fetchChartData(performanceId, selectedRefId);
+            Promise.all([
+                fetchChartData(performanceId, selectedRefId),
+                fetchComparisonChartData(performanceId, selectedRefId)
+            ]);
         }
-    }, [performanceId, selectedRefId, fetchChartData]);
+    }, [performanceId, selectedRefId, fetchChartData, fetchComparisonChartData]);
 
     const handleReferenceChange = (refId: string) => {
         setSelectedRefId(Number(refId));
@@ -280,8 +296,8 @@ export function OutputContainer() {
         if (tabId === 'pareto2') {
             return (
                 <ParetoChartTab2 
-                    data={chartData} 
-                    loading={chartLoading}
+                    data={comparisonChartData} 
+                    loading={comparisonChartLoading}
                     references={references}
                     selectedReferenceId={selectedRefId}
                     onReferenceChange={handleReferenceChange}
@@ -295,17 +311,17 @@ export function OutputContainer() {
     // Use the memoized tabs configuration
 
     return (
-        <div className="bg-background p-6">
+        <div className="p-6 bg-background">
             {/* Back to Performance List */}
             <div className="mb-4">
                 <Link href={route('output.performance')} className="inline-flex items-center text-blue-600 hover:underline dark:text-blue-400">
-                    <ArrowLeft className="mr-1 h-4 w-4" /> Back to Performance Output
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Performance Output
                 </Link>
             </div>
 
             {/* Tab Navigation */}
             <div className="mb-0">
-                <div className="flex flex-wrap gap-2 rounded-t-lg bg-gray-100 p-2 dark:bg-gray-800">
+                <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-t-lg dark:bg-gray-800">
                     {tabsConfig.map((tab: TabConfig) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -324,7 +340,7 @@ export function OutputContainer() {
                                           : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 } `}
                             >
-                                <Icon className="mr-2 h-4 w-4" />
+                                <Icon className="w-4 h-4 mr-2" />
                                 {tab.label}
                                 {!isAccessible && <span className="ml-2 text-xs">🔒</span>}
                             </button>
