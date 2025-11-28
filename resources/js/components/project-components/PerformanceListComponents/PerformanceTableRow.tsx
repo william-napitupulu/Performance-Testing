@@ -91,6 +91,7 @@ export function PerformanceTableRow({
                         <option value="Beban 3">Beban 3</option>
                     </select>
                 </td>
+                <td className={cellClasses}></td> {/* Placeholder for the Output column */}
                 <td className={`${cellClasses} space-x-3 text-right`}>
                     <button
                         onClick={onSaveEdit}
@@ -137,15 +138,17 @@ export function PerformanceTableRow({
             <td className={`${cellClasses} text-center font-medium text-cyan-700 dark:text-cyan-300`}>{performance.unit_name}</td>
             <td className={`${cellClasses} text-center font-medium text-orange-700 dark:text-orange-300`}>{performance.type || 'N/A'}</td>
             <td className={`${cellClasses} text-center font-medium text-purple-700 dark:text-purple-300`}>{performance.weight || 'N/A'}</td>
-            <td className={`${cellClasses} space-x-2 text-center`}>
+            <td className={`${cellClasses} text-center`}>
                 {performance.outputs_exists && (
                     <button
-                    onClick={() => onDetail(performance)}
-                    className={`inline-flex px-2 py-1 items-center justify-center rounded transition-colors ${'text-green-100 bg-green-600 hover:bg-green-500 hover:text-green-100 dark:text-green-100 dark:hover:bg-green-700 dark:hover:text-white'}`}
-                >
-                    Output
-                </button>
+                        onClick={() => onDetail(performance)}
+                        className={`inline-flex px-2 py-1 items-center justify-center rounded transition-colors ${'text-green-100 bg-green-600 hover:bg-green-500 hover:text-green-100 dark:text-green-100 dark:hover:bg-green-700 dark:hover:text-white'}`}
+                    >
+                        Output
+                    </button>
                 )}
+            </td>
+            <td className={`${cellClasses} space-x-2 text-center`}>
                 <button
                     onClick={() => onEdit(performance)}
                     disabled={performance.status !== 'Editable'}

@@ -45,7 +45,7 @@ export function PerformanceTableHeader({ onSort, sortField, sortDirection }: Per
         'group py-2.5 text-[11px] font-medium uppercase tracking-wider select-none cursor-pointer hover:bg-green-50/70 dark:hover:bg-green-900/20 transition-colors';
 
     return (
-        <thead className="border-y border-blue-100 bg-blue-50/30 dark:border-gray-700 dark:bg-blue-900/10">
+        <thead className="border-blue-100 border-y bg-blue-50/30 dark:border-gray-700 dark:bg-blue-900/10">
             <tr>
                 <th className={`${headerBaseClasses} w-30 px-4 ${getHeaderColor('id')}`} onClick={() => onSort('id')}>
                     <div className="flex items-center">Perf ID {renderSortIcon('id')}</div>
@@ -71,6 +71,9 @@ export function PerformanceTableHeader({ onSort, sortField, sortDirection }: Per
                 <th className={`${headerBaseClasses} px-6 ${getHeaderColor('weight')}`} onClick={() => onSort('weight')}>
                     <div className="flex items-center">Weight {renderSortIcon('weight')}</div>
                 </th>
+                <th
+                    className={`${headerBaseClasses} px-6 text-center text-green-700 group-hover:text-green-700 dark:text-green-300 dark:group-hover:text-green-300`}
+                >Output</th>
                 <th
                     className={`${headerBaseClasses} px-6 text-center text-amber-700 group-hover:text-green-700 dark:text-amber-300 dark:group-hover:text-green-300`}
                 >

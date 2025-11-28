@@ -49,19 +49,27 @@ class DataAnalysisService
     {
         // Your query adapted for Laravel's strict MySQL mode
         $baseQuery = "
-            SELECT a.tag_no,a.description, min(b.value) as min_value,
-            MAX(b.value) as max_value,round(AVG(b.value),2) as avg_value ,a.satuan 
-            FROM tb_input_tag a, tb_input b
-            WHERE b.tag_no=a.tag_no
+            SELECT 
+                a.tag_no,
+                a.description, 
+                MIN(b.value) as min_value,
+                MAX(b.value) as max_value,
+                round(AVG(b.value),2) as avg_value ,
+                a.satuan 
+            FROM tb_input_tag a 
+            LEFT JOIN tb_input b
+            ON b.tag_no=a.tag_no
             AND b.perf_id= ?
+            WHERE a.m_input = 0
             GROUP BY a.tag_no,a.description,a.satuan
             ORDER BY a.group_id, a.urutan
         ";
 
-        $params = [$perfId];
+        $whereParams = [];
         $whereConditions = [];
 
         Log::info('Getting filtered data for perf_id', [
+            'request_all' => $request->all(),
             'perf_id' => $perfId,
             'base_query' => $baseQuery
         ]);
@@ -69,71 +77,74 @@ class DataAnalysisService
         // Apply filters
         if ($request->filled('filter_tag_no')) {
             $whereConditions[] = "a.tag_no LIKE ?";
-            $params[] = '%' . $request->filter_tag_no . '%';
+            $whereParams[] = '%' . $request->filter_tag_no . '%';
         }
         
         if ($request->filled('filter_description')) {
             $whereConditions[] = "a.description LIKE ?";
-            $params[] = '%' . $request->filter_description . '%';
+            $whereParams[] = '%' . $request->filter_description . '%';
         }
         
         if ($request->filled('filter_value_min')) {
             $whereConditions[] = "b.value >= ?";
-            $params[] = $request->filter_value_min;
+            $whereParams[] = $request->filter_value_min;
         }
         
         if ($request->filled('filter_value_max')) {
             $whereConditions[] = "b.value <= ?";
-            $params[] = $request->filter_value_max;
+            $whereParams[] = $request->filter_value_max;
         }
         
         if ($request->filled('filter_date')) {
             $whereConditions[] = "DATE(b.date_rec) = ?";
-            $params[] = $request->filter_date;
+            $whereParams[] = $request->filter_date;
         }
 
         // Add WHERE conditions if any
         if (!empty($whereConditions)) {
-            $baseQuery = str_replace("ORDER BY", "AND " . implode(" AND ", $whereConditions) . " ORDER BY", $baseQuery);
+            $baseQuery = str_replace("WHERE a.m_input = 0", "WHERE a.m_input = 0 AND " . implode(" AND ", $whereConditions), $baseQuery);
         }
 
         // Apply HAVING conditions for aggregated values
+        $havingParams = [];
         $havingConditions = [];
         
         if ($request->filled('filter_min_from')) {
             $havingConditions[] = "MIN(b.value) >= ?";
-            $params[] = $request->filter_min_from;
+            $havingParams[] = $request->filter_min_from;
         }
         
         if ($request->filled('filter_min_to')) {
             $havingConditions[] = "MIN(b.value) <= ?";
-            $params[] = $request->filter_min_to;
+            $havingParams[] = $request->filter_min_to;
         }
         
         if ($request->filled('filter_max_from')) {
             $havingConditions[] = "MAX(b.value) >= ?";
-            $params[] = $request->filter_max_from;
+            $havingParams[] = $request->filter_max_from;
         }
         
         if ($request->filled('filter_max_to')) {
             $havingConditions[] = "MAX(b.value) <= ?";
-            $params[] = $request->filter_max_to;
+            $havingParams[] = $request->filter_max_to;
         }
         
         if ($request->filled('filter_average_from')) {
             $havingConditions[] = "AVG(b.value) >= ?";
-            $params[] = $request->filter_average_from;
+            $havingParams[] = $request->filter_average_from;
         }
         
         if ($request->filled('filter_average_to')) {
             $havingConditions[] = "AVG(b.value) <= ?";
-            $params[] = $request->filter_average_to;
+            $havingParams[] = $request->filter_average_to;
         }
 
         // Add HAVING clause if needed
         if (!empty($havingConditions)) {
             $baseQuery = str_replace("ORDER BY", "HAVING " . implode(" AND ", $havingConditions) . " ORDER BY", $baseQuery);
         }
+
+        $params = array_merge([$perfId], $whereParams, $havingParams);
 
         // Apply sorting
         $sortField = $request->sort_field ?: 'group_id';
@@ -166,27 +177,22 @@ class DataAnalysisService
         $countQuery = "
             SELECT COUNT(*) as total FROM (
                 SELECT a.tag_no
-                FROM tb_input_tag a, tb_input b
-                WHERE b.tag_no = a.tag_no AND b.perf_id = ?
+                FROM tb_input_tag a LEFT JOIN tb_input b
+                ON b.tag_no = a.tag_no AND b.perf_id = ?
+                WHERE a.m_input = 0
         ";
-        
-        $countParams = [$perfId];
+
         if (!empty($whereConditions)) {
             $countQuery .= " AND " . implode(" AND ", $whereConditions);
-            // Add the WHERE condition parameters
-            $whereParamsCount = count($whereConditions);
-            $countParams = array_merge($countParams, array_slice($params, 1, $whereParamsCount));
         }
         
         $countQuery .= " GROUP BY a.tag_no, a.description, a.satuan";
         
         if (!empty($havingConditions)) {
             $countQuery .= " HAVING " . implode(" AND ", $havingConditions);
-            // Add the HAVING condition parameters
-            $havingParamsStart = 1 + count($whereConditions);
-            $havingParamsCount = count($havingConditions);
-            $countParams = array_merge($countParams, array_slice($params, $havingParamsStart, $havingParamsCount));
         }
+
+        $countParams = array_merge([$perfId], $whereParams, $havingParams);
         
         $countQuery .= ") as subquery";
         
@@ -255,9 +261,9 @@ class DataAnalysisService
                         'no' => (($page - 1) * $perPage) + $index + 1,
                         'tag_no' => $item->tag_no,
                         'description' => $item->description,
-                        'min' => (float) $item->min_value,
-                        'max' => (float) $item->max_value,
-                        'average' => (float) $item->avg_value,
+                        'min' => $item->min_value !== null ? (float) $item->min_value : null,
+                        'max' => $item->max_value !== null ? (float) $item->max_value : null,
+                        'average' => $item->avg_value !== null ? (float) $item->avg_value : null,
                         'unit_name' => $item->satuan,
                         'group_id' => $tagInfo ? $tagInfo->group_id : 0,
                         'urutan' => $tagInfo ? $tagInfo->urutan : 0

@@ -167,8 +167,6 @@ class DataAnalysisController extends Controller
                 'data' => []
             ], 500);
         }
-
-       
     }
 
     /**

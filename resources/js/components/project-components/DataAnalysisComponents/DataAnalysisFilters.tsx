@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FilterPayload } from './types';
 
 interface FilterValues {
@@ -41,7 +41,22 @@ export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onF
         average_to: '',
     });
 
+    const onFilterChangeRef = useRef(onFilterChange);
+    
+    // 2. Keep the Ref updated whenever the parent passes a new function
     useEffect(() => {
+        onFilterChangeRef.current = onFilterChange;
+    }, [onFilterChange]);
+
+    // 3. Track if this is the first render (to avoid double-fetching on mount)
+    const isFirstRender = useRef(true);
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        
         // Debounce the filter changes
         const timeoutId = setTimeout(() => {
             const filters: FilterPayload = {};
@@ -55,11 +70,11 @@ export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onF
             if (filterValues.average_from) filters.filter_average_from = filterValues.average_from;
             if (filterValues.average_to) filters.filter_average_to = filterValues.average_to;
 
-            onFilterChange(filters);
+            onFilterChangeRef.current(filters);
         }, 300);
 
         return () => clearTimeout(timeoutId);
-    }, [filterValues, onFilterChange]);
+    }, [filterValues]);
 
     const handleChange = (field: keyof FilterValues, value: string) => {
         setFilterValues((prev) => ({
@@ -91,9 +106,9 @@ export const DataAnalysisFilters = React.memo(function DataAnalysisFilters({ onF
                     <button
                         onClick={clearFilters}
                         title="Clear all filters"
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                        className="inline-flex items-center justify-center w-6 h-6 text-gray-500 transition-colors rounded-full hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                     >
-                        <X className="h-3 w-3" />
+                        <X className="w-3 h-3" />
                     </button>
                 )}
             </td>
