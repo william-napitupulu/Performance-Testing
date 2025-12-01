@@ -36,7 +36,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: entry.color }}
                         />
-                        <span className="text-muted-foreground">{entry.name === 'Output' ? 'Output' : 'Reference'}:</span>
+                        <span className="text-muted-foreground">{entry.name === 'Output' ? 'Output' : 'Baseline'}:</span>
                         <span className="font-semibold text-foreground">
                             {entry.name === 'Output'
                                 ? entry.payload.output.toLocaleString(undefined, { maximumFractionDigits: 2 })

@@ -1,6 +1,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import React from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import React, { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
+import type { TooltipProps } from 'recharts';
 
 interface Reference {
     reff_id: number;
@@ -21,7 +23,85 @@ interface ParetoChartProps {
     onReferenceChange: (refId: string) => void;
 }
 
+// Custom Tooltip Component for ParetoTab
+const CustomTooltipForParetoTab = ({ active, payload }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+        const dataPoint = payload[0].payload; // Original data point { description, value, displayValue }
+        return (
+            <div className="p-3 border rounded-lg shadow-md bg-background border-border">
+                <p className="mb-2 font-medium text-foreground">{dataPoint.description}</p>
+                {payload.map((entry, index) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                        <div
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-muted-foreground">{entry.name}:</span>
+                        <span className="font-semibold text-foreground">
+                            {dataPoint.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
+
+// Custom tick component for YAxis to wrap long labels
+interface WrappedXAxisTickProps {
+    x: number;
+    y: number;
+    payload: {
+        value: string;
+    };
+    width: number;
+}
+
+const WrappedYAxisTick = ({ x, y, payload, width }: WrappedXAxisTickProps) => {
+    const label = payload.value as string;
+    const maxCharsPerLine = Math.floor(width / 8); // Estimate max characters based on width
+    const words = label.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    words.forEach((word) => {
+        if (currentLine.length > 0 && (currentLine + ' ' + word).length > maxCharsPerLine) {
+            lines.push(currentLine.trim());
+            currentLine = word;
+        } else {
+            currentLine = currentLine.length > 0 ? currentLine + ' ' + word : word;
+        }
+    });
+    lines.push(currentLine.trim());
+
+    const yOffset = y - (lines.length -1)*6;
+
+    return (
+        <text x={x} y={yOffset} dy={16} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize={12}>
+            {lines.map((line, index) => (<tspan key={index} x={x} dy={index > 0 ? "1.2em" : 0}>{line}</tspan>))}
+        </text>
+    );
+};
+
 export function ParetoChartTab({ data, loading, references, selectedReferenceId, onReferenceChange }: ParetoChartProps) {
+    const chartConfig = useMemo((): ChartConfig => {
+        return {
+            value: {
+                label: "Value",
+                color: "var(--chart-1)",
+            },
+        };
+    }, []);
+
+    const chartData = useMemo(() => {
+        if (!data) return [];
+        return data.map(item => ({
+            ...item,
+            displayValue: item.value === 0 ? 0.1 : item.value,
+        }));
+    }, [data]);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -40,9 +120,10 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
     }
 
     return (
-        <div className="p-6 border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800">
+        <div className="p-6 border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800"> {/* Consistent styling */}
             <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 7 Highest Output and Baseline Difference</h3>
-            <div className="flex items-center gap-2">
+            <div className="mb-4">
+                <label className="block mb-2 text-sm font-medium">Baseline Selection</label>
                 <label className="text-sm font-medium">Baseline:</label>
                     <Select
                         value={selectedReferenceId?.toString()}
@@ -60,44 +141,37 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                         </SelectContent>
                     </Select>
             </div>
-            <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
-                    <BarChart
-                        layout="vertical" // Use a horizontal layout for better label readability
-                        data={data}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid 
-                            strokeDasharray="3 3" 
-                            strokeOpacity={0.2}
-                            stroke="#f59e0b"
-                        />
-                        <XAxis 
-                            type="number"
-                            tick={{ fill: '#d97706' }}
-                            axisLine={{ stroke: '#4f46e5' }} // Tailwind's amber-500
-                            tickLine={{ stroke: '#4f46e5' }} // Tailwind's amber-500
-                        />
-                        <YAxis
-                            dataKey="description"
-                            type="category"
-                            width={150} // Adjust width for labels
-                            tick={{ fontSize: 12, fill: '#d97706' }}
-                            axisLine={{ stroke: '#4f46e5' }} // Tailwind's amber-500
-                            tickLine={{ stroke: '#4f46e5' }} // Tailwind's amber-500
-                        />
-                        <Tooltip
-                            cursor={{ fill: 'rgba(238, 242, 255, 0.5)' }} // Tailwind's indigo-50
-                            contentStyle={{
-                                backgroundColor: '#020817',
-                                border: '0.5px solid var(--color-border)',
-                                borderRadius: '0.5rem',
-                                fontFamily: 'var(--font-sans)',
-                            }}
-                        />
-                        <Bar dataKey="value" fill="#4f46e5" /> {/* Tailwind's indigo-600 */}
-                    </BarChart>
-                </ResponsiveContainer>
+            <div className="w-full h-[500px]">
+                <ChartContainer config={chartConfig} className="w-full h-full">
+                    <ResponsiveContainer>
+                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }} layout="vertical">
+                            <CartesianGrid horizontal={false} />
+                            <XAxis
+                                scale="log"
+                                type="number"
+                                domain={[0.1, 'auto']}
+                                allowDecimals={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                            />
+                            <YAxis
+                                dataKey="description"
+                                type="category"
+                                tickMargin={5}
+                                axisLine={false}
+                                tickLine={false}
+                                interval={0}
+                                width={150}
+                                tick={<WrappedYAxisTick width={150} x={0} y={0} payload={{value: ''}} />}
+                            />
+                            <ChartTooltip cursor={false} content={<CustomTooltipForParetoTab />} />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={4} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
             </div>
         </div>
     );
