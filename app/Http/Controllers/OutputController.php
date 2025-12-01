@@ -208,7 +208,8 @@ class OutputController extends Controller
                 ->select(
                     'b.description',
                     'a.value as output_value',
-                    'c.value as reference_value'
+                    'c.value as reference_value',
+                    'b.status'
                 )
                 ->orderBy('b.description')
                 ->get();
@@ -218,6 +219,7 @@ class OutputController extends Controller
                     'description' => $item->description,
                     'output' => (float) $item->output_value,
                     'reference' => (float) $item->reference_value,
+                    'status' => $item->status
                 ];
             });
     

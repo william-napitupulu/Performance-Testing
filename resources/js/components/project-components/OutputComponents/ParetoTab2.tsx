@@ -1,8 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React, { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import type { TooltipProps } from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Reference {
     reff_id: number;
@@ -14,6 +16,7 @@ interface ComparisonChartDataPoint {
     description: string;
     output: number;
     reference: number;
+    status?: number | null;
 }
 
 interface ParetoChartProps {
@@ -102,11 +105,18 @@ export function ParetoChartTab2({ data, loading, references, selectedReferenceId
     // Prepare data for log scale: map 0 to a small number to make it visible
     const chartData = useMemo(() => {
         if (!data) return [];
-        return data.map(item => ({
-            ...item,
-            displayOutput: item.output === 0 ? 0.1 : item.output,
-            displayReference: item.reference === 0 ? 0.1 : item.reference,
-        }));
+        return data
+            .filter(item => item.status === 1)
+            .map(item => ({
+                ...item,
+                displayOutput: item.output === 0 ? 0.1 : item.output,
+                displayReference: item.reference === 0 ? 0.1 : item.reference,
+            }));
+    }, [data]);
+
+    const excludedData = useMemo(() => {
+        if (!data) return [];
+        return data.filter(item => item.status !== 1);
     }, [data]);
 
     if (loading) {
@@ -174,7 +184,6 @@ export function ParetoChartTab2({ data, loading, references, selectedReferenceId
                                     height={50}
                                 />
                                 <ChartTooltip cursor={false} content={<CustomTooltip />} />
-                                <ChartLegend content={<ChartLegendContent />} />
                                 <Bar dataKey="displayOutput" name="Output" fill="var(--chart-1)" radius={4} />
                                 <Bar dataKey="displayReference" name="Reference" fill="var(--chart-2)" radius={4} />
                             </BarChart>
@@ -182,6 +191,35 @@ export function ParetoChartTab2({ data, loading, references, selectedReferenceId
                     </ChartContainer>
                 </div>
             </div>
+            {excludedData.length > 0 && (
+                <Card className="mt-6 bg-gray-100 dark:bg-gray-800">
+                    <CardHeader>
+                        <CardTitle>Other Tag</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="border rounded-md">
+                            <Table className="min-w-full text-sm divide-y divide-border">
+                                <TableHeader className="bg-muted">
+                                    <TableRow>
+                                        <TableHead className="px-4 py-2 font-medium">Description</TableHead>
+                                        <TableHead className="px-4 py-2 font-medium">Output</TableHead>
+                                        <TableHead className="px-4 py-2 font-medium">Baseline</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody className="bg-gray-100 divide-y divide-border dark:bg-gray-800">
+                                    {excludedData.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="px-4 py-2">{item.description}</TableCell>
+                                            <TableCell className="px-4 py-2">{item.output.toLocaleString()}</TableCell>
+                                            <TableCell className="px-4 py-2">{item.reference.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

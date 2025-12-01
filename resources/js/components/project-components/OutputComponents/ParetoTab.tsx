@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React, { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import type { TooltipProps } from 'recharts';
 
 interface Reference {
@@ -167,7 +167,6 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                                 tick={<WrappedYAxisTick width={150} x={0} y={0} payload={{value: ''}} />}
                             />
                             <ChartTooltip cursor={false} content={<CustomTooltipForParetoTab />} />
-                            <ChartLegend content={<ChartLegendContent />} />
                             <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={4} />
                         </BarChart>
                     </ResponsiveContainer>

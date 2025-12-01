@@ -66,6 +66,7 @@ export interface ComparisonChartDataPoint {
     description: string;
     output: number;
     reference: number;
+    status?: number | null;
 }
 
 export interface ComparisonChartApiResponse {

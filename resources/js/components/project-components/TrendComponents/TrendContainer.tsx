@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +18,7 @@ interface OutputTag {
     description: string;
     satuan: string;
     max_value?: number | null;
+    status?: number | null;
 }
 
 interface Trending {
@@ -195,7 +197,7 @@ export function TrendContainer() {
             });
 
             if (response.ok) {
-                const newTemplate = await response.json();
+                const newTemplate: Trending = await response.json();
                 setTemplates([...templates, newTemplate]);
                 setSelectedTemplateId(newTemplate.id.toString());
                 setIsCreateOpen(false);
@@ -215,11 +217,15 @@ export function TrendContainer() {
     const chartConfig = useMemo(() => {
         const config: ChartConfig = {};
         if (activeTemplate?.tags) {
-            activeTemplate.tags.forEach((tag, index) => {
-                config[`tag_${tag.output_id}_norm`] = {
-                label: `${tag.description} (${tag.satuan})`,
-                color: getChartColor(index),
-                };
+            activeTemplate.tags
+            .filter(tag => tag.status === 1)
+            .forEach((tag, index) => {
+                if (tag.status) {
+                    config[`tag_${tag.output_id}_norm`] = {
+                        label: `${tag.description} (${tag.satuan})`,
+                        color: getChartColor(index),
+                    };
+                }
             });
         }
         return config;
@@ -230,7 +236,9 @@ export function TrendContainer() {
         const groupedByDate: Record<string, ProcessedChartData> = {};
 
         const tagMetaMap = new Map<number, OutputTag>();
-        activeTemplate.tags.forEach(tag => tagMetaMap.set(tag.output_id, tag));
+        activeTemplate.tags
+            .filter(tag => tag.status === 1)
+            .forEach(tag => tagMetaMap.set(tag.output_id, tag));
 
         const observedMeta: Record<string, { min: number; max: number }> = {};
         rawChartData.forEach((record) => {
@@ -251,6 +259,9 @@ export function TrendContainer() {
 
             const tagId = Number(record.output_id);
             const tagInfo = tagMetaMap.get(tagId);
+
+            if (!tagInfo) return;
+
             const tagKey = `tag_${tagId}`;
 
             let normalizationMax: number;
@@ -283,6 +294,34 @@ export function TrendContainer() {
         );
     }, [rawChartData, activeTemplate]);
 
+    const inactiveTags = useMemo(() =>
+        activeTemplate?.tags.filter(tag => tag.status !== 1) ?? [],
+        [activeTemplate]
+    );
+
+    const pivotedInactiveData = useMemo(() => {
+        if (!inactiveTags.length || !rawChartData.length) return [];
+
+        const inactiveTagMap = new Map<number, OutputTag>();
+        inactiveTags.forEach(tag => inactiveTagMap.set(tag.output_id, tag));
+
+        const groupedByDate: Record<string, { date: string; [key: string]: string | number }> = {};
+
+        rawChartData
+            .filter(record => inactiveTagMap.has(Number(record.output_id)))
+            .forEach(record => {
+                const dateKey = record.date_perfomance.split(" ")[0];
+                if (!groupedByDate[dateKey]) {
+                    groupedByDate[dateKey] = { date: dateKey };
+                }
+
+                const tagInfo = inactiveTagMap.get(Number(record.output_id));
+                if (tagInfo) {
+                    groupedByDate[dateKey][tagInfo.description] = record.value;
+                }
+            });
+        return Object.values(groupedByDate).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [rawChartData, inactiveTags]);
     
 
     const handleQuickRange = (val: string) => {
@@ -442,7 +481,7 @@ export function TrendContainer() {
                                 />
                                 <ChartLegend content={<ChartLegendContent/>} />
                                 
-                                {activeTemplate?.tags.map((tag, index) => (
+                                {activeTemplate?.tags.filter(tag => tag.status === 1).map((tag, index) => (
                                     <Line
                                         key={tag.output_id}
                                         type="linear"
@@ -460,6 +499,45 @@ export function TrendContainer() {
                     </ChartContainer>
                 </CardContent>
             </Card>
+
+            {pivotedInactiveData.length > 0 && (
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle>Inactive Tag Data</CardTitle>
+                        <CardDescription>
+                            This table shows the raw data for parameters that are part of this template but are currently inactive (status 0 or null).
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="border rounded-md">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[150px] sticky top-0 bg-background">Date</TableHead>
+                                        {inactiveTags.map(tag => (
+                                            <TableHead key={tag.output_id} className="sticky top-0 text-right bg-background">
+                                                {tag.description} <span className="text-xs font-normal text-muted-foreground">({tag.satuan})</span>
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {pivotedInactiveData.map((row, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium">{format(parseISO(row.date), "PP")}</TableCell>
+                                            {inactiveTags.map(tag => (
+                                                <TableCell key={tag.output_id} className="text-right">
+                                                    {row[tag.description] !== undefined ? Number(row[tag.description]).toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
