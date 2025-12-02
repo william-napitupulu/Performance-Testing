@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip } from "@/components/ui/chart";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -53,11 +52,34 @@ interface CustomTooltipProps {
     label?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+interface ExtendedCustomTooltipProps extends CustomTooltipProps {
+    inactiveTags: OutputTag[];
+    rawChartData: ChartDataPoint[];
+}
+
+const CustomTooltip = ({ active, payload, label, inactiveTags, rawChartData }: ExtendedCustomTooltipProps) => {
     if (active && payload && payload.length) {
+        const inactiveDataForDate = rawChartData // This now only contains inactive data
+            .filter(d => label && d.date_perfomance.startsWith(label) && inactiveTags.some(t => t.output_id === Number(d.output_id)))
+            .reduce((acc, curr) => {
+                acc[Number(curr.output_id)] = curr.value;
+                return acc;
+            }, {} as Record<number, number>);
         return (
             <div className="p-3 border rounded-lg shadow-md bg-background border-border">
                 <p className="mb-2 font-medium">{label ? format(parseISO(label), "MMM d, yyyy") : ''}</p>
+                {inactiveTags.map((tag, index) => {
+                    const value = inactiveDataForDate[tag.output_id];
+                    if (value === undefined) return null; // Don't show if no data for this date
+                    return (
+                        <div key={`inactive-${index}`} className="flex items-center gap-2 mb-2 text-sm">
+                            <span className="text-muted-foreground">{tag.description}:</span>
+                            <span className="font-semibold">
+                                { Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 }) }
+                            </span>
+                        </div>
+                    );
+                })}
                 {payload.map((entry, index) => {
                     // We retrieve the original data key
                     const dataKey = entry.dataKey as string; // e.g., "tag_4_norm"
@@ -90,7 +112,9 @@ const getChartColor = (index: number) => `var(--chart-${(index % 5) + 1})`;
 
 export function TrendContainer() {
     const [templates, setTemplates] = useState<Trending[]>([]);
-    const [rawChartData, setRawChartData] = useState<ChartDataPoint[]>([]);
+    const [activeRawData, setActiveRawData] = useState<ChartDataPoint[]>([]);
+    const [inactiveRawData, setInactiveRawData] = useState<ChartDataPoint[]>([]);
+    const [allInactiveTags, setAllInactiveTags] = useState<OutputTag[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [fromDate, setFromDate] = useState<Date | undefined>(subDays(new Date(), 365));
@@ -143,16 +167,28 @@ export function TrendContainer() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const params = new URLSearchParams({
+                const baseParams = new URLSearchParams({
                     template_id: selectedTemplateId,
                 });
+                if (fromDate) baseParams.append('start_date', format(fromDate, 'yyyy-MM-dd'));
+                if (toDate) baseParams.append('end_date', format(toDate, 'yyyy-MM-dd'));
 
-                if (fromDate) params.append('start_date', format(fromDate, 'yyyy-MM-dd'));
-                if (toDate) params.append('end_date', format(toDate, 'yyyy-MM-dd'));
+                // Fetch active data for chart
+                const activeParams = new URLSearchParams(baseParams);
+                activeParams.append('tag_status', 'active');
+                const activeResponse = await fetch(`/trending/data?${activeParams.toString()}`);
+                const activeData: ChartDataPoint[] = await activeResponse.json();
+                setActiveRawData(activeData);
 
-                const response = await fetch(`/trending/data?${params.toString()}`);
-                const data: ChartDataPoint[] = await response.json();
-                setRawChartData(data);
+                // Fetch inactive data for tooltip
+                const inactiveParams = new URLSearchParams(baseParams);
+                inactiveParams.append('tag_status', 'inactive');
+                const inactiveResponse = await fetch(`/trending/data?${inactiveParams.toString()}`);
+                const inactivePayload = await inactiveResponse.json();
+                
+                setInactiveRawData(inactivePayload.data);
+                setAllInactiveTags(inactivePayload.tags);
+
             } catch (error) {
                 console.error("Failed to fetch chart data:", error);
             } finally {
@@ -232,7 +268,7 @@ export function TrendContainer() {
     }, [activeTemplate]);
 
     const processedData = useMemo(() => {
-        if (!rawChartData.length || !activeTemplate) return [];
+        if (!activeRawData.length || !activeTemplate) return [];
         const groupedByDate: Record<string, ProcessedChartData> = {};
 
         const tagMetaMap = new Map<number, OutputTag>();
@@ -241,7 +277,7 @@ export function TrendContainer() {
             .forEach(tag => tagMetaMap.set(tag.output_id, tag));
 
         const observedMeta: Record<string, { min: number; max: number }> = {};
-        rawChartData.forEach((record) => {
+        activeRawData.forEach((record) => {
             const tagKey = `tag_${record.output_id}`;
             if (!observedMeta[tagKey]) {
                 observedMeta[tagKey] = { min: record.value, max: record.value };
@@ -251,7 +287,7 @@ export function TrendContainer() {
             }
         });
 
-        rawChartData.forEach((record) => {
+        activeRawData.forEach((record) => {
             const dateKey = record.date_perfomance.split(" ")[0];
             if (!groupedByDate[dateKey]) {
                 groupedByDate[dateKey] = { date:dateKey};
@@ -292,37 +328,9 @@ export function TrendContainer() {
         return Object.values(groupedByDate).sort((a, b) =>
             new Date(a.date).getTime() - new Date(b.date).getTime()
         );
-    }, [rawChartData, activeTemplate]);
+    }, [activeRawData, activeTemplate]);
 
-    const inactiveTags = useMemo(() =>
-        activeTemplate?.tags.filter(tag => tag.status !== 1) ?? [],
-        [activeTemplate]
-    );
-
-    const pivotedInactiveData = useMemo(() => {
-        if (!inactiveTags.length || !rawChartData.length) return [];
-
-        const inactiveTagMap = new Map<number, OutputTag>();
-        inactiveTags.forEach(tag => inactiveTagMap.set(tag.output_id, tag));
-
-        const groupedByDate: Record<string, { date: string; [key: string]: string | number }> = {};
-
-        rawChartData
-            .filter(record => inactiveTagMap.has(Number(record.output_id)))
-            .forEach(record => {
-                const dateKey = record.date_perfomance.split(" ")[0];
-                if (!groupedByDate[dateKey]) {
-                    groupedByDate[dateKey] = { date: dateKey };
-                }
-
-                const tagInfo = inactiveTagMap.get(Number(record.output_id));
-                if (tagInfo) {
-                    groupedByDate[dateKey][tagInfo.description] = record.value;
-                }
-            });
-        return Object.values(groupedByDate).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [rawChartData, inactiveTags]);
-    
+    const inactiveTags = allInactiveTags;
 
     const handleQuickRange = (val: string) => {
         const end = new Date();
@@ -477,7 +485,7 @@ export function TrendContainer() {
                                 />
                                 <ChartTooltip
                                     cursor={false}
-                                    content={<CustomTooltip/>}
+                                    content={<CustomTooltip inactiveTags={inactiveTags} rawChartData={inactiveRawData} />}
                                 />
                                 <ChartLegend content={<ChartLegendContent/>} />
                                 
@@ -499,45 +507,6 @@ export function TrendContainer() {
                     </ChartContainer>
                 </CardContent>
             </Card>
-
-            {pivotedInactiveData.length > 0 && (
-                <Card className="mt-6">
-                    <CardHeader>
-                        <CardTitle>Inactive Tag Data</CardTitle>
-                        <CardDescription>
-                            This table shows the raw data for parameters that are part of this template but are currently inactive (status 0 or null).
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="border rounded-md">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[150px] sticky top-0 bg-background">Date</TableHead>
-                                        {inactiveTags.map(tag => (
-                                            <TableHead key={tag.output_id} className="sticky top-0 text-right bg-background">
-                                                {tag.description} <span className="text-xs font-normal text-muted-foreground">({tag.satuan})</span>
-                                            </TableHead>
-                                        ))}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {pivotedInactiveData.map((row, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell className="font-medium">{format(parseISO(row.date), "PP")}</TableCell>
-                                            {inactiveTags.map(tag => (
-                                                <TableCell key={tag.output_id} className="text-right">
-                                                    {row[tag.description] !== undefined ? Number(row[tag.description]).toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
@@ -569,7 +538,7 @@ export function TrendContainer() {
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 gap-3">
-                                        {availableTags.map((tag) => (
+                                        {availableTags.filter(t => t.status === 1).map((tag) => (
                                             <div key={tag.output_id} className="flex items-center space-x-2">
                                                 <input 
                                                     type="checkbox" 
