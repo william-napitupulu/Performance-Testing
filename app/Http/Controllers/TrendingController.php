@@ -103,9 +103,15 @@ class TrendingController extends Controller
             'output_ids.*' => 'exists:tb_output_tag,output_id',
         ]);
 
-        $template = DB::transaction(function () use ($validated) {
+        $unitId = session('selected_unit');
+        if (!$unitId) {
+            return response()->json(['error' => 'No unit selected'], 400);
+        }
+
+        $template = DB::transaction(function () use ($validated, $unitId) {
             $newTemplate = Trending::create([
                 'name' => $validated['name'],
+                'unit_id' => $unitId,
             ]);
 
             $newTemplate->tags()->attach($validated['output_ids']);
