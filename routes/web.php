@@ -193,6 +193,7 @@ Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function 
         Route::post('/save-manual-input', [DataAnalysisController::class, 'saveManualInput'])->name('save-manual-input');
         Route::get('/export-excel', [DataAnalysisController::class, 'exportAnalysisData'])->name('export-excel');
         Route::post('/{performance}/run', [DataAnalysisController::class, 'runAnalysis'])->name('run');
+        Route::get('/check/{performance}', [DataAnalysisController::class, 'CheckStatus'])->name('check');
     });
 
     Route::prefix('output')->name('output.')->group(function () {
