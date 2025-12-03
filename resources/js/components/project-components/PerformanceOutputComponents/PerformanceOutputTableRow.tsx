@@ -33,7 +33,7 @@ export function PerformanceTableRow({
 
     if (isEditing) {
         return (
-            <tr className="bg-blue-50/50 transition-colors dark:bg-blue-900/20">
+            <tr className="transition-colors bg-blue-50/50 dark:bg-blue-900/20">
                 <td className={`${cellClasses} w-1/12 text-center`}>
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300">
                         {performance.id}
@@ -75,15 +75,15 @@ export function PerformanceTableRow({
                 <td className={`${cellClasses} w-32 space-x-3 text-right`}>
                     <button
                         onClick={onSaveEdit}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
+                        className="inline-flex items-center justify-center w-8 h-8 text-green-600 transition-colors rounded-full hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
                     >
-                        <Save className="h-4 w-4" />
+                        <Save className="w-4 h-4" />
                     </button>
                     <button
                         onClick={onCancelEdit}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-300"
+                        className="inline-flex items-center justify-center w-8 h-8 text-gray-600 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-300"
                     >
-                        <X className="h-4 w-4" />
+                        <X className="w-4 h-4" />
                     </button>
                 </td>
             </tr>
@@ -108,11 +108,7 @@ export function PerformanceTableRow({
                 <button
                     onClick={() => onEdit(performance)}
                     disabled={performance.status !== 'Editable'}
-                    className={`inline-flex items-center justify-center rounded-full transition-colors ${
-                        performance.status === 'Editable'
-                            ? 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300'
-                            : 'cursor-not-allowed text-gray-400'
-                    }`}
+                    className={`inline-flex items-center justify-center rounded-full transition-colors text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300`}
                 >
                     Details
                 </button>

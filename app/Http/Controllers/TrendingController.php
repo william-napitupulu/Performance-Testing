@@ -74,11 +74,6 @@ class TrendingController extends Controller
                 'o.value'
             ]);
 
-        // For active tags, we only want to see valid performance data.
-        if ($request->tag_status === 'active') {
-            $query->where('p.status', 1);
-        }
-
         if ($request->has('unit_id')) {
             $query->where('p.unit_id', $request->unit_id);
         }
