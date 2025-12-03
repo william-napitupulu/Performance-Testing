@@ -64,12 +64,14 @@ class Performance extends Model
      */
     const STATUS_LOCKED = 0;
     const STATUS_EDITABLE = 1;
+    const STATUS_PROCESSING  = 2;
 
     /**
      * Get the status as a string
      */
     public function getStatusTextAttribute()
     {
+        if ($this->status === self::STATUS_PROCESSING) return 'Processing';
         return $this->status === self::STATUS_EDITABLE ? 'Editable' : 'Locked';
     }
 

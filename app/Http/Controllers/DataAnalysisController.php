@@ -491,9 +491,24 @@ class DataAnalysisController extends Controller
     }
 
     public function runAnalysis(Performance $performance) {
+        $performance->status = Performance::STATUS_PROCESSING;
+        $performance->save();
+
         RunExcelAnalysis::dispatch($performance->perf_id, $performance->unit_id);
 
         // Redis::publish('analysis-jobs', 'new_job_available');
-        return back()->with('status', 'Your analysis has been successfully queued and will be processed shortly.');
+        return response()->json([
+            'message' => 'Analysis queued',
+            'perf_id' => $performance->perf_id
+        ]);
+    }
+
+    public function CheckStatus($id) {
+        $performance = Performance::find($id);
+
+        return response()->json([
+            'status' => $performance->status,
+            'report_filename' => $performance->report_filename
+        ]);
     }
 }
