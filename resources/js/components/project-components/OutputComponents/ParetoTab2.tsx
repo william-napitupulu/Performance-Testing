@@ -5,6 +5,7 @@ import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart
 import type { TooltipProps } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { scaleSymlog } from "d3-scale";
 
 interface Reference {
     reff_id: number;
@@ -109,8 +110,8 @@ export function ParetoChartTab2({ data, loading, references, selectedReferenceId
             .filter(item => item.status === 1)
             .map(item => ({
                 ...item,
-                displayOutput: item.output === 0 ? 0.1 : item.output,
-                displayReference: item.reference === 0 ? 0.1 : item.reference,
+                displayOutput: item.output,
+                displayReference: item.reference,
             }));
     }, [data]);
 
@@ -164,10 +165,10 @@ export function ParetoChartTab2({ data, loading, references, selectedReferenceId
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
                                 <CartesianGrid vertical={false} />
                                 <YAxis 
-                                    scale="log"
+                                    scale={scaleSymlog().constant(1)}
                                     type="number"
-                                    domain={[0.1, 'auto']}
-                                    allowDecimals={false}
+                                    domain={['auto', 'auto']}
+                                    allowDecimals={true}
                                     tickMargin={10}
                                     axisLine={false}
                                     tickLine={false}

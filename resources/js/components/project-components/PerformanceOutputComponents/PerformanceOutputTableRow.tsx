@@ -107,7 +107,6 @@ export function PerformanceTableRow({
             <td className={`${cellClasses} space-x-2 text-center`}>
                 <button
                     onClick={() => onEdit(performance)}
-                    disabled={performance.status !== 'Editable'}
                     className={`inline-flex items-center justify-center rounded-full transition-colors text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300`}
                 >
                     Details
