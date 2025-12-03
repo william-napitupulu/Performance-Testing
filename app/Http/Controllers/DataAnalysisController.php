@@ -389,6 +389,17 @@ class DataAnalysisController extends Controller
                 'unit_id' => $selectedUnit
             ]);
 
+            // Change performance status to editable
+            if ($result['total_processed'] > 0 && !empty($request->data[0]['perf_id'])) {
+                $perfId = $request->data[0]['perf_id'];
+                $performance = Performance::find($perfId);
+                if ($performance) {
+                    $performance->status = Performance::STATUS_EDITABLE;
+                    $performance->save();
+                    Log::info('Performance status updated to editable', ['perf_id' => $perfId]);
+                }
+            }
+
             $message = "Successfully processed {$result['total_processed']} records";
             if ($result['records_created'] > 0 && $result['records_updated'] > 0) {
                 $message .= " ({$result['records_created']} created, {$result['records_updated']} updated)";

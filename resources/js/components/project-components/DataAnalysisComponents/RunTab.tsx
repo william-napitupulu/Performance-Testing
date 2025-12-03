@@ -8,6 +8,7 @@ interface SharedPerformanceData {
     dateTime: string;
     perfId?: number;
     tabCount?: number;
+    status?: number;
 }
 
 interface TabInputData {
@@ -53,6 +54,9 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
         const hasDataInDCS = (dcsData && dcsData.length > 0) || (totalRecords && totalRecords > 0);
 
         // 2. Configuration: Check if all tabs with manual input have all their fields filled
+        // The status from the performance record. 1 means 'editable'.
+        const isEditableStatus = sharedData?.status !== 0;
+
         let allTabsConfigured = true;
         let totalInputFields = 0;
         let filledInputFields = 0;
@@ -119,6 +123,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
         return {
             dataStatus: hasDataInDCS,
             configurationStatus: allTabsConfigured,
+            isEditableStatus,
             analysisStatus: analysisReady,
             totalInputFields,
             filledInputFields,
@@ -127,7 +132,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
     }, [dcsData, tabInputData, sharedData?.tabCount, totalRecords]);
 
     // All conditions must be met to enable Run Analysis
-    const canRunAnalysis = statusChecks.dataStatus && statusChecks.configurationStatus && statusChecks.analysisStatus;
+    const canRunAnalysis = statusChecks.dataStatus && statusChecks.configurationStatus && statusChecks.analysisStatus && statusChecks.isEditableStatus;
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
     const handleRunAnalysis = async () => {
@@ -325,6 +330,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             <ul className="mt-2 space-y-1 text-sm text-orange-700 dark:text-orange-300">
                                 {!statusChecks.dataStatus && <li>• Load performance data into DATA DCS</li>}
                                 {!statusChecks.analysisStatus && <li>• Ensure analysis engine is ready</li>}
+                                {!statusChecks.isEditableStatus && <li>• Performance status must be 'Editable'. Save manual input to change status.</li>}
                                 {!statusChecks.configurationStatus && (
                                     <li>
                                         Complete all manual input fields. Missing:

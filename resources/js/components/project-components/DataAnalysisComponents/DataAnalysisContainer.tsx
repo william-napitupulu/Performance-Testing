@@ -37,6 +37,7 @@ interface SharedPerformanceData {
     dateTime: string;
     perfId?: number;
     tabCount?: number;
+    status?: number;
 }
 
 export function DataAnalysisContainer() {
@@ -164,6 +165,7 @@ export function DataAnalysisContainer() {
                             dateTime: perf.date_perfomance,
                             perfId: perf.id,
                             tabCount: tabCount,
+                            status: perf.status,
                         });
                         setActiveTabCount(tabCount);
                         setData(resp.data.data || []);
@@ -211,6 +213,7 @@ export function DataAnalysisContainer() {
                 dateTime: formData.dateTime,
                 perfId: response.data.perf_id,
                 tabCount: response.data.performance?.jumlah_tab_aktif || 3,
+                status: response.data.performance?.status || 0,
             });
 
             setActiveTabCount(response.data.performance?.jumlah_tab_aktif || 3);
@@ -387,17 +390,17 @@ export function DataAnalysisContainer() {
     // Use the memoized tabs configuration
 
     return (
-        <div className="bg-background p-6">
+        <div className="p-6 bg-background">
             {/* Back to Performance List */}
             <div className="mb-4">
                 <Link href={route('performance.index')} className="inline-flex items-center text-blue-600 hover:underline dark:text-blue-400">
-                    <ArrowLeft className="mr-1 h-4 w-4" /> Back to Performance List
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Performance List
                 </Link>
             </div>
 
             {/* Tab Navigation */}
             <div className="mb-0">
-                <div className="flex flex-wrap gap-2 rounded-t-lg bg-gray-100 p-2 dark:bg-gray-800">
+                <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-t-lg dark:bg-gray-800">
                     {tabsConfig.map((tab: TabConfig) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -416,7 +419,7 @@ export function DataAnalysisContainer() {
                                           : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 } `}
                             >
-                                <Icon className="mr-2 h-4 w-4" />
+                                <Icon className="w-4 h-4 mr-2" />
                                 {tab.label}
                                 {!isAccessible && <span className="ml-2 text-xs">🔒</span>}
                             </button>
