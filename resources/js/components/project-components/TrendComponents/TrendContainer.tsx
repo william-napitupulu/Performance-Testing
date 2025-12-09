@@ -32,6 +32,7 @@ interface ChartDataPoint {
     date_perfomance: string;
     output_id: number | string;
     value: number;
+    description: string;
 }
 
 interface ProcessedChartData {
@@ -59,14 +60,20 @@ interface ExtendedCustomTooltipProps extends CustomTooltipProps {
 
 const CustomTooltip = ({ active, payload, label, inactiveTags, rawChartData }: ExtendedCustomTooltipProps) => {
     if (active && payload && payload.length) {
+        const performanceDescription = rawChartData.find(d => label && d.date_perfomance.startsWith(label))?.description;
+
         const inactiveDataForDate = rawChartData // This now only contains inactive data
             .filter(d => label && d.date_perfomance.startsWith(label) && inactiveTags.some(t => t.output_id === Number(d.output_id)))
             .reduce((acc, curr) => {
                 acc[Number(curr.output_id)] = curr.value;
                 return acc;
             }, {} as Record<number, number>);
+
         return (
             <div className="p-3 border rounded-lg shadow-md bg-background border-border">
+                {performanceDescription && (
+                    <p className="mb-2 text-sm">{performanceDescription}</p>
+                )}
                 <p className="mb-2 font-medium">{label ? format(parseISO(label), "MMM d, yyyy") : ''}</p>
                 {inactiveTags.map((tag, index) => {
                     const value = inactiveDataForDate[tag.output_id];
@@ -323,6 +330,7 @@ export function TrendContainer() {
             
             groupedByDate[dateKey][`${tagKey}_norm`] = normalizedValue;
             groupedByDate[dateKey][`${tagKey}_original`] = record.value;
+            groupedByDate[dateKey]['description'] = record.description;
         });
 
         return Object.values(groupedByDate).sort((a, b) =>
@@ -485,7 +493,7 @@ export function TrendContainer() {
                                 />
                                 <ChartTooltip
                                     cursor={false}
-                                    content={<CustomTooltip inactiveTags={inactiveTags} rawChartData={inactiveRawData} />}
+                                    content={<CustomTooltip inactiveTags={inactiveTags} rawChartData={[...activeRawData, ...inactiveRawData]} />}
                                 />
                                 <ChartLegend content={<ChartLegendContent/>} />
                                 

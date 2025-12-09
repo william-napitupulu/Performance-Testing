@@ -70,6 +70,7 @@ class TrendingController extends Controller
             ->select([
                 'p.perf_id',
                 'p.date_perfomance',
+                'p.description',
                 'o.output_id',
                 'o.value'
             ]);
