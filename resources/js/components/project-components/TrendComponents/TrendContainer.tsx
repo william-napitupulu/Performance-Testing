@@ -77,7 +77,7 @@ const CustomTooltip = ({ active, payload, label, inactiveTags, rawChartData }: E
                 <p className="mb-2 font-medium">{label ? format(parseISO(label), "MMM d, yyyy") : ''}</p>
                 {inactiveTags.map((tag, index) => {
                     const value = inactiveDataForDate[tag.output_id];
-                    if (value === undefined) return null; // Don't show if no data for this date
+                    if (value === undefined) return null;
                     return (
                         <div key={`inactive-${index}`} className="flex items-center gap-2 mb-2 text-sm">
                             <span className="text-muted-foreground">{tag.description}:</span>
