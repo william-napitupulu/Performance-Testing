@@ -155,7 +155,9 @@ export const OutputTable = React.memo(function OutputTable({
                                     </td>
                                     <td className="px-10 py-4 font-medium text-blue-700 dark:text-blue-300">{item.output_id}</td>
                                     <td className="px-6 py-4 font-medium text-blue-700 dark:text-blue-300">{item.description}</td>
-                                    <td className="px-6 py-4 font-medium text-blue-700 dark:text-blue-300">{item.value}</td>
+                                    <td className="px-6 py-4 font-medium text-blue-700 dark:text-blue-300">
+                                        {item.value !== null && item.value !== '' && !isNaN(Number(item.value)) ? Number(item.value).toFixed(2) : item.value}
+                                    </td>
                                     <td className="text-center px-6 py-4 font-medium text-blue-700 dark:text-blue-300">{item.satuan}</td>
                                 </tr>
                             ))
