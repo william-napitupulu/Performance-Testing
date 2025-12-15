@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React, { useMemo } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import type { TooltipProps } from 'recharts';
 
@@ -13,6 +13,9 @@ interface Reference {
 interface ChartData {
     description: string;
     value: number;
+    real_difference: number;
+    output_val: number;
+    baseline_val: number;
 }
 
 interface ParetoChartProps {
@@ -26,19 +29,15 @@ interface ParetoChartProps {
 // Custom Tooltip Component for ParetoTab
 const CustomTooltipForParetoTab = ({ active, payload }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
-        const dataPoint = payload[0].payload; // Original data point { description, value, displayValue }
+        const dataPoint = payload[0].payload as ChartData; // Original data point { description, value, displayValue }
         return (
             <div className="p-3 border rounded-lg shadow-md bg-background border-border">
                 <p className="mb-2 font-medium text-foreground">{dataPoint.description}</p>
                 {payload.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
-                        <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                        />
                         <span className="text-muted-foreground">{entry.name}:</span>
-                        <span className="font-semibold text-foreground">
-                            {dataPoint.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        <span className={`font-semibold ${dataPoint.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {dataPoint.value.toFixed(2)}%
                         </span>
                     </div>
                 ))}
@@ -98,7 +97,7 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
         if (!data) return [];
         return data.map(item => ({
             ...item,
-            displayValue: item.value === 0 ? 0.1 : item.value,
+            displayValue: item.value,
         }));
     }, [data]);
 
@@ -147,9 +146,9 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }} layout="vertical">
                             <CartesianGrid horizontal={false} />
                             <XAxis
-                                scale="log"
                                 type="number"
-                                domain={[0.1, 'auto']}
+                                //domain={[0.1, 'auto']}
+                                tickFormatter={(value) => `${value}%`}
                                 allowDecimals={false}
                                 tickMargin={10}
                                 axisLine={false}
@@ -167,7 +166,15 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                                 tick={<WrappedYAxisTick width={150} x={0} y={0} payload={{value: ''}} />}
                             />
                             <ChartTooltip cursor={false} content={<CustomTooltipForParetoTab />} />
-                            <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={4} />
+                            <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={4}>
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`} 
+                                        // If value is negative, use Red (destructive), else Blue (chart-1)
+                                        fill={entry.value < 0 ? "hsl(var(--destructive))" : "var(--chart-1)"} 
+                                    />
+                                ))}
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartContainer>

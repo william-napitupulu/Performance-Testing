@@ -157,7 +157,7 @@ class OutputController extends Controller
     {
         try {
             $differenceData = DB::table('tb_output as a')
-                -> join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
+                ->join('tb_output_tag as b', 'a.output_id', '=', 'b.output_id')
                 ->join('tb_refference_detail as c', function ($join) use ($reference) {
                     $join->on('a.output_id', '=', 'c.output_id')
                         ->where('c.reff_id', $reference->reff_id);
@@ -167,16 +167,20 @@ class OutputController extends Controller
                     'b.description',
                     'a.value as output_value',
                     'c.value as reference_value',
-                    DB::raw('(a.value - c.value) as difference')
+                    DB::raw('(a.value - c.value) as absolute_difference'),
+                    DB::raw('CASE WHEN c.value = 0 THEN 0 ELSE (ABS(a.value -c.value) / ABS(c.value)) * 100 END as percentage_difference')
                 )
-                ->orderBy('difference', 'desc')
+                ->orderBy('percentage_difference', 'desc')
                 ->limit(7)
                 ->get();
 
             $formattedData = $differenceData->map(function ($item) {
                 return [
                     'description' => Str::limit($item->description, 30),
-                    'value' => (float) $item->difference,
+                    'value' => (float) $item->percentage_difference,
+                    'real_difference' => (float) $item->absolute_difference,
+                    'output_val' => (float) $item->output_value,
+                    'ref_val' => (float) $item->reference_value
                 ];
             });
     
