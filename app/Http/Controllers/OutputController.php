@@ -153,7 +153,7 @@ class OutputController extends Controller
         }
     }
 
-    public function getTop7OutputBaselineDifference(Performance $performance, Refference $reference)
+    public function getTop10OutputBaselineDifference(Performance $performance, Refference $reference)
     {
         try {
             $differenceData = DB::table('tb_output as a')
@@ -171,7 +171,7 @@ class OutputController extends Controller
                     DB::raw('CASE WHEN c.value = 0 THEN 0 ELSE (ABS(a.value -c.value) / ABS(c.value)) * 100 END as percentage_difference')
                 )
                 ->orderBy('percentage_difference', 'desc')
-                ->limit(7)
+                ->limit(10)
                 ->get();
 
             $formattedData = $differenceData->map(function ($item) {
@@ -189,7 +189,7 @@ class OutputController extends Controller
                 'data' => $formattedData
             ]);
         } catch (\Exception $e) {
-            Log::error('Error fetching top 5 output data: ', [
+            Log::error('Error fetching top 10 output data: ', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

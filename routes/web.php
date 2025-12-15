@@ -201,7 +201,7 @@ Route::middleware(['web', 'auth'])->prefix('api')->name('api.')->group(function 
             Route::get('/', [OutputController::class, 'index'])->name('index');
             Route::get('/data', [OutputController::class, 'getOutputData'])->name('data');
         });
-        Route::get('/pareto/{performance}/{reference}', [OutputController::class, 'getTop7OutputBaselineDifference'])->name('pareto');
+        Route::get('/pareto/{performance}/{reference}', [OutputController::class, 'getTop10OutputBaselineDifference'])->name('pareto');
         Route::get('/references', [OutputController::class, 'getAvailableReference'])->name('reference');
         Route::get('/download/{performances}', [OutputController::class, 'downloadReport'])->name('download-report');
         Route::post('/create-baseline', [OutputController::class, 'createBaseline'])->name('create-baseline');

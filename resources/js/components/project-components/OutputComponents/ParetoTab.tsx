@@ -29,7 +29,7 @@ interface ParetoChartProps {
 // Custom Tooltip Component for ParetoTab
 const CustomTooltipForParetoTab = ({ active, payload }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
-        const dataPoint = payload[0].payload as ChartData; // Original data point { description, value, displayValue }
+        const dataPoint = payload[0].payload as ChartData;
         return (
             <div className="p-3 border rounded-lg shadow-md bg-background border-border">
                 <p className="mb-2 font-medium text-foreground">{dataPoint.description}</p>
@@ -46,8 +46,8 @@ const CustomTooltipForParetoTab = ({ active, payload }: TooltipProps<number, str
     return null;
 };
 
-// Custom tick component for YAxis to wrap long labels
-interface WrappedXAxisTickProps {
+// Adjusted Tick Component for X-Axis (Bottom)
+interface WrappedTickProps {
     x: number;
     y: number;
     payload: {
@@ -56,9 +56,11 @@ interface WrappedXAxisTickProps {
     width: number;
 }
 
-const WrappedYAxisTick = ({ x, y, payload, width }: WrappedXAxisTickProps) => {
-    const label = payload.value as string;
-    const maxCharsPerLine = Math.floor(width / 8); // Estimate max characters based on width
+const WrappedXAxisTick = ({ x, y, payload, width }: WrappedTickProps) => {
+    if (!payload || !payload.value) return null;
+    const label = String(payload.value);
+    // Estimate chars based on band width (roughly width of the column space)
+    const maxCharsPerLine = Math.max(10, Math.floor(width / 7)); 
     const words = label.split(' ');
     const lines: string[] = [];
     let currentLine = '';
@@ -73,11 +75,13 @@ const WrappedYAxisTick = ({ x, y, payload, width }: WrappedXAxisTickProps) => {
     });
     lines.push(currentLine.trim());
 
-    const yOffset = y - (lines.length -1)*6;
-
     return (
-        <text x={x} y={yOffset} dy={16} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize={12}>
-            {lines.map((line, index) => (<tspan key={index} x={x} dy={index > 0 ? "1.2em" : 0}>{line}</tspan>))}
+        <text x={x} y={y} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={12}>
+            {lines.map((line, index) => (
+                <tspan key={index} x={x} dy={index > 0 ? "1.1em" : 0}>
+                    {line}
+                </tspan>
+            ))}
         </text>
     );
 };
@@ -118,11 +122,12 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
     }
 
     return (
-        <div className="p-6 border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800"> {/* Consistent styling */}
-            <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 7 Highest Output and Baseline Difference</h3>
+        <div className="p-6 border rounded-lg shadow-lg border-border bg-card dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="mb-6 text-lg font-semibold text-blue-700 dark:text-blue-300">Top 10 Highest Output and Baseline Difference</h3>
             <div className="mb-4">
                 <label className="block mb-2 text-sm font-medium">Baseline Selection</label>
-                <label className="text-sm font-medium">Baseline:</label>
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Baseline:</label>
                     <Select
                         value={selectedReferenceId?.toString()}
                         onValueChange={onReferenceChange}
@@ -138,39 +143,45 @@ export function ParetoChartTab({ data, loading, references, selectedReferenceId,
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
             </div>
-            <div className="w-full h-[500px]">
+            <div className="w-full h-[700px]">
                 <ChartContainer config={chartConfig} className="w-full h-full">
                     <ResponsiveContainer>
-                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }} layout="vertical">
-                            <CartesianGrid horizontal={false} />
+                        {/* CHANGE 1: Removed layout="vertical" (defaults to horizontal layout = vertical bars) */}
+                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                            {/* CHANGE 2: Changed to vertical={false} so grid lines are horizontal */}
+                            <CartesianGrid vertical={false} />
+                            
+                            {/* CHANGE 3: XAxis now handles Categories (Description) */}
                             <XAxis
+                                dataKey="description"
+                                type="category"
+                                tickLine={false}
+                                axisLine={false}
+                                interval={0}
+                                height={120} // Added height to accommodate wrapped text
+                                tick={<WrappedXAxisTick width={100} x={0} y={0} payload={{value: ''}} />}
+                                tickMargin={30}
+                            />
+
+                            {/* CHANGE 4: YAxis now handles Numbers (Percentage) */}
+                            <YAxis
                                 type="number"
-                                //domain={[0.1, 'auto']}
                                 tickFormatter={(value) => `${value}%`}
                                 allowDecimals={false}
-                                tickMargin={10}
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                             />
-                            <YAxis
-                                dataKey="description"
-                                type="category"
-                                tickMargin={5}
-                                axisLine={false}
-                                tickLine={false}
-                                interval={0}
-                                width={150}
-                                tick={<WrappedYAxisTick width={150} x={0} y={0} payload={{value: ''}} />}
-                            />
+                            
                             <ChartTooltip cursor={false} content={<CustomTooltipForParetoTab />} />
-                            <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={4}>
+                            
+                            <Bar dataKey="displayValue" name="Value" fill="var(--chart-1)" radius={[4, 4, 0, 0]}>
                                 {chartData.map((entry, index) => (
                                     <Cell
-                                        key={`cell-${index}`} 
-                                        // If value is negative, use Red (destructive), else Blue (chart-1)
-                                        fill={entry.value < 0 ? "hsl(var(--destructive))" : "var(--chart-1)"} 
+                                        key={`cell-${index}`}
+                                        fill={entry.value < 0 ? "hsl(var(--destructive))" : "var(--chart-1)"}
                                     />
                                 ))}
                             </Bar>
