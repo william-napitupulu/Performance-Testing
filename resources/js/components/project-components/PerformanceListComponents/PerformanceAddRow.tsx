@@ -44,9 +44,9 @@ export function PerformanceAddRow({
                 </div>
             </td>
             <td className={cellClasses}>
-                <select value={newForm.status || 'Editable'} onChange={(e) => onNewFormChange('status', e.target.value)} className={inputClasses}>
-                    <option value="Editable">Editable</option>
-                    <option value="Locked">Locked</option>
+                <select value={newForm.status || 'Draft'} onChange={(e) => onNewFormChange('status', e.target.value)} className={inputClasses}>
+                    <option value="Draft">Draft</option>
+                    <option value="Finished">Finished</option>
                 </select>
             </td>
             <td className={cellClasses}>

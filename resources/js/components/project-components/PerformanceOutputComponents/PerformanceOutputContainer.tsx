@@ -1,8 +1,8 @@
+import { ToastContainer, useToast } from '@/components/ui/toast';
 import { Performance } from '@/data/mockPerformanceData';
 import { router } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { PerformanceOutputTable } from './PerformanceOutputTable';
-import { useToast, ToastContainer } from '@/components/ui/toast';
 
 interface PerformanceListContainerProps {
     initialPerformances: Performance[];
@@ -85,80 +85,81 @@ export function PerformanceOutputContainer({ initialPerformances, error }: Perfo
         setEditForm({});
     };
 
-    const handleDelete = useCallback(async (id: number) => {
-        const performance = performances.find((p) => p.id === id);
-        
-        // Check if performance exists and is editable
-        if (!performance || performance.status !== 'Editable') {
-            showError('This performance record cannot be deleted');
-            return;
-        }
+    const handleDelete = useCallback(
+        async (id: number) => {
+            const performance = performances.find((p) => p.id === id);
 
-        // Prevent multiple rapid deletions of the same item
-        if (deletingIds.has(id)) {
-            return;
-        }
+            // Check if performance exists and is editable
+            if (!performance || performance.status !== 'Draft') {
+                showError('This performance record cannot be deleted');
+                return;
+            }
 
-        // Confirm deletion
-        if (!window.confirm('Are you sure you want to delete this performance record?')) {
-            return;
-        }
+            // Prevent multiple rapid deletions of the same item
+            if (deletingIds.has(id)) {
+                return;
+            }
 
-        // Mark as being deleted
-        setDeletingIds(prev => new Set(prev).add(id));
+            // Confirm deletion
+            if (!window.confirm('Are you sure you want to delete this performance record?')) {
+                return;
+            }
 
-        // Store the item for potential rollback
-        const originalPerformances = [...performances];
-        const originalFilteredData = [...filteredData];
+            // Mark as being deleted
+            setDeletingIds((prev) => new Set(prev).add(id));
 
-        // Optimistically remove from UI immediately
-        setPerformances(prev => prev.filter(p => p.id !== id));
-        setFilteredData(prev => prev.filter(p => p.id !== id));
+            // Store the item for potential rollback
+            const originalPerformances = [...performances];
+            const originalFilteredData = [...filteredData];
 
-        try {
-            // Attempt server deletion
-            await router.delete(`/performance/${id}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Success - show success message
-                    success('Performance record deleted successfully');
-                },
-                onError: (errors) => {
-                    // Server error - rollback optimistic update
-                    setPerformances(originalPerformances);
-                    setFilteredData(originalFilteredData);
-                    
-                    const errorMessage = typeof errors === 'string' 
-                        ? errors 
-                        : 'Failed to delete performance record';
-                    showError(errorMessage);
-                },
-                onFinish: () => {
-                    // Always remove from deleting set when done
-                    setDeletingIds(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(id);
-                        return newSet;
-                    });
-                }
-            });
-        } catch (error) {
-            // Network/client error - rollback optimistic update
-            console.error('Error deleting performance:', error);
-            
-            setPerformances(originalPerformances);
-            setFilteredData(originalFilteredData);
-            
-            showError('Failed to delete performance record. Please try again.');
-            
-            // Remove from deleting set
-            setDeletingIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(id);
-                return newSet;
-            });
-        }
-    }, [performances, filteredData, deletingIds, success, showError]);
+            // Optimistically remove from UI immediately
+            setPerformances((prev) => prev.filter((p) => p.id !== id));
+            setFilteredData((prev) => prev.filter((p) => p.id !== id));
+
+            try {
+                // Attempt server deletion
+                await router.delete(`/performance/${id}`, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        // Success - show success message
+                        success('Performance record deleted successfully');
+                    },
+                    onError: (errors) => {
+                        // Server error - rollback optimistic update
+                        setPerformances(originalPerformances);
+                        setFilteredData(originalFilteredData);
+
+                        const errorMessage = typeof errors === 'string' ? errors : 'Failed to delete performance record';
+                        showError(errorMessage);
+                    },
+                    onFinish: () => {
+                        // Always remove from deleting set when done
+                        setDeletingIds((prev) => {
+                            const newSet = new Set(prev);
+                            newSet.delete(id);
+                            return newSet;
+                        });
+                    },
+                });
+            } catch (error) {
+                // Network/client error - rollback optimistic update
+                console.error('Error deleting performance:', error);
+
+                setPerformances(originalPerformances);
+                setFilteredData(originalFilteredData);
+
+                showError('Failed to delete performance record. Please try again.');
+
+                // Remove from deleting set
+                setDeletingIds((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(id);
+                    return newSet;
+                });
+            }
+        },
+        [performances, filteredData, deletingIds, success, showError],
+    );
 
     const handleEditFormChange = (field: keyof Performance, value: string | number) => {
         setEditForm((prev) => ({ ...prev, [field]: value }));

@@ -581,7 +581,7 @@ Record Components:
 • Parameters: Measured values and units
 • Thresholds: Normal operating ranges and limits
 • Schedule: Frequency and timing configuration
-• Status: Editable, Locked, or Archived states
+• Status: Draft, Finished, or Archived states
 
 Data Collection Methods:
 • Manual entry: Operator input forms
@@ -639,14 +639,14 @@ Record Listing and Search:
 
 Record Actions:
 • View: Display record details and data
-• Edit: Modify parameters and settings (if Editable)
+• Edit: Modify parameters and settings (if Draft)
 • Copy: Create new record based on existing template
 • Archive: Remove from active monitoring
 • Delete: Permanently remove record and data
 
 Status Management:
-• Editable: Records can be modified and updated
-• Locked: Records are finalized and protected
+• Draft: Records can be modified and updated
+• Finished: Records are finalized and protected
 • Status change requires appropriate permissions
 • Audit trail tracks all status changes
 
@@ -1127,7 +1127,7 @@ Available Operations:
 
 Supported Filters:
 • Date range filtering
-• Status filtering (Editable/Locked)
+• Status filtering (Draft/Finished)
 • Type filtering (Routine, Before OH, After OH, Research)
 • Unit-based filtering
 • Search by description
@@ -1164,7 +1164,7 @@ Success Response (200):
       "description": "string",
       "date_perfomance": "2023-12-01 10:30:00",
       "date_created": "2023-12-01 08:00:00",
-      "status": "Editable",
+      "status": "Draft",
       "unit_id": integer,
       "unit_name": "string",
       "type": "Routine",
@@ -1203,7 +1203,7 @@ Request Body:
 {
   "description": "string (required, max: 255)",
   "date_perfomance": "YYYY-MM-DD HH:MM:SS (required)",
-  "status": "Editable|Locked (required)",
+  "status": "Draft|Finished (required)",
   "unit_id": integer (required),
   "type": "Routine|Sebelum OH|Paska OH|Puslitbang (optional)",
   "weight": "Beban 1|Beban 2|Beban 3 (optional)"
@@ -1218,7 +1218,7 @@ Success Response (201):
     "description": "string",
     "date_perfomance": "2023-12-01 10:30:00",
     "date_created": "2023-12-01 08:00:00",
-    "status": "Editable",
+    "status": "Draft",
     "unit_id": integer,
     "unit_name": "string",
     "type": "Routine",
@@ -1250,7 +1250,7 @@ Request Body:
 {
   "description": "string (required, max: 255)",
   "date_perfomance": "YYYY-MM-DD HH:MM:SS (required)",
-  "status": "Editable|Locked (required)",
+  "status": "Draft|Finished (required)",
   "type": "Routine|Sebelum OH|Paska OH|Puslitbang (optional)",
   "weight": "Beban 1|Beban 2|Beban 3 (optional)"
 }
@@ -1264,7 +1264,7 @@ Success Response (200):
     "description": "string",
     "date_perfomance": "2023-12-01 10:30:00",
     "date_created": "2023-12-01 08:00:00",
-    "status": "Editable",
+    "status": "Draft",
     "unit_id": integer,
     "unit_name": "string",
     "type": "Routine",
@@ -2210,7 +2210,7 @@ Backup and Recovery:
 • Solution: Verify credentials, check caps lock, use password reset
 • Common causes: Typos, changed password, disabled account
 
-**AUTH-002: Account Locked**
+**AUTH-002: Account Finished**
 • Meaning: Account temporarily locked due to failed login attempts
 • Solution: Wait 15-30 minutes or contact administrator
 • Prevention: Avoid repeated failed login attempts
@@ -2520,7 +2520,7 @@ A:
 • Research: Special studies and investigative analysis
 
 **Q: Why can\'t I edit a performance record?**
-A: Records with "Locked" status cannot be edited to maintain data integrity. Only records with "Editable" status can be modified. Contact your supervisor or administrator if you need to modify a locked record.
+A: Records with "Finished" status cannot be edited to maintain data integrity. Only records with "Draft" status can be modified. Contact your supervisor or administrator if you need to modify a locked record.
 
 **Q: How far back can I view historical data?**
 A: Historical data availability depends on your organization\'s data retention policy. Typically, data is available for 2-5 years. Older data may be archived and require special access.

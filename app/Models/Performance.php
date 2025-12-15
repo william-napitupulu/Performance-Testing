@@ -62,8 +62,8 @@ class Performance extends Model
     /**
      * Status constants
      */
-    const STATUS_LOCKED = 0;
-    const STATUS_EDITABLE = 1;
+    const STATUS_FINISHED = 0;
+    const STATUS_DRAFT = 1;
     const STATUS_PROCESSING  = 2;
 
     /**
@@ -72,7 +72,7 @@ class Performance extends Model
     public function getStatusTextAttribute()
     {
         if ($this->status === self::STATUS_PROCESSING) return 'Processing';
-        return $this->status === self::STATUS_EDITABLE ? 'Editable' : 'Locked';
+        return $this->status === self::STATUS_DRAFT ? 'Draft' : 'Finished';
     }
 
     /**
@@ -80,7 +80,7 @@ class Performance extends Model
      */
     public function setStatusFromText($statusText)
     {
-        $this->status = ($statusText === 'Editable') ? self::STATUS_EDITABLE : self::STATUS_LOCKED;
+        $this->status = ($statusText === 'Draft') ? self::STATUS_DRAFT : self::STATUS_FINISHED;
     }
 
     /**
@@ -106,7 +106,7 @@ class Performance extends Model
     {
         // Handle both string and integer status values
         if (is_string($status)) {
-            $statusInt = ($status === 'Editable') ? self::STATUS_EDITABLE : self::STATUS_LOCKED;
+            $statusInt = ($status === 'Draft') ? self::STATUS_DRAFT : self::STATUS_FINISHED;
             return $query->where('status', $statusInt);
         }
         return $query->where('status', $status);
@@ -123,17 +123,17 @@ class Performance extends Model
     /**
      * Get editable performances.
      */
-    public function scopeEditable($query)
+    public function scopeDraft($query)
     {
-        return $query->where('status', self::STATUS_EDITABLE);
+        return $query->where('status', self::STATUS_DRAFT);
     }
 
     /**
-     * Get locked performances.
+     * Get finished performances.
      */
-    public function scopeLocked($query)
+    public function scopeFinished($query)
     {
-        return $query->where('status', self::STATUS_LOCKED);
+        return $query->where('status', self::STATUS_FINISHED);
     }
     
     public function outputs()

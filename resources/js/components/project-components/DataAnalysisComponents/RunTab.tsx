@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Activity, AlertCircle, BarChart3, CheckCircle, Clock, Database, Download, FileText, Play, TrendingUp, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { AnalysisData } from "./types";
+import { AnalysisData } from './types';
 
 interface SharedPerformanceData {
     description: string;
@@ -55,13 +55,13 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
 
         // 2. Configuration: Check if all tabs with manual input have all their fields filled
         // The status from the performance record. 1 means 'editable'.
-        const isEditableStatus = sharedData?.status !== 0;
+        const isDraftStatus = sharedData?.status !== 0;
 
         let allTabsConfigured = true;
         let totalInputFields = 0;
         let filledInputFields = 0;
         const missingFields: { tab: string; description: string }[] = [];
-        
+
         if (tabInputData && sharedData?.tabCount) {
             for (let i = 1; i <= sharedData.tabCount; i++) {
                 const tabKey = `tab${i}`;
@@ -73,8 +73,8 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                         if (tag.jm_input > 0) {
                             totalInputFields += tag.jm_input;
                             const allInputKeys = tabData.existing_inputs ? Object.keys(tabData.existing_inputs) : [];
-                            const matchingKeys = allInputKeys.filter(key => key.startsWith(tag.tag_no + '_'));
-                            const validFilledCount = matchingKeys.filter(key => {
+                            const matchingKeys = allInputKeys.filter((key) => key.startsWith(tag.tag_no + '_'));
+                            const validFilledCount = matchingKeys.filter((key) => {
                                 const input = tabData.existing_inputs[key];
                                 return input && input.value !== null && input.value !== undefined && input.value !== 0;
                             }).length;
@@ -109,21 +109,19 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                     // }
                 }
             }
-
-            
         }
 
         // If we have input fields but not all are filled, configuration is incomplete
         if (totalInputFields > 0 && filledInputFields < totalInputFields) {
             allTabsConfigured = false;
         }
-        
+
         // 3. Analysis: Not implemented yet, so always true for now
         const analysisReady = true;
         return {
             dataStatus: hasDataInDCS,
             configurationStatus: allTabsConfigured,
-            isEditableStatus,
+            isDraftStatus,
             analysisStatus: analysisReady,
             totalInputFields,
             filledInputFields,
@@ -132,8 +130,8 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
     }, [dcsData, tabInputData, sharedData?.tabCount, totalRecords]);
 
     // All conditions must be met to enable Run Analysis
-    const canRunAnalysis = statusChecks.dataStatus && statusChecks.configurationStatus && statusChecks.analysisStatus && statusChecks.isEditableStatus;
-    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+    const canRunAnalysis = statusChecks.dataStatus && statusChecks.configurationStatus && statusChecks.analysisStatus && statusChecks.isDraftStatus;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     const handleRunAnalysis = async () => {
         if (runLoading || !canRunAnalysis || !sharedData?.perfId) {
@@ -161,19 +159,18 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                     isComplete = true;
                     setRunResult({
                         success: true,
-                        message: 'Analysis is successful! Report Generated.'
+                        message: 'Analysis is successful! Report Generated.',
                     });
 
                     if (onRunAnalysis) onRunAnalysis();
-                }
-                else if (status === 1) {
-                    throw new Error("Analysis failed on the server. Please check logs.");
+                } else if (status === 1) {
+                    throw new Error('Analysis failed on the server. Please check logs.');
                 }
                 attempts++;
             }
-            
+
             if (!isComplete) {
-                throw new Error("Analysis timed out. It might still be running in the background.");
+                throw new Error('Analysis timed out. It might still be running in the background.');
             }
         } catch (error: unknown) {
             let errorMessage = 'An error occured while running the analysis.';
@@ -228,32 +225,32 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
     };
 
     return (
-        <div className="p-6 border rounded-b-lg border-border bg-gradient-to-br from-slate-50 to-blue-50 dark:border-gray-700 dark:from-gray-900 dark:to-blue-900/20">
+        <div className="rounded-b-lg border border-border bg-gradient-to-br from-slate-50 to-blue-50 p-6 dark:border-gray-700 dark:from-gray-900 dark:to-blue-900/20">
             {/* Header Section */}
             <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full shadow-lg bg-gradient-to-br from-red-500 to-orange-500">
-                    <Activity className="w-8 h-8 text-white" />
+                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 shadow-lg">
+                    <Activity className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="mb-2 text-3xl font-bold text-gray-800 dark:text-white">Performance Analysis</h2>
-                <p className="max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
+                <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-400">
                     Execute comprehensive analysis with all configured parameters and export detailed results for further evaluation.
                 </p>
             </div>
 
             {/* Status Cards */}
-            <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
+            <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Data Status Card */}
-                <div className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-lg rounded-xl hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg dark:bg-blue-900/30">
-                                <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                                <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-800 dark:text-white">Data Status</h3>
                             </div>
                         </div>
-                        {statusChecks.dataStatus ? <CheckCircle className="w-6 h-6 text-green-500" /> : <XCircle className="w-6 h-6 text-red-500" />}
+                        {statusChecks.dataStatus ? <CheckCircle className="h-6 w-6 text-green-500" /> : <XCircle className="h-6 w-6 text-red-500" />}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                         {statusChecks.dataStatus
@@ -263,20 +260,20 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                 </div>
 
                 {/* Configuration Status Card */}
-                <div className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-lg rounded-xl hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg dark:bg-purple-900/30">
-                                <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                                <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-800 dark:text-white">Configuration</h3>
                             </div>
                         </div>
                         {statusChecks.configurationStatus ? (
-                            <CheckCircle className="w-6 h-6 text-green-500" />
+                            <CheckCircle className="h-6 w-6 text-green-500" />
                         ) : (
-                            <XCircle className="w-6 h-6 text-red-500" />
+                            <XCircle className="h-6 w-6 text-red-500" />
                         )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -295,20 +292,20 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                 </div>
 
                 {/* Analysis Status Card */}
-                <div className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-lg rounded-xl hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg dark:bg-green-900/30">
-                                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-800 dark:text-white">Analysis</h3>
                             </div>
                         </div>
                         {statusChecks.analysisStatus ? (
-                            <CheckCircle className="w-6 h-6 text-green-500" />
+                            <CheckCircle className="h-6 w-6 text-green-500" />
                         ) : (
-                            <XCircle className="w-6 h-6 text-red-500" />
+                            <XCircle className="h-6 w-6 text-red-500" />
                         )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -319,7 +316,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
 
             {/* Conditions Warning */}
             {showMissingDetails && (
-                <div className="p-4 mb-8 border-l-4 border-orange-500 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 dark:border-orange-400 dark:from-orange-900/20 dark:to-red-900/20">
+                <div className="mb-8 rounded-lg border-l-4 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 p-4 dark:border-orange-400 dark:from-orange-900/20 dark:to-red-900/20">
                     <div className="flex items-start gap-3">
                         <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
                         <div>
@@ -330,7 +327,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                             <ul className="mt-2 space-y-1 text-sm text-orange-700 dark:text-orange-300">
                                 {!statusChecks.dataStatus && <li>• Load performance data into DATA DCS</li>}
                                 {!statusChecks.analysisStatus && <li>• Ensure analysis engine is ready</li>}
-                                {!statusChecks.isEditableStatus && <li>• Performance status must be 'Editable'. Save manual input to change status.</li>}
+                                {!statusChecks.isDraftStatus && <li>• Performance status must be 'Draft'. Save manual input to change status.</li>}
                                 {!statusChecks.configurationStatus && (
                                     <li>
                                         Complete all manual input fields. Missing:
@@ -340,9 +337,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                                                     <span className="font-semibold">{field.tab}:</span> {field.description}
                                                 </li>
                                             ))}
-                                            {statusChecks.missingFields.length > 5 && (
-                                                <li>...and {statusChecks.missingFields.length - 5} more</li>
-                                            )}
+                                            {statusChecks.missingFields.length > 5 && <li>...and {statusChecks.missingFields.length - 5} more</li>}
                                         </ul>
                                     </li>
                                 )}
@@ -354,10 +349,10 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
 
             {/* Performance Summary */}
             {sharedData?.perfId && (
-                <div className="p-6 mb-8 border border-blue-200 shadow-lg rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-700/50 dark:from-blue-900/20 dark:to-indigo-900/20">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="flex items-center justify-center w-10 h-10 bg-blue-500 rounded-lg">
-                            <FileText className="w-5 h-5 text-white" />
+                <div className="mb-8 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-lg dark:border-blue-700/50 dark:from-blue-900/20 dark:to-indigo-900/20">
+                    <div className="mb-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500">
+                            <FileText className="h-5 w-5 text-white" />
                         </div>
                         <h3 className="text-xl font-semibold text-blue-700 dark:text-blue-300">Current Performance Test</h3>
                     </div>
@@ -369,7 +364,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                                 <span className="text-sm text-gray-700 dark:text-gray-300">{sharedData.description}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-blue-500" />
+                                <Clock className="h-4 w-4 text-blue-500" />
                                 <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Date/Time:</span>
                                 <span className="text-sm text-gray-700 dark:text-gray-300">
                                     {new Date(sharedData.dateTime).toLocaleString('en-US', {
@@ -387,14 +382,14 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Performance ID:</span>
-                                <span className="px-2 py-1 font-mono text-sm text-blue-700 bg-blue-100 rounded dark:bg-blue-900/30 dark:text-blue-300">
+                                <span className="rounded bg-blue-100 px-2 py-1 font-mono text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                     #{sharedData.perfId}
                                 </span>
                             </div>
                             {sharedData.tabCount && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Active Tabs:</span>
-                                    <span className="px-2 py-1 text-sm text-blue-700 bg-blue-100 rounded dark:bg-blue-900/30 dark:text-blue-300">
+                                    <span className="rounded bg-blue-100 px-2 py-1 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                         {sharedData.tabCount} tabs
                                     </span>
                                 </div>
@@ -405,7 +400,7 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
             )}
 
             {/* Action Section */}
-            <div className="p-8 bg-white border border-gray-200 shadow-lg rounded-xl dark:border-gray-700 dark:bg-gray-800">
+            <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                 <div className="mb-6 text-center">
                     <h3 className="mb-2 text-2xl font-bold text-gray-800 dark:text-white">
                         {canRunAnalysis ? 'Ready to Execute' : 'Prerequisites Required'}
@@ -429,12 +424,12 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                     >
                         {runLoading ? (
                             <>
-                            <div className="w-5 h-5 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
-                            <span>Running...</span>
+                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                <span>Running...</span>
                             </>
                         ) : (
                             <>
-                                <Play className="w-5 h5"/>
+                                <Play className="h5 w-5" />
                                 <span>{canRunAnalysis ? 'Run Analysis' : 'Requirements Not Met'}</span>
                             </>
                         )}
@@ -446,16 +441,16 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                         className="group relative flex min-w-[200px] transform items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-700 hover:to-green-800 hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 disabled:shadow-lg"
                     >
                         {!exportLoading && (
-                            <div className="absolute inset-0 transition-opacity duration-300 opacity-25 rounded-xl bg-gradient-to-r from-green-400 to-green-600 blur group-hover:opacity-40"></div>
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-400 to-green-600 opacity-25 blur transition-opacity duration-300 group-hover:opacity-40"></div>
                         )}
                         {exportLoading ? (
                             <>
-                                <div className="relative z-10 w-5 h-5 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+                                <div className="relative z-10 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                                 <span className="relative z-10">Exporting...</span>
                             </>
                         ) : (
                             <>
-                                <Download className="relative z-10 w-5 h-5" />
+                                <Download className="relative z-10 h-5 w-5" />
                                 <span className="relative z-10">Export to Excel</span>
                             </>
                         )}
@@ -472,20 +467,16 @@ export function RunTab({ onRunAnalysis, sharedData, dcsData, tabInputData, total
                                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                             }`}
                         >
-                            {runResult.success ? (
-                                <CheckCircle className="w-5 h-5" />
-                            ) : (
-                                <XCircle className="w-5 h-5" />
-                            )}
+                            {runResult.success ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                             <span>{runResult.message}</span>
                         </div>
                     </div>
                 )}
 
                 {/* Information Footer */}
-                <div className="pt-6 mt-8 border-t border-gray-200 dark:border-gray-700">
+                <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
                     <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="h-4 w-4" />
                         <span>
                             {canRunAnalysis
                                 ? 'All prerequisites satisfied - analysis ready to execute'

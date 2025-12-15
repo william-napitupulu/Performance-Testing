@@ -75,7 +75,7 @@ class PerformanceService
             'description' => $request->description,
             'date_perfomance' => $request->dateTime,
             'date_created' => now(),
-            'status' => Performance::STATUS_EDITABLE,
+            'status' => Performance::STATUS_DRAFT,
             'unit_id' => $selectedUnit,
             'type' => $request->type,
             'weight' => $request->weight,

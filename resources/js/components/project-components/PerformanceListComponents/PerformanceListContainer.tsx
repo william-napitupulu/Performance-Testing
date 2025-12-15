@@ -1,10 +1,10 @@
+import { ToastContainer, useToast } from '@/components/ui/toast';
 import { Performance } from '@/data/mockPerformanceData';
 import { getCurrentDateString } from '@/utils';
 import { router } from '@inertiajs/react';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PerformanceListActions } from './PerformanceListActions';
 import { PerformanceListTable } from './PerformanceListTable';
-import { useToast, ToastContainer } from '@/components/ui/toast';
 
 interface PerformanceListContainerProps {
     initialPerformances: Performance[];
@@ -22,7 +22,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [newForm, setNewForm] = useState<Partial<Performance>>({
         description: '',
-        status: 'Editable' as const,
+        status: 'Draft' as const,
         date_perfomance: getCurrentDateString(),
         unit_id: selectedUnit || 1,
     });
@@ -104,53 +104,56 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
         setEditForm({});
     };
 
-    const handleDelete = useCallback((id: number) => {
-        // Check if performance is deletable based on frontend data (good for UX)
-        const performance = initialPerformances.find((p) => p.id === id);
-        if (performance?.status !== 'Editable') {
-            showError('Locked records cannot be deleted.');
-            return;
-        }
-        // Proactive check based on the new 'reference_exists' flag from the backend
-        if (performance?.reference_exists) {
-            showError('Cannot delete: This performance is used as a baseline.');
-            return;
-        }
-
-        if (!window.confirm('Are you sure you want to delete this performance record?')) {
-            return;
-        }
-
-        // Use Inertia's router with its built-in callbacks
-        router.delete(route('performance.destroy', id), {
-            preserveScroll: true,
-            // onStart is called when the request begins
-            onStart: () => {
-                setDeletingIds(prev => new Set(prev).add(id));
-            },
-            // onSuccess is ONLY called if the server responds with success
-            onSuccess: (page) => {
-                if (page.props.flash?.error) {
-                    showError(page.props.flash.error as string);
-                } else {
-                    success('Performance record is deleted successfully.');
-                }
-                // Inertia will automatically reload the 'performances' prop with the updated list
-            },
-            // onError is ONLY called if the server responds with an error
-            onError: () => {
-                showError('An unexpected error occurred while deleting the record.');
-            },
-            // onFinish is ALWAYS called after the request completes (success or error)
-            onFinish: () => {
-                setDeletingIds(prev => {
-                    const newSet = new Set(prev);
-                    newSet.delete(id);
-                    return newSet;
-                });
+    const handleDelete = useCallback(
+        (id: number) => {
+            // Check if performance is deletable based on frontend data (good for UX)
+            const performance = initialPerformances.find((p) => p.id === id);
+            if (performance?.status !== 'Draft') {
+                showError('Finished records cannot be deleted.');
+                return;
             }
-        });
-    }, [initialPerformances, success, showError]); // Dependencies for the useCallback hook
+            // Proactive check based on the new 'reference_exists' flag from the backend
+            if (performance?.reference_exists) {
+                showError('Cannot delete: This performance is used as a baseline.');
+                return;
+            }
+
+            if (!window.confirm('Are you sure you want to delete this performance record?')) {
+                return;
+            }
+
+            // Use Inertia's router with its built-in callbacks
+            router.delete(route('performance.destroy', id), {
+                preserveScroll: true,
+                // onStart is called when the request begins
+                onStart: () => {
+                    setDeletingIds((prev) => new Set(prev).add(id));
+                },
+                // onSuccess is ONLY called if the server responds with success
+                onSuccess: (page) => {
+                    if (page.props.flash?.error) {
+                        showError(page.props.flash.error as string);
+                    } else {
+                        success('Performance record is deleted successfully.');
+                    }
+                    // Inertia will automatically reload the 'performances' prop with the updated list
+                },
+                // onError is ONLY called if the server responds with an error
+                onError: () => {
+                    showError('An unexpected error occurred while deleting the record.');
+                },
+                // onFinish is ALWAYS called after the request completes (success or error)
+                onFinish: () => {
+                    setDeletingIds((prev) => {
+                        const newSet = new Set(prev);
+                        newSet.delete(id);
+                        return newSet;
+                    });
+                },
+            });
+        },
+        [initialPerformances, success, showError],
+    ); // Dependencies for the useCallback hook
 
     const handleAddNew = async () => {
         if (!newForm.description?.trim()) {
@@ -180,7 +183,7 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
     const handleCancelAdd = () => {
         setNewForm({
             description: '',
-            status: 'Editable' as const,
+            status: 'Draft' as const,
             date_perfomance: getCurrentDateString(),
             unit_id: selectedUnit || 1,
         });
@@ -200,14 +203,14 @@ export function PerformanceListContainer({ initialPerformances, selectedUnit, se
     };
 
     return (
-        <div className="p-6 bg-background">
+        <div className="bg-background p-6">
             {error && (
-                <div className="p-4 mb-4 border border-red-200 rounded-lg shadow-sm bg-red-50 dark:border-red-800/50 dark:bg-red-900/10">
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-800/50 dark:bg-red-900/10">
                     <div className="text-red-700 dark:text-red-300">{error}</div>
                 </div>
             )}
 
-            <div className="p-4 mb-4 border border-blue-200 rounded-lg shadow-sm bg-blue-50 dark:border-blue-800/50 dark:bg-blue-900/10">
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-800/50 dark:bg-blue-900/10">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Performance Test List</h2>

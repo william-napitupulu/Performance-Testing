@@ -95,7 +95,7 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
 
     return (
         <tr className="overflow-visible border-b bg-blue-50/30 dark:border-gray-800 dark:bg-blue-900/10">
-            <td className="px-4 py-3 w-30">
+            <td className="w-30 px-4 py-3">
                 <Input
                     type="text"
                     value={searchValues.id}
@@ -120,19 +120,19 @@ export function PerformanceListFilters({ performances, onFilteredDataChange }: P
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Editable">Editable</SelectItem>
-                        <SelectItem value="Locked">Locked</SelectItem>
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Finished">Finished</SelectItem>
                     </SelectContent>
                 </Select>
             </td>
-            <td className="px-6 py-3 overflow-visible">
+            <td className="overflow-visible px-6 py-3">
                 <CalendarDropdown
                     value={searchValues.date_perfomance}
                     placeholder="Select performance date..."
                     onChange={(date) => handleChange('date_perfomance', date)}
                 />
             </td>
-            <td className="px-6 py-3 overflow-visible">
+            <td className="overflow-visible px-6 py-3">
                 <CalendarDropdown
                     value={searchValues.date_created}
                     placeholder="Select created date..."

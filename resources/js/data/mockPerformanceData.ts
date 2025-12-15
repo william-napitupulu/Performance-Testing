@@ -4,7 +4,7 @@ export interface Performance {
     description: string;
     date_perfomance: string;
     date_created: string;
-    status: 'Editable' | 'Locked';
+    status: 'Draft' | 'Finished';
     unit_id: number;
     unit_name?: string; // Optional for backward compatibility
     type?: string; // Type field
@@ -20,7 +20,7 @@ export interface Performance {
 //         description: 'Boiler Efficiency Performance Check',
 //         date_perfomance: '2024-12-25',
 //         date_created: '2024-12-25 14:30:00',
-//         status: 'Editable',
+//         status: 'Draft',
 //         unit_id: 1,
 //     },
 //     {
@@ -28,7 +28,7 @@ export interface Performance {
 //         description: 'Turbine Performance Analysis',
 //         date_perfomance: '2024-12-24',
 //         date_created: '2024-12-24 09:15:00',
-//         status: 'Locked',
+//         status: 'Finished',
 //         unit_id: 1,
 //     },
 //     {
@@ -36,7 +36,7 @@ export interface Performance {
 //         description: 'Generator Load Test Performance',
 //         date_perfomance: '2024-12-23',
 //         date_created: '2024-12-23 16:45:00',
-//         status: 'Editable',
+//         status: 'Draft',
 //         unit_id: 1,
 //     },
 //     {
@@ -44,7 +44,7 @@ export interface Performance {
 //         description: 'Steam Cycle Performance Evaluation',
 //         date_perfomance: '2024-12-22',
 //         date_created: '2024-12-22 11:20:00',
-//         status: 'Locked',
+//         status: 'Finished',
 //         unit_id: 1,
 //     },
 //     {
@@ -52,7 +52,7 @@ export interface Performance {
 //         description: 'Heat Rate Performance Test',
 //         date_perfomance: '2024-12-21',
 //         date_created: '2024-12-21 08:00:00',
-//         status: 'Editable',
+//         status: 'Draft',
 //         unit_id: 1,
 //     },
 // ];

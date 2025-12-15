@@ -60,8 +60,8 @@ export function PerformanceTableRow({
                 </td>
                 <td className={cellClasses}>
                     <select value={editForm.status || ''} onChange={(e) => onEditFormChange('status', e.target.value)} className={inputClasses}>
-                        <option value="Editable">Editable</option>
-                        <option value="Locked">Locked</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Finished">Finished</option>
                     </select>
                 </td>
                 <td className={cellClasses}>
@@ -111,21 +111,21 @@ export function PerformanceTableRow({
     }
 
     return (
-        <tr className={`transition-all duration-300 ${
-            isDeleting 
-                ? 'opacity-50 bg-red-50 dark:bg-red-900/10 animate-pulse' 
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-        }`}>
+        <tr
+            className={`transition-all duration-300 ${
+                isDeleting ? 'animate-pulse bg-red-50 opacity-50 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+            }`}
+        >
             <td className={`${cellClasses} w-20 px-4 text-center`}>
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300">
                     {performance.id}
                 </span>
             </td>
             <td className={`${cellClasses} font-medium text-blue-700 dark:text-blue-300`}>{performance.description}</td>
-            <td className={cellClasses}>
+            <td className={`${cellClasses} text-center`}>
                 <span
                     className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                        performance.status === 'Editable'
+                        performance.status === 'Draft'
                             ? 'bg-green-100 text-green-700 ring-1 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-400/30'
                             : 'bg-red-100 text-red-700 ring-1 ring-red-600/20 dark:bg-red-900/30 dark:text-red-400 dark:ring-red-400/30'
                     }`}
@@ -142,7 +142,7 @@ export function PerformanceTableRow({
                 {performance.outputs_exists && (
                     <button
                         onClick={() => onDetail(performance)}
-                        className={`inline-flex px-2 py-1 items-center justify-center rounded transition-colors ${'text-green-100 bg-green-600 hover:bg-green-500 hover:text-green-100 dark:text-green-100 dark:hover:bg-green-700 dark:hover:text-white'}`}
+                        className={`inline-flex items-center justify-center rounded px-2 py-1 transition-colors ${'bg-green-600 text-green-100 hover:bg-green-500 hover:text-green-100 dark:text-green-100 dark:hover:bg-green-700 dark:hover:text-white'}`}
                     >
                         Output
                     </button>
@@ -151,15 +151,15 @@ export function PerformanceTableRow({
             <td className={`${cellClasses} space-x-2 text-center`}>
                 <button
                     onClick={() => onEdit(performance)}
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300`}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300`}
                 >
                     <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                     onClick={() => onDelete(performance.id)}
-                    disabled={performance.status !== 'Editable' || isDeleting}
+                    disabled={performance.status !== 'Draft' || isDeleting}
                     className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                        performance.status === 'Editable' && !isDeleting
+                        performance.status === 'Draft' && !isDeleting
                             ? 'text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300'
                             : 'cursor-not-allowed text-gray-400'
                     }`}

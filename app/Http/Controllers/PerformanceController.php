@@ -86,7 +86,7 @@ class PerformanceController extends Controller
         $request->validate([
             'description' => 'required|string|max:255',
             'date_perfomance' => 'required|date',
-            'status' => 'required|in:Editable,Locked',
+            'status' => 'required|in:Draft,Finished',
             'type' => 'nullable|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
             'weight' => 'nullable|string|in:Beban 1,Beban 2,Beban 3',
         ]);
@@ -102,7 +102,7 @@ class PerformanceController extends Controller
                 'description' => $request->description,
                 'date_perfomance' => $request->date_perfomance,
                 'date_created' => now(),
-                'status' => $request->status === 'Editable' ? Performance::STATUS_EDITABLE : Performance::STATUS_LOCKED,
+                'status' => $request->status === 'Draft' ? Performance::STATUS_DRAFT : Performance::STATUS_FINISHED,
                 'unit_id' => $selectedUnit,
                 'type' => $request->type,
                 'weight' => $request->weight,
@@ -151,7 +151,7 @@ class PerformanceController extends Controller
         $request->validate([
             'description' => 'required|string|max:255',
             'date_perfomance' => 'required|date',
-            'status' => 'required|in:Editable,Locked',
+            'status' => 'required|in:Draft,Finished',
             'type' => 'nullable|string|in:Rutin,Sebelum OH,Paska OH,Puslitbang',
             'weight' => 'nullable|string|in:Beban 1,Beban 2,Beban 3',
         ]);
@@ -165,15 +165,15 @@ class PerformanceController extends Controller
 
             $performance = Performance::forUnit($selectedUnit)->findOrFail($id);
 
-            // Only allow editing if status is Editable
-            if ($performance->status !== Performance::STATUS_EDITABLE) {
-                return response()->json(['error' => 'Cannot edit locked performance record'], 403);
+            // Only allow editing if status is Draft
+            if ($performance->status !== Performance::STATUS_DRAFT) {
+                return response()->json(['error' => 'Cannot edit finished performance record'], 403);
             }
 
             $performance->update([
                 'description' => $request->description,
                 'date_perfomance' => $request->date_perfomance,
-                'status' => $request->status === 'Editable' ? Performance::STATUS_EDITABLE : Performance::STATUS_LOCKED,
+                'status' => $request->status === 'Draft' ? Performance::STATUS_DRAFT : Performance::STATUS_FINISHED,
                 'type' => $request->type,
                 'weight' => $request->weight,
             ]);
@@ -236,8 +236,8 @@ class PerformanceController extends Controller
                 return redirect()->back()->with('error', 'Cannot delete: This performance record is used as a baseline.');
             }
 
-            // Only allow deleting if status is Editable
-            if ($performance->status !== Performance::STATUS_EDITABLE) {
+            // Only allow deleting if status is Draft
+            if ($performance->status !== Performance::STATUS_DRAFT) {
                 return redirect()->back()->with('error', 'Cannot delete locked performance record');
             }
 

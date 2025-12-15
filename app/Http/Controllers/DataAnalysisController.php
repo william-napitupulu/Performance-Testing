@@ -394,7 +394,7 @@ class DataAnalysisController extends Controller
                 $perfId = $request->data[0]['perf_id'];
                 $performance = Performance::find($perfId);
                 if ($performance) {
-                    $performance->status = Performance::STATUS_EDITABLE;
+                    $performance->status = Performance::STATUS_DRAFT;
                     $performance->save();
                     Log::info('Performance status updated to editable', ['perf_id' => $perfId]);
                 }
