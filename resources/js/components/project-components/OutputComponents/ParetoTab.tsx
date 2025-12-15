@@ -33,14 +33,13 @@ const CustomTooltipForParetoTab = ({ active, payload }: TooltipProps<number, str
         return (
             <div className="p-3 border rounded-lg shadow-md bg-background border-border">
                 <p className="mb-2 font-medium text-foreground">{dataPoint.description}</p>
-                {payload.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">{entry.name}:</span>
-                        <span className={`font-semibold ${dataPoint.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {dataPoint.value.toFixed(2)}%
-                        </span>
-                    </div>
-                ))}
+                <div className="flex items-center gap-2 pt-1 mt-1 text-sm border-t">
+                    <span className="text-muted-foreground">Difference:</span>
+                    <span className="font-semibold text-foreground">
+                        {dataPoint.real_difference > 0 ? '+' : ''}
+                        {dataPoint.real_difference.toLocaleString()}
+                    </span>
+                </div>
             </div>
         );
     }
