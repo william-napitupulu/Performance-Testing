@@ -103,7 +103,7 @@ class PerformanceService
 
         $database = Unit::findOrFail($selectedUnit)->database;
 
-        $apiUrl = "http://10.7.146.115/get-data/get-dcs2.php?perf_id={$perfId}&database={$database}&tgl=" . urlencode($datetime);
+        $apiUrl = "http://10.7.146.115/get-data/get-dcs2.php?perf_id={$perfId}&database={$database}&unit={$selectedUnit}&tgl=" . urlencode($datetime);
         
         $response = Http::timeout(30)->post($apiUrl);
         if (!$response->successful()) {
